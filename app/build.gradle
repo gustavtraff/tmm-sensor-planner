@@ -1,0 +1,72 @@
+buildscript {
+    def sdkDirectory = System.getenv('TMM_ATAK_SDK_DIR')
+    if (!sdkDirectory || !new File(sdkDirectory, 'atak-gradle-takdev.jar').isFile()) {
+        throw new GradleException('Set TMM_ATAK_SDK_DIR to the inspected ATAK-CIV 5.6.0 SDK directory.')
+    }
+    dependencies {
+        classpath files(new File(sdkDirectory, 'atak-gradle-takdev.jar'))
+    }
+}
+
+plugins {
+    id 'com.android.application'
+}
+
+ext.set('sdk.path', System.getenv('TMM_ATAK_SDK_DIR'))
+ext.ATAK_VERSION = '5.6.0'
+ext.PLUGIN_VERSION = '0.1.0'
+ext.isDevKitEnabled = { false }
+ext.takrepoUrl = 'https://localhost/'
+ext.takrepoUser = ''
+ext.takrepoPassword = ''
+apply plugin: 'atak-takdev-plugin'
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    namespace 'se.tmm.sensorplanner.plugin'
+    compileSdk 36
+    buildToolsVersion '35.0.0'
+
+    bundle {
+        storeArchive {
+            enable = false
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+    defaultConfig {
+        applicationId 'se.tmm.sensorplanner.plugin'
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName '0.1.0-dev'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    flavorDimensions 'distribution'
+    productFlavors {
+        civ {
+            dimension 'distribution'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'src/main/proguard-rules.pro'
+        }
+    }
+}

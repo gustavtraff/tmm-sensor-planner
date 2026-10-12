@@ -49,10 +49,10 @@ copying SDK-derived files into this public repository.
 | Developer app | Manifest: `5.6.0.24 (7f2055b0)`, versionCode `1789391081`, package `com.atakmap.app.civ`; installation/load not tested |
 | Guide | `ATAK_Plugin_Development_Guide.pdf` is present |
 | SDK identifier | `7f2055b (1789391081)` from VERSION.txt |
-| Java source/target | 17 in the HelloWorld sample; exact runtime/toolchain verification pending |
-| Gradle | 8.14.3-all from the HelloWorld wrapper; distribution checksum still to pin |
+| Java source/target | 17 in the HelloWorld sample; local build passed with Temurin 17.0.20.1+1 |
+| Gradle | 8.14.3-all from the HelloWorld wrapper; distribution SHA-256 pinned below |
 | Android Gradle Plugin | 8.13.0 from the HelloWorld root build.gradle |
-| Android SDK | HelloWorld compileSdk 36, minSdk 21, targetSdk 34; installation/build-tools pinning pending |
+| Android SDK | HelloWorld compileSdk 36, minSdk 21, targetSdk 34; local platform 36 and build-tools 35.0.0 installed and used |
 | SDK plugin build tool | takdevVersion 3.6.0, Git-Version 853d6ffa from its JAR manifest |
 | Plugin API | `ATAK_VERSION = '5.6.0'` in the HelloWorld app build.gradle |
 | Phone and companion plugins | Owner-reported versions in [RELEASES.md](RELEASES.md); coexistence not tested |
@@ -86,5 +86,39 @@ the HelloWorld plugin sample's targetSdk 34.
 The SDK's LICENSE-atak-civ.txt restricts SDK copying/publication/distribution.
 It has been read; this does not establish permission to distribute SDK-derived
 project files or a release APK. No SDK binaries, guide, sample code or signing
-material have been copied into this repository. A project license and the final
+material are versioned in this repository. SDK tooling may stage private inputs
+in ignored build/cache directories. A project license and the final
 plugin distribution path remain separate decisions.
+
+## Build the minimal development plugin
+
+Prerequisites: JDK 17, Android SDK platform 36 and build-tools 35.0.0, and the
+inspected external ATAK-CIV 5.6.0.24 SDK. Set the local paths without committing them:
+
+```sh
+export JAVA_HOME=/path/to/jdk-17
+export ANDROID_HOME=/path/to/android-sdk
+export TMM_ATAK_SDK_DIR=/path/to/ATAK-CIV-5.6.0.24-SDK
+./gradlew :app:assembleCivDebug :app:lintCivDebug
+python3 scripts/check-plugin-apk.py app/build/outputs/apk/civ/debug/app-civ-debug.apk
+```
+
+Alternatively, use ignored local.properties for Android's sdk.dir. TMM_ATAK_SDK_DIR
+is required for the external SDK plugin tool. No TAK repository account is needed
+for this local SDK build. The dummy localhost repository settings satisfy the
+SDK tool's local-mode contract; Maven dependencies come from Google/Maven Central.
+
+The wrapper pins Gradle 8.14.3-bin with SHA-256
+`bd71102213493060956ec229d946beee57158dbd89d0e62b91bca0fa2c5f3531`.
+AGP is pinned to 8.13.0 and build-tools to 35.0.0. The supplied PDF guide still names
+JDK 11; the actual supplied sample/build tooling uses Java 17, which was verified locally.
+
+Local evidence on 2026-10-12: assembleCivDebug and lintCivDebug passed, with zero lint
+errors. The APK signature verifies as Android Debug. The artifact check confirms the
+expected API/discovery registration, no permissions and no bundled JAR/key files.
+This does not prove loading in ATAK or production signing. The first development
+toolchain is staged temporarily outside Git; configure durable local paths for repeated use.
+
+APK: app/build/outputs/apk/civ/debug/app-civ-debug.apk (ignored by Git).
+Issue #3 remains open until installation/load and toolbar/unload behavior are verified.
+Public CI runs the SDK-independent checks; the local SDK build is separate evidence.

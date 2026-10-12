@@ -4,7 +4,8 @@ Intended chain: domain model → local storage → local map representation →
 explicit publishing adapter → verified ATAK/CoT route.
 
 Implemented: core/ with plain Java for drafts, validation and distances.
-app/ reserves space for an Android plugin verified against the SDK. Storage,
+app/ now contains a minimal loading probe compiled against the external 5.6.0.24 SDK.
+Its toolbar entry uses verified SDK interface signatures; actual host loading is untested. Storage,
 ATAK adapters, map objects, attachment transport and networking code do not exist yet.
 
 Accepted SDK target: ATAK-CIV API 5.6.0 ([ADR 0002](decisions/0002-atak-5.6-target.md), 2026-10-12).

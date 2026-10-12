@@ -4,8 +4,9 @@ Initial project setup for an ATAK-CIV plugin for local planning of TMM devices.
 **Compatibility target: ATAK-CIV 5.6.0; not yet verified.**
 
 The repository currently contains an SDK-independent Java core for local drafts,
-validation, and horizontal map distances. There is no installable Android app,
-map integration, persistent storage, or sharing yet.
+validation, and horizontal map distances, plus a locally built minimal development
+APK. ATAK loading is unverified; map integration, persistent storage and sharing
+are not implemented.
 
 ## Getting started
 
@@ -24,6 +25,7 @@ The tests require no external libraries or ATAK SDK.
 - [Feasibility backlog](docs/BACKLOG.md)
 - [Testing](docs/TESTING.md)
 
-The next deliverable is a minimal plugin built with the official 5.6.0 SDK.
+The minimal plugin now builds against the local 5.6.0.24 SDK. Its next gate is
+installation and loading in the SDK developer app.
 APIs, local map privacy, and the sharing path must be verified before integration.
 Only synthetic test data belongs in this repository. The license decision is pending.

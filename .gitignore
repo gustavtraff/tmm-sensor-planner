@@ -2,6 +2,9 @@
 .idea/
 .vscode/
 .gradle/
+.takdev/
+app/libs/
+android_keystore
 build/
 **/build/
 local.properties
