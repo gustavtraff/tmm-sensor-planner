@@ -12,10 +12,11 @@ Hardware control, telemetry, optimization, radio/coverage modeling and a dedicat
 are outside the first version. Distance says nothing about radio links or terrain.
 
 The initial core implements parts of F01/F02/F03/F07/F08, without a user interface.
-Minimum catalog: gateway, pir, scout. Proposed status catalog: planned, deployed,
+Accepted display names: Mini, Scout, PIR and Gateway, selected on 2026-10-12.
+See [the device catalogue](DEVICE_CATALOGUE.md). Proposed status catalog: planned, deployed,
 active, retrieved, cancelled. Status transitions have not been decided.
 
-Open decisions: catalog, ID/owner standards, status transitions, automatic deployment time,
+Open decisions: Mini symbol mapping, ID/owner standards, status transitions, automatic deployment time,
 bearing reference/display, which statuses count when finding the nearest device,
 image size limit/EXIF, target channel and editing other users' objects.
 See [provisional core choices](decisions/0001-sdk-independent-core.md).

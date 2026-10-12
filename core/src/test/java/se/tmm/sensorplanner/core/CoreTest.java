@@ -29,6 +29,12 @@ public final class CoreTest {
         rejects(() -> new Position(0, -181));
         rejects(() -> TmmDraft.create(" ", DeviceType.PIR, "TEST", new Position(0, 0), NOW));
         rejects(() -> TmmDraft.create("TEST-1", DeviceType.PIR, "", new Position(0, 0), NOW));
+        assert DeviceType.MINI.displayName.equals("Mini");
+        assert DeviceType.SCOUT.displayName.equals("Scout");
+        assert DeviceType.PIR.displayName.equals("PIR");
+        assert DeviceType.GATEWAY.displayName.equals("Gateway");
+        draft(1, DeviceType.MINI, 0, null);
+        rejects(() -> draft(1, DeviceType.MINI, 0, 90.0));
         draft(1, DeviceType.PIR, 0, 0.0);
         draft(1, DeviceType.SCOUT, 0, 359.99);
         rejects(() -> draft(1, DeviceType.PIR, 0, 360.0));
@@ -77,6 +83,10 @@ public final class CoreTest {
         assert !DistanceCalculator.nearestOther(gateway, Collections.singletonList(sameUidElsewhere)).isPresent();
         assert DistanceCalculator.otherGateways(gateway, Collections.emptyList()).isEmpty();
         rejects(() -> DistanceCalculator.otherGateways(pir, drafts));
+        TmmDraft mini = draft(6, DeviceType.MINI, 0.25, null);
+        assert DistanceCalculator.nearestOther(gateway, Arrays.asList(gateway, pir, mini))
+                .get().draft.uid.equals(mini.uid);
+        assert DistanceCalculator.otherGateways(gateway, Arrays.asList(gateway, mini)).isEmpty();
         TmmDraft movedPir = draft(4, DeviceType.PIR, 3, 0.0);
         assert DistanceCalculator.nearestOther(gateway, Arrays.asList(gateway, nearGateway, movedPir))
                 .get().draft.uid.equals(nearGateway.uid);

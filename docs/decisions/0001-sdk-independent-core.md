@@ -21,3 +21,6 @@ Update, 2026-10-12: the user approved API 5.6.0 as the active target in
 5.6.0.24 now contains an app, guide and JARs; the phone is reported as full build
 5.6.0.12. This supersedes the SDK availability/target assumption above, while
 the SDK-independent core decision and verification gates remain in effect.
+
+The original provisional type list is superseded by the owner-selected Mini, Scout,
+PIR and Gateway catalogue in [DEVICE_CATALOGUE.md](../DEVICE_CATALOGUE.md).
