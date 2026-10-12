@@ -54,6 +54,7 @@ public final class CoreTest {
         Position origin = new Position(0, 0);
         assert DistanceCalculator.meters(origin, origin) == 0;
         near(DistanceCalculator.meters(origin, new Position(0, 1)), 111195.08, 0.1);
+        near(DistanceCalculator.meters(origin, new Position(1, 0)), 111195.08, 0.1);
         near(DistanceCalculator.meters(new Position(0, 179.9), new Position(0, -179.9)), 22239.02, 0.1);
         near(DistanceCalculator.meters(new Position(90, 0), new Position(90, 180)), 0, 0.001);
         near(DistanceCalculator.meters(origin, new Position(0, 180)), 20015114.44, 0.1);

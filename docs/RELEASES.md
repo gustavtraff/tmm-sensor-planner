@@ -1,15 +1,15 @@
-# Release
+# Releases
 
-Ingen release eller APK finns. 0.1.0 är planerad första provversion; schema har
-separat version. Tagga endast granskad commit på main.
+No release or APK exists. 0.1.0 is the planned first trial version; the schema has
+a separate version. Only tag reviewed commits on main.
 
-Kräv dokumenterad SDK/byggkedja, signerings- och distributionsbeslut, ren
-installation, informationsgranskning och relevanta A01–A10 innan release.
+Require a documented SDK/toolchain, signing and distribution decisions, a clean
+installation, an information review and the relevant A01–A10 tests before release.
 
-| Plugin | ATAK | HV Reports/8S | Data Sync | Verifierat |
+| Plugin | ATAK | HV Reports/8S | Data Sync | Verified |
 |---|---|---|---|---|
-| Ingen release | CIV 5.5.0 mål | APK-underlag märkt 1.1.9/5.5.0 | Okänt | Nej |
+| No release | CIV 5.5.0 target | Supplied APK labeled 1.1.9/5.5.0 | Unknown | No |
 
-Spara changelog med schemaändringar, begränsningar och installationssteg.
-Återställning får inte radera lokala utkast; backup-/migrationspolicy ska provas
-innan en version med permanent lagring släpps. Publicera inte SDK/certifikat.
+Keep a changelog with schema changes, limitations and installation steps.
+Rollback must not delete local drafts; the backup/migration policy must be tested
+before releasing a version with persistent storage. Do not publish SDKs/certificates.

@@ -1,15 +1,16 @@
-# Informationshantering
+# Information handling
 
-Repo, fixtures, PR, CI-loggar och releaseartefakter får bara innehålla syntetiska
-exempel. Inga verkliga sensorplaceringar, operativa skisser, serveradresser,
-kontouppgifter, tokens, certifikat, privata nycklar eller proprietära SDK-arkiv.
-Logga inte koordinater, kommentarer, bilder eller användaruppgifter.
+The repository, fixtures, PRs, CI logs, and release artifacts may contain only
+synthetic examples. Do not include real sensor locations, operational sketches,
+server addresses, account details, tokens, certificates, private keys, or proprietary SDK archives.
+Do not log coordinates, comments, images, or user details.
 
-Utkast ska aldrig sändas före en aktiv bekräftelse. Nuvarande kärna har ingen
-transport. Bildfiler är lokala resurser; en filreferens är ingen delningsväg.
-EXIF-policy och storleksgräns måste beslutas före bildfunktionen.
+Drafts must never be transmitted before explicit confirmation. The current core
+has no transport. Image files are local resources; a file reference is not a sharing path.
+The EXIF policy and size limit must be decided before implementing image support.
 
-Rapportera känsliga fynd direkt till repoägaren via en redan etablerad privat
-kontaktväg; skapa inte en offentlig Issue med känsligt innehåll. Vid läcka:
-stoppa publicering, spärra berörda hemligheter, kartlägg artefakter/historik och
-låt informationsägaren besluta om sanering. Fastställd rapportkanal återstår.
+Report sensitive findings directly to the repository owner through an established
+private contact channel; do not create a public Issue containing sensitive information.
+If a leak occurs: stop publication, revoke affected secrets, identify affected
+artifacts and history, and let the information owner decide how to clean up.
+A formal reporting channel has not yet been established.

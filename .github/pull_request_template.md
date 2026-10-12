@@ -1,9 +1,9 @@
-## Mål och krav-ID
+## Goal and requirement IDs
 
-## Ändring
+## Changes
 
-## Testbevis
+## Test evidence
 
-## Data, säkerhet och kända begränsningar
+## Data, security, and known limitations
 
-## Issue / backlog-ID
+## Issue / backlog ID

@@ -1,19 +1,19 @@
 ---
-name: Uppgift
-about: Avgränsat krav, prov eller beslut
+name: Task
+about: Scoped requirement, experiment, or decision
 title: ""
 labels: ""
 assignees: ""
 ---
 
-## Mål och krav-ID
+## Goal and requirement IDs
 
-## Avgränsning
+## Scope
 
-## Acceptanskriterier
+## Acceptance criteria
 
-## Syntetiska testdata och testbevis
+## Synthetic test data and test evidence
 
-## Säkerhetspåverkan
+## Security impact
 
-## Beroenden och dokument att uppdatera
+## Dependencies and documents to update

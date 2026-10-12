@@ -1,45 +1,45 @@
-# Utveckling
+# Development
 
-## Lokal GitHub-token
+## Local GitHub token
 
-Fyll i `GH_TOKEN=` i `.env.github` utan citattecken. Filen ignoreras av Git.
-`.env.example` är en tom mall som får versionshanteras. Tokenfilen är lokal
-autentisering för GitHub API; Git push använder fortsatt SSH.
+Fill in `GH_TOKEN=` in `.env.github` without quotation marks. Git ignores the file.
+`.env.example` is an empty template that may be versioned. The token file provides local
+authentication for the GitHub API; Git push continues to use SSH.
 
-Kontrollera inloggningen utan att skriva ut token eller ändra GitHub-data:
+Check authentication without printing the token or changing GitHub data:
 
 ```sh
 python3 scripts/check-github-auth.py
 ```
 
-På macOS kan skriptet använda Homebrews befintliga CA-certifikat om Python saknar
-en egen certifikatfil; TLS-verifieringen förblir aktiverad.
+On macOS, the script can use Homebrew's existing CA certificates if Python lacks
+its own certificate file; TLS verification remains enabled.
 
-Detta verifierar tokenens identitet, inte alla repo-/Issue-/PR-behörigheter.
-Lägg inte token i dokument, kommandoradsargument eller chatt.
+This verifies the token's identity, not all repository/Issue/PR permissions.
+Do not put the token in documentation, command-line arguments or chat.
 
-## Kör kärnan
+## Run the core
 
-Installera JDK 17 och kör sh scripts/test.sh. Alternativt ange JAVA_HOME till en
-lokal JDK. Skriptet kompilerar Java 8-kompatibel kod och kör tester utan bibliotek.
-Denna JDK är endast kärnans testmiljö, inte ett beslut om ATAK-byggkedjan.
+Install JDK 17 and run sh scripts/test.sh. Alternatively, set JAVA_HOME to a
+local JDK. The script compiles Java 8-compatible code and runs tests without libraries.
+This JDK is only the core's test environment, not a decision about the ATAK toolchain.
 
-## Lås SDK innan Android-plugin
+## Pin the SDK before building the Android plugin
 
-Hämta officiellt ATAK-CIV 5.5.0 SDK, utvecklarapp och guide via godkänd kanal:
-https://tak.gov/pages/sdks. Kontrollera licens/distributionsvillkor. Förvara SDK
-utanför Git och registrera SHA-256 samt exakta verktygsversioner här efter prov.
+Obtain the official ATAK-CIV 5.5.0 SDK, developer app and guide through an approved channel:
+https://tak.gov/pages/sdks. Check license/distribution terms. Keep the SDK
+outside Git and record its SHA-256 and exact tool versions here after testing.
 
-| Komponent | Status |
+| Component | Status |
 |---|---|
-| ATAK-CIV SDK 5.5.0/hash | Saknas; inte verifierat |
-| Utvecklarapp 5.5.0 | Saknas; inte verifierad |
-| JDK för Android | Fastställs från SDK |
-| Gradle / Android Gradle Plugin | Fastställs från SDK |
-| Android SDK / build tools | Fastställs från SDK |
-| Telefon / HV Reports / Data Sync | Faktiska versioner och prov återstår |
+| ATAK-CIV SDK 5.5.0/hash | Missing; not verified |
+| Developer app 5.5.0 | Missing; not verified |
+| JDK for Android | To be determined from the SDK |
+| Gradle / Android Gradle Plugin | To be determined from the SDK |
+| Android SDK / build tools | To be determined from the SDK |
+| Phone / HV Reports / Data Sync | Actual versions and testing pending |
 
-Skapa inte Gradle-/plugin-konfiguration från gissade API:er. Första Android-leverans
-är SDK:ts minimala plugin byggt och installerat i rätt utvecklarapp. Ingen ordinarie
-ATAK-kompatibilitet får antas från ett utvecklarbygge.
-Inga känsliga lokala inställningar eller testtelefondata i Git/felsökningsloggar.
+Do not create Gradle/plugin configuration from guessed APIs. The first Android deliverable
+is the SDK's minimal plugin, built and installed in the correct developer app. Compatibility
+with the standard ATAK app must not be assumed from a developer build.
+Do not put sensitive local settings or test-phone data in Git/debug logs.

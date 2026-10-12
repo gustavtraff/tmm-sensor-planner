@@ -1,17 +1,17 @@
-# Arkitektur
+# Architecture
 
-Avsedd kedja: domänmodell → lokal lagring → lokal kartrepresentation →
-explicit publiceringsadapter → verifierad ATAK/CoT-väg.
+Intended chain: domain model → local storage → local map representation →
+explicit publishing adapter → verified ATAK/CoT route.
 
-Implementerat: core/ med ren Java för utkast, validering och avstånd.
-app/ reserverar plats för SDK-verifierat Android-plugin. Varken lagring,
-ATAK-adaptrar, kartobjekt, bilagetransport eller nätkod finns ännu.
+Implemented: core/ with plain Java for drafts, validation and distances.
+app/ reserves space for an Android plugin verified against the SDK. Storage,
+ATAK adapters, map objects, attachment transport and networking code do not exist yet.
 
-SDK-mål: ATAK-CIV 5.5.0. Inga integrations-API:er är bevisade.
-Officiella HelloWorld på main är ett referensexempel, inte ett fastställt
-5.5.0-kontrakt: https://github.com/TAK-Product-Center/atak-civ/blob/main/plugin-examples/helloworld/app/build.gradle
-SDK-källa: https://tak.gov/pages/sdks
+SDK target: ATAK-CIV 5.5.0. No integration APIs have been proven.
+The official HelloWorld on main is a reference example, not an established
+5.5.0 contract: https://github.com/TAK-Product-Center/atak-civ/blob/main/plugin-examples/helloworld/app/build.gradle
+SDK source: https://tak.gov/pages/sdks
 
-Etapp 0 måste visa att lokal kartrepresentation inte sänds, att UUID och metadata
-överlever rundtur, att delningsmålet väljs manuellt och hur bilagor transporteras.
-En vanlig CoT-händelse antas inte bli en Data Sync-feed.
+Stage 0 must show that local map representations are not transmitted, that UUIDs and metadata
+survive a round trip, that the sharing target is selected manually and how attachments are transported.
+An ordinary CoT event is not assumed to become a Data Sync feed.

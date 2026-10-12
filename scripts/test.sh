@@ -12,6 +12,7 @@ else
     java_cmd=java
 fi
 
-find "$repo_dir/core/src/main/java" "$repo_dir/core/src/test/java" -name '*.java' -print > "$build_dir/sources.txt"
+cd "$repo_dir"
+find core/src/main/java core/src/test/java -name '*.java' -print > "$build_dir/sources.txt"
 "$javac_cmd" --release 8 -encoding UTF-8 -d "$build_dir/classes" @"$build_dir/sources.txt"
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.CoreTest

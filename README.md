@@ -1,28 +1,28 @@
 # TMM Sensor Planner
 
-Projektstart för ett ATAK-CIV-plugin för lokal planering av TMM-enheter.
-**Kompatibilitetsmål: ATAK-CIV 5.5.0; ännu inte verifierat.**
+Initial project setup for an ATAK-CIV plugin for local planning of TMM devices.
+**Compatibility target: ATAK-CIV 5.5.0; not yet verified.**
 
-Här finns nu en SDK-oberoende Java-kärna för lokala utkast, validering och
-horisontella kartavstånd. Det finns ännu ingen installerbar Android-app,
-kartintegration, permanent lagring eller delning.
+The repository currently contains an SDK-independent Java core for local drafts,
+validation, and horizontal map distances. There is no installable Android app,
+map integration, persistent storage, or sharing yet.
 
-## Kom igång
+## Getting started
 
-Med JDK 17 (Java-koden kompileras för Java 8):
+With JDK 17 (Java code is compiled for Java 8):
 
 ```sh
 sh scripts/test.sh
 ```
 
-Testerna kräver inga externa bibliotek eller ATAK SDK.
+The tests require no external libraries or ATAK SDK.
 
-- [Projektplan](docs/PROJECT_PLAN.md)
-- [Produkt och krav](docs/PRODUCT.md)
-- [Utvecklingsmiljö och SDK-grind](docs/DEVELOPMENT.md)
-- [Förstudie-backlog](docs/BACKLOG.md)
-- [Tester](docs/TESTING.md)
+- [Project plan](docs/PROJECT_PLAN.md)
+- [Product and requirements](docs/PRODUCT.md)
+- [Development environment and SDK gate](docs/DEVELOPMENT.md)
+- [Feasibility backlog](docs/BACKLOG.md)
+- [Testing](docs/TESTING.md)
 
-Nästa leverans är ett minimalt plugin byggt med det officiella 5.5.0-SDK:t.
-API:er, lokal kartsekretess och delningsväg måste verifieras innan integration.
-Endast syntetiska testdata hör hemma i repot. Licensval återstår.
+The next deliverable is a minimal plugin built with the official 5.5.0 SDK.
+APIs, local map privacy, and the sharing path must be verified before integration.
+Only synthetic test data belongs in this repository. The license decision is pending.

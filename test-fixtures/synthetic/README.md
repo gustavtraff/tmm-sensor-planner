@@ -1,5 +1,5 @@
-# Syntetiska data
+# Synthetic data
 
-Kärntesterna använder matematiska koordinater nära ekvatorn och datumgränsen;
-de representerar inga sensorplaceringar. Fixtures ligger för närvarande direkt
-i Java-testet. Lägg aldrig verkliga positioner eller bilder här.
+Core tests use mathematical coordinates near the equator and the date line;
+they do not represent sensor locations. Fixtures currently live directly
+in the Java test. Never put real positions or images here.

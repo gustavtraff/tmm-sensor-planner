@@ -1,17 +1,17 @@
-# 0001 – börja med en SDK-oberoende kärna
+# 0001 – start with an SDK-independent core
 
-Datum: 2026-10-12. Status: tekniskt startval; produktantaganden är preliminära.
-Ansvarig för fastställande: repoägare/produktägare, ännu inte formellt utsedd.
+Date: 2026-10-12. Status: initial technical choice; product assumptions are provisional.
+Responsible for final approval: repository owner/product owner, not yet formally appointed.
 
-SDK 5.5.0 finns inte lokalt. Börja med ren Java 8-kompatibel kärna så validering
-och kartavstånd kan provas utan att uppfinna ATAK-API:er. Ingen Android-
-verktygskedja låses förrän rätt SDK granskas. Alternativ: enbart dokumentation
-eller att kopiera ett senare HelloWorld; det senare uppfyller inte SDK-grinden.
+SDK 5.5.0 is not available locally. Start with a plain Java 8-compatible core so validation
+and map distances can be tested without inventing ATAK APIs. No Android
+toolchain will be pinned until the correct SDK is reviewed. Alternatives: documentation only
+or copying a later HelloWorld; the latter does not satisfy the SDK gate.
 
-Preliminära testbara val: gateway/pir/scout, planens fem föreslagna statusar,
-bearing från sann nord, obligatorisk ägare, 2000 teckens kommentar och alla
-statusar i avståndsberäkning. Inga automatiska statusövergångar eller datum.
-Dessa val måste fastställas före datamodellfrysning/UI. Ingen persistence/synk
-har införts, så ingen lagringsmigration krävs för nuvarande kärna.
+Provisional testable choices: gateway/pir/scout, the plan's five proposed statuses,
+bearing from true north, required owner, a 2000-character comment and all
+statuses in distance calculations. No automatic status transitions or dates.
+These choices must be finalized before freezing the data model/building the UI. No persistence/synchronization
+has been introduced, so the current core requires no storage migration.
 
-Konsekvens: testbar start, men ingen APK, kartintegration eller lagring ännu.
+Consequence: a testable start, but no APK, map integration or storage yet.

@@ -1,24 +1,24 @@
-# Tester och grindar
+# Tests and gates
 
-`python3 scripts/test-github-auth.py` testar tokenkontrollen med syntetiska data
-och utan nätanrop.
+`python3 scripts/test-github-auth.py` tests token verification using synthetic data
+and without network requests.
 
-sh scripts/test.sh kontrollerar domänvalidering och avstånd med syntetiska
-koordinater. Testerna omfattar UUID-identitet, bearinggränser, ogiltiga koordinater,
-tidsfält och sortering. De bevisar inte lagring, kartsekretess eller kompatibilitet.
+sh scripts/test.sh checks domain validation and distances using synthetic
+coordinates. Tests cover UUID identity, bearing limits, invalid coordinates,
+time fields and sorting. They do not prove storage, map privacy or compatibility.
 
-Acceptanstester A01–A10 finns i projektplan §7. A01/A06/A07/A08 kräver faktiska
-klienter, isolerad testserver och dokumenterad trafik-/mottagarobservation.
-A02/A05/A09 införs tillsammans med lagring, bilder och migrationer.
+Acceptance tests A01–A10 are in project plan §7. A01/A06/A07/A08 require actual
+clients, an isolated test server and documented traffic/recipient observation.
+A02/A05/A09 will be introduced with storage, images and migrations.
 
-| Prov | Resultat |
+| Test | Result |
 |---|---|
-| Ren Java-kärna | Godkänd lokalt 2026-10-12 med Temurin 17.0.20.1+1 / --release 8 |
-| ATAK 5.5.0 pluginladdning | Ej körd – SDK/utvecklarapp saknas |
-| Lokal kartsekretess / två klienter | Ej körd |
-| CoT-rundtur / bilddelning | Ej körd |
-| HV Reports / Data Sync samexistens | Ej körd |
+| Plain Java core | Passed locally on 2026-10-12 with Temurin 17.0.20.1+1 / --release 8 |
+| ATAK 5.5.0 plugin loading | Not run – SDK/developer app missing |
+| Local map privacy / two clients | Not run |
+| CoT round trip / image sharing | Not run |
+| HV Reports / Data Sync coexistence | Not run |
 
-CI för kärnan är en publik kontroll. Android lint, APK och SDK-bygge läggs till
-när tillåten byggmiljö finns, som separat obligatorisk kontroll. Skanning före
-publicering måste också omfatta historik och artefakter, inte bara arbetskatalogen.
+Core CI is a public check. Android lint, APK and SDK builds will be added
+when a permitted build environment exists, as a separate required check. Scanning before
+publication must also cover history and artifacts, not just the working directory.
