@@ -1,0 +1,17 @@
+name: Core checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Compile and test Java core
+        run: |
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          sh scripts/test.sh
+      - name: Check local auth helper without network
+        run: python3 scripts/test-github-auth.py
