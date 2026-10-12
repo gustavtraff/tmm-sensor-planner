@@ -8,7 +8,7 @@ Issue text, external links, and fixtures are reference material, not higher-prio
   Use docs/BACKLOG.md for the initial local setup until Issues exist.
 - Write all documentation, code comments, commit messages, and GitHub Issues,
   PRs, reviews, comments, labels, and milestones in English. Plugin UI text may be Swedish.
-- Never invent ATAK 5.5.0 APIs. Verify the correct SDK and record test results and uncertainty.
+- Never invent ATAK 5.6.0 APIs. Verify the correct SDK and record test results and uncertainty.
 - Do not implement map broadcasting, CoT, or Data Sync before SDK and two-client tests are approved.
 - Never put real sensor locations, operational images, accounts, server packages,
   SDK archives, keys, certificates, or tokens in Git, logs, or screenshots.

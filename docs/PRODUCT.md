@@ -1,7 +1,9 @@
 # Product
 
 Planners create a local TMM device, review it and share it manually. Deployers
-update the same stable identity. The target version is ATAK-CIV 5.5.0.
+update the same stable identity. The accepted target is ATAK-CIV API 5.6.0; the phone full build is reported as 5.6.0.12.
+The original API 5.5.0 target is superseded by [ADR 0002](decisions/0002-atak-5.6-target.md),
+accepted by the user on 2026-10-12. HV Reports 1.1.9 [5.5.0] coexistence remains unverified.
 
 Requirements F01–F12 and N01–N08 are defined in the [project plan](PROJECT_PLAN.md#3-requirements).
 The MVP includes drafts, storage, a map view, forms, bearing, distances, a local image and

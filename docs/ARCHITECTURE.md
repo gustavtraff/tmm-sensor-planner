@@ -7,11 +7,17 @@ Implemented: core/ with plain Java for drafts, validation and distances.
 app/ reserves space for an Android plugin verified against the SDK. Storage,
 ATAK adapters, map objects, attachment transport and networking code do not exist yet.
 
-SDK target: ATAK-CIV 5.5.0. No integration APIs have been proven.
+Accepted SDK target: ATAK-CIV API 5.6.0 ([ADR 0002](decisions/0002-atak-5.6-target.md), 2026-10-12).
+The supplied SDK directory is labeled full build 5.6.0.24 and contains an app, guide and JARs;
+the phone is reported as full build 5.6.0.12. Neither identical API versions nor these labels
+prove build compatibility. No integration APIs have been proven.
 The official HelloWorld on main is a reference example, not an established
-5.5.0 contract: https://github.com/TAK-Product-Center/atak-civ/blob/main/plugin-examples/helloworld/app/build.gradle
+5.6.0 contract: https://github.com/TAK-Product-Center/atak-civ/blob/main/plugin-examples/helloworld/app/build.gradle
 SDK source: https://tak.gov/pages/sdks
 
 Stage 0 must show that local map representations are not transmitted, that UUIDs and metadata
 survive a round trip, that the sharing target is selected manually and how attachments are transported.
 An ordinary CoT event is not assumed to become a Data Sync feed.
+
+The TAK Server version is unknown and does not block the initial local plugin build.
+Record it before transport experiments; the two-client sharing gates remain required.

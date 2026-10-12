@@ -10,7 +10,7 @@ English, including Issues, PRs, reviews, comments, labels, and milestones.
 Plugin UI text may be Swedish.
 
 Keep the Java core free of Android/ATAK dependencies and compatible with Java 8
-until the 5.5.0 SDK determines the toolchain. Run sh scripts/test.sh.
+until the 5.6.0 SDK determines the toolchain. Run sh scripts/test.sh.
 Use only synthetic data. The license and contribution terms are not yet decided;
 obtain that decision before accepting external contributions or distributing the project.
 

@@ -1,16 +1,18 @@
-# ATAK-CIV 5.5.0 SDK verification
+# ATAK-CIV 5.6.0 SDK verification
 
 Tracking Issue: [#2](https://github.com/gustavtraff/tmm-sensor-planner/issues/2).
-Status on 2026-10-12: awaiting the official SDK, matching developer app and guide.
-No Android toolchain or integration API has been verified.
+Status on 2026-10-12: the owner has provided a local SDK directory labeled
+`ATAK-CIV-5.6.0.24-SDK`, containing the host APK, developer guide, API JAR, tooling
+and samples. Package metadata has been inspected; no Android build, plugin loading
+or integration behavior has been verified. The original SDK archive hash is pending.
 
 ## Obtain and identify the package
 
 1. Sign in to the [official ATAK-CIV product page](https://tak.gov/products/atak-civ)
    through an authorized TAK account and locate the developer resources.
-2. Obtain the **5.5.0 release family** SDK and its matching developer app and guide.
+2. Obtain the **5.6.0 release family** SDK and its matching developer app and guide.
    Record the full build identifier from the package. Do not replace the target with
-   5.5.1, 5.6 or a current main-branch example without a separate compatibility decision.
+   5.5, another release family or a current main-branch example without a separate compatibility decision.
 3. Review the package's license and distribution terms before copying any content
    into this public repository. An SDK download is not permission to redistribute it.
 4. Keep archives, extracted SDK files, developer APKs and signing material outside Git.
@@ -27,10 +29,10 @@ No Android toolchain or integration API has been verified.
    parent-directory traversal. Read the guide and build files before running scripts.
 
 The public source repository is useful reference material, but does not replace the
-version-matched SDK and developer app. The local Java core's JDK 17 test environment
-does not establish the Android build requirements.
+version-matched SDK and developer app. The provided SDK sample specifies Java 17;
+its runtime environment and build results still need verification.
 
-### Public repository inspection
+### Historical source inspection before the target change
 
 The [official source repository](https://github.com/TAK-Product-Center/atak-civ)
 was checked on 2026-10-12. Its published Git tags are in the 5.5.1 release family;
@@ -49,7 +51,7 @@ Update [DEVELOPMENT.md](DEVELOPMENT.md) after inspecting the actual package:
 | Evidence | Required value |
 |---|---|
 | Source | Official product/resource page, without authentication parameters |
-| SDK release | Full release/build identifier, with evidence that it belongs to 5.5.0 |
+| SDK release | Full release/build identifier, with evidence that it belongs to the accepted 5.6.0 target |
 | SDK archive | Archive name and SHA-256 |
 | Distribution terms | Reviewed license and permitted use of SDK-derived files |
 | Developer app | Full version/build identifier and SHA-256 |
@@ -65,7 +67,8 @@ Mark missing evidence as pending. Do not infer compatibility from filenames alon
 
 ## Minimal plugin gate
 
-Continue in [#3](https://github.com/gustavtraff/tmm-sensor-planner/issues/3) once
+The local package is now available. Complete the evidence table in DEVELOPMENT.md
+and continue in [#3](https://github.com/gustavtraff/tmm-sensor-planner/issues/3) once
 the package and toolchain are identified. Build the SDK's minimal example with its
 documented commands. Record the build result, APK identity and installation/load
 result in the matching developer app. Only copy SDK-derived files into Git when
