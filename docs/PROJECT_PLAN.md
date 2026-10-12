@@ -26,12 +26,15 @@ ATAK examples show plugin structure and map integration, but must not replace ve
 
 ## 3. Requirements
 
+**Accepted device catalogue · 2026-10-12:** Mini, Scout, PIR and Gateway.
+See [DEVICE_CATALOGUE.md](DEVICE_CATALOGUE.md). Only PIR and Scout support bearing.
+
 ### Functional requirements
 
 | ID | Requirement | Stage |
 |---|---|---|
 | F01 | Create a local TMM device at a selected map position, with a stable internal UUID and a user-visible ID. | MVP |
-| F02 | Select a type from a configured list: at least Gateway, PIR and Scout; other sensor types must be finalized before coding. Type and status are separate fields. | MVP |
+| F02 | Select a type from a configured list: Mini, Scout, PIR and Gateway for the current scope. Type and status are separate fields. | MVP |
 | F03 | Edit ID, type, status, owner, comment, position and relevant time fields; validate required fields and show errors next to the field. | MVP |
 | F04 | Save and reopen drafts offline, including after restart. Clearly show `Local draft` and `Shared` states. | MVP |
 | F05 | Preview the entire object and require an active `Share` selection; show the target recipient or selected feed and a summary before confirmation. | MVP |
@@ -43,7 +46,7 @@ ATAK examples show plugin structure and map integration, but must not replace ve
 | F11 | Provide a controlled method for changes, conflicts, withdrawal and deletion of already shared objects. | Synchronization stage |
 | F12 | Show understandable status when sharing or import fails, without claiming the device was shared. | MVP when the first sharing route is added |
 
-**F02 – catalog decision:** Camera, vibration sensor, acoustic sensor and other types were earlier examples, not an established TMM catalog. Appoint a product owner to decide the exact type and status lists and change them through version-controlled decisions. Proposed MVP status list: `Planned`, `Deployed`, `Active`, `Retrieved`, `Cancelled`; permitted transitions must be decided and tested.
+**F02 – catalog decision:** The repository owner selected Mini, Scout, PIR and Gateway on 2026-10-12. Other sensor types are outside the current scope. The manual supports terminology and local symbol references; Mini symbol mapping still needs confirmation. Status rules must be decided and changed through version-controlled decisions. Proposed MVP status list: `Planned`, `Deployed`, `Active`, `Retrieved`, `Cancelled`; permitted transitions must be decided and tested.
 
 ### Non-functional requirements
 
@@ -90,7 +93,7 @@ Improved search/filtering, export of **sanitized synthetic** test data, stabilit
 |---|---|
 | `uid` | Random, stable UUID; technical identity across editing and sharing. |
 | `displayId` | User-visible ID, for example `PIR-01` in **synthetic** tests. Uniqueness should apply within an agreed working area, not be assumed globally. |
-| `type` | Version-controlled enum. At least `gateway`, `pir`, `scout`. |
+| `type` | Version-controlled enum. Current types: `mini`, `scout`, `pir`, `gateway`. |
 | `status` | Version-controlled enum; display label separate from stored value. |
 | `owner` | Organization or role designation according to an agreed naming standard. Avoid personal data by default. |
 | `createdAt`, `updatedAt` | Automatic UTC time. Show local time in the UI. |
@@ -206,7 +209,7 @@ tmm-sensor-planner/
 | Public repository reveals environment details in examples or history | Only synthetic fixtures; review the entire history before publication and each release. Security lead owns the gate. |
 | Real test phones use private accounts and images | Establish local deletion/backup/access policy before field trials. Information owner decides. |
 
-**Open product decisions:** exact sensor catalog; ID and owner standards; permitted status transitions; whether deployment time should be set automatically on status change; sharing targets (person, group, feed); whether recipients without the plugin should see a simple marker; rights to edit others' objects; maximum image size and EXIF policy; whether the nearest-device calculation also includes retrieved/cancelled objects. Record the decisions as Issues and ADRs before dependent functionality is finalized.
+**Open product decisions:** Mini symbol mapping; ID and owner standards; permitted status transitions; whether deployment time should be set automatically on status change; sharing targets (person, group, feed); whether recipients without the plugin should see a simple marker; rights to edit others' objects; maximum image size and EXIF policy; whether the nearest-device calculation also includes retrieved/cancelled objects. Record the decisions as Issues and ADRs before dependent functionality is finalized.
 
 ## 11. Initial setup – step by step
 
