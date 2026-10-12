@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/planner_icon"
+        android:label="@string/app_name"
+        android:description="@string/app_desc">
+        <meta-data android:name="plugin-api" android:value="com.atakmap.app@5.6.0.CIV" />
+        <meta-data android:name="app_desc" android:value="@string/app_desc" />
+        <!-- ATAK discovers plugins through this host-defined component entry. -->
+        <activity android:name="com.atakmap.app.component"
+            android:exported="true"
+            tools:ignore="MissingClass">
+            <intent-filter android:label="@string/app_name">
+                <action android:name="com.atakmap.app.component" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

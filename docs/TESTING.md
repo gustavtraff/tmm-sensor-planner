@@ -14,6 +14,8 @@ A02/A05/A09 will be introduced with storage, images and migrations.
 | Test | Result |
 |---|---|
 | Plain Java core | Passed locally on 2026-10-12 with Temurin 17.0.20.1+1 / --release 8 |
+| Android development build / lint | Passed locally with SDK 5.6.0.24; zero lint errors |
+| APK static contract / signature | Passed; scripts/check-plugin-apk.py; Android Debug signature |
 | ATAK API 5.6.0 plugin loading | Not run – SDK directory 5.6.0.24 supplied; app/phone compatibility with reported build 5.6.0.12 not verified |
 | Local map privacy / two clients | Not run |
 | CoT round trip / image sharing | Not run |
@@ -27,3 +29,9 @@ The accepted API target is 5.6.0 ([ADR 0002](decisions/0002-atak-5.6-target.md),
 Record exact SDK and client full build numbers independently of the API version.
 The server version is unknown; it does not block a local build, but must be recorded
 before server-dependent sharing tests. Reported installation versions are not test evidence.
+
+The APK check is a static artifact check, not a runtime or network observation test.
+For Issue #3, install on a dedicated SDK developer client, load the plugin, verify
+that the toolbar item appears once and shows Lokal prototyp, stop/unload the plugin
+and verify removal, then restart and repeat. Record exact versions. Do not treat
+passing compilation or absence of APK permissions as proof of local map privacy.
