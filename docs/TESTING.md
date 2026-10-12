@@ -1,5 +1,8 @@
 # Tests and gates
 
+For the private first loading test, follow [LOCAL_TEST.md](LOCAL_TEST.md). It distinguishes
+the developer host from the standard app and keeps the test disconnected from feeds.
+
 `python3 scripts/test-github-auth.py` tests token verification using synthetic data
 and without network requests.
 
