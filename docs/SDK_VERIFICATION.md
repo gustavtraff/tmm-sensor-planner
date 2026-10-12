@@ -30,6 +30,18 @@ The public source repository is useful reference material, but does not replace 
 version-matched SDK and developer app. The local Java core's JDK 17 test environment
 does not establish the Android build requirements.
 
+### Public repository inspection
+
+The [official source repository](https://github.com/TAK-Product-Center/atak-civ)
+was checked on 2026-10-12. Its published Git tags are in the 5.5.1 release family;
+no 5.5.0 tag was found. The current HelloWorld example specifies `ATAK_VERSION = '5.6.0'`.
+
+The root `pluginsdk.zip` was downloaded and its SHA-256 checked against the Git LFS
+pointer: `f2111985b8ac507d8b6c7db8841b4994d9886130b0743a3338bc1aa929600d8a`.
+Its six entries contain Espresso test helpers and `Build_Environment_Changes.pdf`.
+It does not contain a host developer APK, the ATAK API JAR or a complete 5.5.0 SDK.
+No SDK contents were copied into this project or executed.
+
 ## Record the evidence
 
 Update [DEVELOPMENT.md](DEVELOPMENT.md) after inspecting the actual package:
