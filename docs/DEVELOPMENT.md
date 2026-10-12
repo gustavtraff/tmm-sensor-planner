@@ -30,6 +30,11 @@ Obtain the official ATAK-CIV 5.5.0 SDK, developer app and guide through an appro
 https://tak.gov/pages/sdks. Check license/distribution terms. Keep the SDK
 outside Git and record its SHA-256 and exact tool versions here after testing.
 
+Follow [the SDK intake and verification checklist](SDK_VERIFICATION.md), tracked in
+[#2](https://github.com/gustavtraff/tmm-sensor-planner/issues/2). The official product
+page redirects unauthenticated requests to TAK login. No SDK was found in the
+local development locations checked on 2026-10-12; access/download remains pending.
+
 | Component | Status |
 |---|---|
 | ATAK-CIV SDK 5.5.0/hash | Missing; not verified |

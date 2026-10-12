@@ -28,3 +28,9 @@ and dismiss approvals when new commits are pushed. An agent review comment is no
 an independent human approval.
 
 These are recommendations, not a claim that protection has been enabled.
+
+Verified on 2026-10-12 after PR #16 was merged: an active ruleset on `main` requires
+a pull request, resolved conversations, the GitHub Actions `core` check and an
+up-to-date branch. It also blocks deletion and force pushes and requires linear
+history. Required approvals are zero. No bypass actor is shown in the applicable
+ruleset. The failing-PR enforcement test remains pending in Issue #9.

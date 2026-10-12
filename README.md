@@ -20,6 +20,7 @@ The tests require no external libraries or ATAK SDK.
 - [Project plan](docs/PROJECT_PLAN.md)
 - [Product and requirements](docs/PRODUCT.md)
 - [Development environment and SDK gate](docs/DEVELOPMENT.md)
+- [SDK intake and integration probes](docs/SDK_VERIFICATION.md)
 - [Feasibility backlog](docs/BACKLOG.md)
 - [Testing](docs/TESTING.md)
 
