@@ -10,7 +10,7 @@ English, including Issues, PRs, reviews, comments, labels, and milestones.
 Plugin UI text may be Swedish.
 
 Keep the Java core free of Android/ATAK dependencies and compatible with Java 8
-until the 5.5.0 SDK determines the toolchain. Run sh scripts/test.sh.
+until the 5.6.0 SDK determines the toolchain. Run sh scripts/test.sh.
 Use only synthetic data. The license and contribution terms are not yet decided;
 obtain that decision before accepting external contributions or distributing the project.
 
@@ -28,3 +28,9 @@ and dismiss approvals when new commits are pushed. An agent review comment is no
 an independent human approval.
 
 These are recommendations, not a claim that protection has been enabled.
+
+Verified on 2026-10-12 after PR #16 was merged: an active ruleset on `main` requires
+a pull request, resolved conversations, the GitHub Actions `core` check and an
+up-to-date branch. It also blocks deletion and force pushes and requires linear
+history. Required approvals are zero. No bypass actor is shown in the applicable
+ruleset. The failing-PR enforcement test remains pending in Issue #9.
