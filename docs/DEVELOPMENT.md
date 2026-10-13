@@ -124,3 +124,7 @@ Developer-host installation, load, toolbar click, unload, reload and host restar
 on 2026-10-13; see [EMULATOR_TEST.md](EMULATOR_TEST.md). The SDK host skips signature
 verification. Issue #3 remains open for the physical-client gate.
 Public CI runs the SDK-independent checks; the local SDK build is separate evidence.
+
+The current `0.1.0-map-probe` (versionCode 2) adds disposable synthetic feature-layer
+controls. Use [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md) for its separate test steps;
+the earlier `0.1.0-dev` loading evidence remains historical.
