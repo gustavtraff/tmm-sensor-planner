@@ -4,7 +4,9 @@ Tracking Issue: [#2](https://github.com/gustavtraff/tmm-sensor-planner/issues/2)
 Status on 2026-10-12: the owner has provided a local SDK directory labeled
 `ATAK-CIV-5.6.0.24-SDK`, containing the host APK, developer guide, API JAR, tooling
 and samples. Package metadata has been inspected and the local debug build/lint now pass.
-Plugin loading and integration behavior have not been verified. The original SDK archive hash is pending.
+Update on 2026-10-13: developer-host loading passed in an isolated emulator; see
+[EMULATOR_TEST.md](EMULATOR_TEST.md). Standard-app signing, phone compatibility and
+integration behavior remain unverified. The original SDK archive hash is pending.
 
 ## Obtain and identify the package
 
