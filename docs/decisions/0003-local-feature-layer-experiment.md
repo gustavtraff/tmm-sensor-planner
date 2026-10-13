@@ -21,3 +21,12 @@ Compilation and one-client offline rendering cannot prove N03. Two clients and
 server/traffic observation, standard signing/phone tests and review of export/share
 integration remain required before accepting this as the production representation.
 Do not infer privacy from absence of plugin permissions: it runs inside ATAK.
+
+## Connected lab follow-up
+
+The two-client follow-up is recorded in [TWO_CLIENT_LAB.md](../TWO_CLIENT_LAB.md).
+Android can report offline while a loopback ADB tunnel carries server traffic.
+Treat the probe’s offline guard as a test-mode check, not a transmission guarantee.
+The bounded connected lab observed no probe events, with ordinary controls before
+and afterward. This supports the candidate; production acceptance still requires
+human review and the remaining integration checks.
