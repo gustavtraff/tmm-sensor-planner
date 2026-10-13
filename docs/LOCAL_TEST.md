@@ -3,7 +3,7 @@
 This test checks only plugin discovery, loading, the toolbar item and unloading.
 The planning forms, map view, persistent drafts, images and sharing are not implemented.
 Mini, Scout, PIR and Gateway are currently domain catalogue entries, not a working
-device-creation screen. Issue #3 remains open until the runtime test passes.
+device-creation screen. Issue #3 remains open for physical-client verification.
 
 ## Choose the correct host app
 
@@ -87,3 +87,7 @@ TAK Voice comes afterward in a controlled environment.
 For the completed headless developer-host loading probe, setup and graphics workaround,
 see [EMULATOR_TEST.md](EMULATOR_TEST.md). Its result does not validate standard-app signing
 or replace physical-phone and coexistence tests.
+
+This loading-only checklist describes version `0.1.0-dev` from `c55709d`.
+For the newer `0.1.0-map-probe` development APK, the toolbar opens test controls
+instead of the old toast; follow [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md).

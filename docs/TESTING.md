@@ -20,6 +20,7 @@ A02/A05/A09 will be introduced with storage, images and migrations.
 | Android development build / lint | Passed locally with SDK 5.6.0.24; zero lint errors |
 | APK static contract / signature | Passed; scripts/check-plugin-apk.py; Android Debug signature |
 | ATAK API 5.6.0 plugin loading | Passed in isolated API 35 arm64 emulator with SDK developer host 5.6.0.24 on 2026-10-13: load, click, unload, reload and host restart. Standard 5.6.0.12 phone/signing remains unverified; see [EMULATOR_TEST.md](EMULATOR_TEST.md) |
+| Offline feature-layer experiment | Create/move/delete and normal unload tested in SDK developer emulator; see [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md). Not a production map or privacy result |
 | Local map privacy / two clients | Not run |
 | CoT round trip / image sharing | Not run |
 | HV Reports / Data Sync / TAK Voice coexistence | Not run – reported versions: HV Reports 1.1.9 [5.5.0], Data Sync 3.7.4 [5.6.0], TAK Voice 2.1.0 [5.6.0] |
