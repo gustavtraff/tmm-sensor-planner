@@ -21,8 +21,8 @@ A02/A05/A09 will be introduced with storage, images and migrations.
 | APK static contract / signature | Passed; scripts/check-plugin-apk.py; Android Debug signature |
 | ATAK API 5.6.0 plugin loading | Passed in isolated API 35 arm64 emulator with SDK developer host 5.6.0.24 on 2026-10-13: load, click, unload, reload and host restart. Standard 5.6.0.12 phone/signing remains unverified; see [EMULATOR_TEST.md](EMULATOR_TEST.md) |
 | Offline feature-layer experiment | Create/move/delete and normal unload tested in SDK developer emulator; see [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md). Not a production map or privacy result |
-| Local map privacy / two clients | Not run |
-| CoT round trip / image sharing | Not run |
+| Local map privacy / two clients | Bounded disposable feature-layer test passed on 2026-10-14: two SDK developer 5.6.0.24 clients / lab server 5.8-RELEASE-92, controls before/after, no observed probe events. Production privacy gate remains open; see [TWO_CLIENT_LAB.md](TWO_CLIENT_LAB.md) |
+| TMM CoT round trip / image sharing | Not run |
 | HV Reports / Data Sync / TAK Voice coexistence | Not run – reported versions: HV Reports 1.1.9 [5.5.0], Data Sync 3.7.4 [5.6.0], TAK Voice 2.1.0 [5.6.0] |
 
 Core CI is a public check. Android lint, APK and SDK builds will be added
@@ -31,8 +31,9 @@ publication must also cover history and artifacts, not just the working director
 
 The accepted API target is 5.6.0 ([ADR 0002](decisions/0002-atak-5.6-target.md), 2026-10-12).
 Record exact SDK and client full build numbers independently of the API version.
-The server version is unknown; it does not block a local build, but must be recorded
-before server-dependent sharing tests. Reported installation versions are not test evidence.
+The operational server version is unknown. The isolated local lab uses the supplied
+TAK Server 5.8-RELEASE-92 package; this does not establish operational compatibility.
+Reported installation versions are not test evidence.
 
 The APK check is a static artifact check, not a runtime or network observation test.
 For Issue #3, install on a dedicated SDK developer client, load the plugin, verify

@@ -37,7 +37,8 @@ setting off, no connected/connecting active network and the host's network-state
 permission. Unknown/missing state fails closed. This code runs in ATAK's process;
 its guarded host-context network-state query adds no permission to the plugin APK.
 The checks are restrictions for this test build, not proof of N03 or a substitute
-for externally verified network isolation. Keep server profiles and feeds absent.
+for externally verified network isolation. For the offline procedure below, keep server profiles and feeds absent. The separate
+isolated connected experiment is described in [TWO_CLIENT_LAB.md](TWO_CLIENT_LAB.md).
 
 ## Repeat the probe
 
@@ -92,3 +93,7 @@ cancellation and relevant export/share surfaces. Record exact host/server builds
 and synthetic UIDs, establish a baseline and observe all configured outputs.
 Do not enable operational networking or accept this candidate for live draft use
 until that evidence and an architecture decision are reviewed.
+
+The subsequent connected two-client experiment is recorded in
+[TWO_CLIENT_LAB.md](TWO_CLIENT_LAB.md). It passed the bounded CoT observation
+checks, while production acceptance and export/share integration remain pending.
