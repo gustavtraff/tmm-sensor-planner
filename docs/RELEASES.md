@@ -12,7 +12,7 @@ based on the HV Reports package label; that label is retained below as reported.
 
 | Component | Reported version / target | Verification |
 |---|---|---|
-| TMM Sensor Planner | No release; planned 0.1.0 | Local loading-probe APK builds; no runtime compatibility evidence |
+| TMM Sensor Planner | No release; planned 0.1.0 | Loading probe passed in SDK developer emulator; no standard-phone or production-signing evidence |
 | ATAK API | 5.6.0 active target | User-approved target; integration unverified |
 | Installed phone client | ATAK-CIV full build 5.6.0.12 | User-reported; plugin loading not tested |
 | Supplied SDK | Directory labeled full build 5.6.0.24; app, guide and JARs present | Local debug build/toolchain verified; provenance and runtime compatibility with 5.6.0.12 pending |

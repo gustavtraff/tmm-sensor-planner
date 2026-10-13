@@ -83,3 +83,7 @@ record the exact error text. Do not bypass validation or change the production h
 The standard app's signature checks and the developer/standard build distinction
 are separate from the plugin API number. Testing with HV Reports, Data Sync and
 TAK Voice comes afterward in a controlled environment.
+
+For the completed headless developer-host loading probe, setup and graphics workaround,
+see [EMULATOR_TEST.md](EMULATOR_TEST.md). Its result does not validate standard-app signing
+or replace physical-phone and coexistence tests.

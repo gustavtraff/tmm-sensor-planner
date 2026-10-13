@@ -46,7 +46,7 @@ copying SDK-derived files into this public repository.
 | Component | Inspected value / remaining evidence |
 |---|---|
 | SDK directory | ATAK-CIV-5.6.0.24-SDK; original archive checksum/provenance verification pending |
-| Developer app | Manifest: `5.6.0.24 (7f2055b0)`, versionCode `1789391081`, package `com.atakmap.app.civ`; installation/load not tested |
+| Developer app | Manifest: `5.6.0.24 (7f2055b0)`, versionCode `1789391081`, package `com.atakmap.app.civ`; installation/load passed in isolated API 35 arm64 emulator; see EMULATOR_TEST.md |
 | Guide | `ATAK_Plugin_Development_Guide.pdf` is present |
 | SDK identifier | `7f2055b (1789391081)` from VERSION.txt |
 | Java source/target | 17 in the HelloWorld sample; local build passed with Temurin 17.0.20.1+1 |
@@ -120,5 +120,7 @@ This does not prove loading in ATAK or production signing. The first development
 toolchain is staged temporarily outside Git; configure durable local paths for repeated use.
 
 APK: app/build/outputs/apk/civ/debug/app-civ-debug.apk (ignored by Git).
-Issue #3 remains open until installation/load and toolbar/unload behavior are verified.
+Developer-host installation, load, toolbar click, unload, reload and host restart passed
+on 2026-10-13; see [EMULATOR_TEST.md](EMULATOR_TEST.md). The SDK host skips signature
+verification. Issue #3 remains open for the physical-client gate.
 Public CI runs the SDK-independent checks; the local SDK build is separate evidence.
