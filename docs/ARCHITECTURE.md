@@ -7,7 +7,9 @@ Implemented: core/ with plain Java for drafts, validation and distances.
 app/ contains a loading probe whose lifecycle passed in the SDK developer emulator,
 plus an offline synthetic feature-layer experiment compiled against SDK 5.6.0.24.
 See [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md) and [ADR 0003](decisions/0003-local-feature-layer-experiment.md).
-Storage, production map adapters, attachment transport and networking code do not exist yet.
+A separate synthetic CoT experiment exercises explicit single-recipient transport and
+host marker detail import/re-export; see [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md).
+Storage, production map/publishing adapters and attachment transport do not exist yet.
 
 Accepted SDK target: ATAK-CIV API 5.6.0 ([ADR 0002](decisions/0002-atak-5.6-target.md), 2026-10-12).
 The supplied SDK directory is labeled full build 5.6.0.24 and contains an app, guide and JARs;
@@ -22,5 +24,5 @@ Stage 0 must show that local map representations are not transmitted, that UUIDs
 survive a round trip, that the sharing target is selected manually and how attachments are transported.
 An ordinary CoT event is not assumed to become a Data Sync feed.
 
-The TAK Server version is unknown and does not block the initial local plugin build.
-Record it before transport experiments; the two-client sharing gates remain required.
+The isolated lab uses TAK Server 5.8-RELEASE-92. The operational server version remains
+unknown; lab transport evidence does not establish operational compatibility.

@@ -125,6 +125,12 @@ on 2026-10-13; see [EMULATOR_TEST.md](EMULATOR_TEST.md). The SDK host skips sign
 verification. Issue #3 remains open for the physical-client gate.
 Public CI runs the SDK-independent checks; the local SDK build is separate evidence.
 
-The current `0.1.0-map-probe` (versionCode 2) adds disposable synthetic feature-layer
+The earlier `0.1.0-map-probe` (versionCode 2) adds disposable synthetic feature-layer
 controls. Use [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md) for its separate test steps;
 the earlier `0.1.0-dev` loading evidence remains historical.
+
+The current development APK is `0.1.0-cot-probe.1` (versionCode 4). It retains the
+local map probe and adds a separate, fixed-fixture **TMM CoT-labb** tool restricted
+to the isolated loopback server and one explicitly selected recipient. Its SDK
+round-trip, cancellation, failure and lifecycle results are recorded in
+[COT_ROUND_TRIP.md](COT_ROUND_TRIP.md). It is not a production publishing adapter.

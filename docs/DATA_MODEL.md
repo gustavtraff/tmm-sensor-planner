@@ -22,5 +22,7 @@ Distances use haversine, meters, and a mean radius of 6371008.8 m. The same UUID
 is excluded. The gateway list filters for gateways and sorts in ascending order. All statuses
 provisionally count. These are map distances, not terrain, link or line-of-sight measures.
 
-Serialization, migration, unknown schema versions and CoT mapping remain to be implemented.
+Production serialization, migration, unknown schema versions and CoT mapping remain
+to be implemented. The separate [synthetic CoT experiment](COT_ROUND_TRIP.md) uses
+fixed test fields; it does not freeze or implement the production draft wire schema.
 During the synchronization stage, conflicts must preserve the original for manual review.

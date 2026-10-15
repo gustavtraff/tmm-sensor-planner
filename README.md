@@ -8,7 +8,9 @@ validation, and horizontal map distances, plus a locally built minimal developme
 APK. Loading passed in the isolated SDK developer emulator; standard-app signing
 and phone compatibility remain unverified. Production map integration, persistent storage and
 sharing are not implemented. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
-is available for the next SDK investigation.
+and a separate [synthetic CoT lab tool](docs/COT_ROUND_TRIP.md) support SDK investigations.
+The CoT tool sends fixed test fixtures only after recipient selection and confirmation
+through the isolated localhost lab; it does not publish domain drafts.
 
 ## Getting started
 
