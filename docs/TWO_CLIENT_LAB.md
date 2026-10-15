@@ -128,3 +128,12 @@ F04 persistence is not implemented: points intentionally disappear on unload/res
 Data Sync was not installed, export/share integrations were not tested, and standard
 phone signing, full network privacy, companion-plugin coexistence and operational
 server compatibility remain unverified. Keep automatic publishing unimplemented.
+
+## Follow-up: Unicode transport prerequisites
+
+The Issue #5 metadata experiment exposed a US-ASCII default in the custom lab
+JVM image, which replaced the synthetic comment’s Unicode characters. Its private
+startup was corrected to use `LANG=C.UTF-8` and `-Dfile.encoding=UTF-8`. PostgreSQL
+was already UTF8. The earlier ASCII control/feature-UID privacy observations are
+unchanged; they did not establish Unicode preservation. See
+[COT_ROUND_TRIP.md](COT_ROUND_TRIP.md) for the separate metadata experiment.

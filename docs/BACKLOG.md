@@ -29,5 +29,6 @@ The repository owner assigns responsible people. Use the Issue template when reg
 All test data is synthetic. Each completed SDK investigation must provide reproducible steps,
 versions, results and an ADR; a documentation proposal is not a passed test.
 
-The server version is unknown and is not a prerequisite for the local build.
-Identify it before server-dependent or two-client transport experiments.
+The operational server version is unknown. The isolated lab uses TAK Server
+5.8-RELEASE-92; its bounded results are in TWO_CLIENT_LAB.md and COT_ROUND_TRIP.md.
+Record and test the operational configuration before compatibility claims.

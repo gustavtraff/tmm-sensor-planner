@@ -17,12 +17,14 @@ import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
 
-/** SDK loading and offline feature-layer probe; no publishing adapter. */
+/** SDK experiments for local rendering and explicit synthetic lab transport. */
 public final class SensorPlannerPlugin implements IPlugin {
     private final IHostUIService hostUi;
     private final ToolbarItem entry;
+    private final ToolbarItem cotEntry;
     private boolean started;
     private LocalMapProbe probe;
+    private CotRoundTripProbe cotProbe;
 
     public SensorPlannerPlugin(IServiceController services) {
         Objects.requireNonNull(services, "services");
@@ -54,12 +56,30 @@ public final class SensorPlannerPlugin implements IPlugin {
                     }
                 })
                 .build();
+        cotEntry = new ToolbarItem.Builder("TMM CoT-labb", icon)
+                .setIdentifier("se.tmm.sensorplanner.plugin.cotlab")
+                .setListener(new ToolbarItemAdapter() {
+                    @Override
+                    public void onClick(ToolbarItem item) {
+                        hostUi.queueEvent(() -> {
+                            if (!started) return;
+                            try {
+                                if (cotProbe == null) cotProbe = new CotRoundTripProbe(
+                                        Objects.requireNonNull(MapView.getMapView()), hostUi);
+                                cotProbe.show();
+                            } catch (RuntimeException unavailable) {
+                                hostUi.showToast("CoT-labbet kunde inte startas");
+                            }
+                        });
+                    }
+                }).build();
     }
 
     @Override
     public void onStart() {
         if (!started) {
             hostUi.addToolbarItem(entry);
+            hostUi.addToolbarItem(cotEntry);
             started = true;
         }
     }
@@ -69,6 +89,11 @@ public final class SensorPlannerPlugin implements IPlugin {
         if (started) {
             started = false;
             hostUi.removeToolbarItem(entry);
+            hostUi.removeToolbarItem(cotEntry);
+            if (cotProbe != null) {
+                cotProbe.close();
+                cotProbe = null;
+            }
             if (probe != null) {
                 probe.close();
                 probe = null;
