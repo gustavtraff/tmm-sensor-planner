@@ -21,6 +21,8 @@ JUnit 4.13.2 and Robolectric 4.16.1 are test-only; tests explicitly request nati
 graphics and synthetic API 26/35 environments. Native codec tests are stronger than
 mocked Bitmap results, but do not prove phone/provider behavior or ATAK compatibility.
 The public `images` CI job runs these checks separately from required `core`.
+A commit-pinned android-actions/setup-android v3.2.2 installs public command-line
+tools build 12266719, platform 36 and build-tools 35.0.0 before the library build.
 Tests compile the existing Java core as test-only sources to exercise actual
 DraftStore commits, stale revisions and an error after metadata replacement.
 No private SDK, signing material or image artifacts are uploaded. The `images` job
