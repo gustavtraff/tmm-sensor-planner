@@ -7,7 +7,7 @@ import java.util.UUID;
 /** Immutable local draft. This model has no publication operation or shared state. */
 public final class TmmDraft {
     public static final int SCHEMA_VERSION = 1;
-    // shortcut: provisional text limit, confirm with the product owner before schema freeze.
+    /** UTF-16 code units, matching Java String.length(). */
     public static final int MAX_COMMENT_LENGTH = 2000;
 
     public final UUID uid;
@@ -43,7 +43,7 @@ public final class TmmDraft {
         this.deployedAt = deployedAt;
         this.comment = comment == null ? "" : comment;
         if (this.comment.length() > MAX_COMMENT_LENGTH) {
-            throw new IllegalArgumentException("comment exceeds " + MAX_COMMENT_LENGTH + " characters");
+            throw new IllegalArgumentException("comment exceeds " + MAX_COMMENT_LENGTH + " UTF-16 code units");
         }
         this.position = Objects.requireNonNull(position, "position");
         if (bearingDeg != null && (!type.supportsBearing() || !Double.isFinite(bearingDeg)
@@ -62,6 +62,21 @@ public final class TmmDraft {
                                   Position position, Instant now) {
         return new TmmDraft(UUID.randomUUID(), displayId, type, DeviceStatus.PLANNED, owner,
                 now, now, null, "", position, null, null, 1);
+    }
+
+    /** Return a validated edit; the caller explicitly supplies every editable field. */
+    public TmmDraft edit(String displayId, DeviceType type, DeviceStatus status, String owner,
+                         Instant deployedAt, String comment, Position position, Double bearingDeg,
+                         String imageRef, Instant now) {
+        Objects.requireNonNull(now, "now");
+        if (now.isBefore(updatedAt)) {
+            throw new IllegalArgumentException("edit time cannot precede the previous update");
+        }
+        if (revision == Long.MAX_VALUE) {
+            throw new IllegalArgumentException("revision is exhausted");
+        }
+        return new TmmDraft(uid, displayId, type, status, owner, createdAt, now, deployedAt,
+                comment, position, bearingDeg, imageRef, revision + 1);
     }
 
     private static String requiredText(String value, String field) {

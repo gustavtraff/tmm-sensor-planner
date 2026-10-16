@@ -19,7 +19,7 @@ The repository owner assigns responsible people. Use the Issue template when reg
 | [E0-06 / #7](https://github.com/gustavtraff/tmm-sensor-planner/issues/7) | 0 | Coexistence / signing (A08) | Test reported ATAK 5.6.0.12, HV Reports 1.1.9 [5.5.0], Data Sync 3.7.4 [5.6.0], TAK Voice 2.1.0 [5.6.0], phone and standard signing route; coexistence is unverified. Requires E0-02. |
 | [E0-07 / #8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8) | 0 | Finalize the product catalog | Names Mini/Scout/PIR/Gateway selected; status transitions, owner/ID standards, bearing reference, distance filters, symbol mapping and image policy still need decisions. |
 | [E0-08 / #9](https://github.com/gustavtraff/tmm-sensor-planner/issues/9) | 0 | CI and repository/release decisions | Core CI, separate SDK check, license, distribution decisions, responsible people and main protection established; failing PR blocked. |
-| [M1-01 / #10](https://github.com/gustavtraff/tmm-sensor-planner/issues/10) | 1 | Local domain and distances (F01/F03/F07/F08) | Initial core/tests exist; finalize provisional choices in E0-07 and later SDK adapter. |
+| [M1-01 / #10](https://github.com/gustavtraff/tmm-sensor-planner/issues/10) | 1 | Local domain and distances (F01/F03/F07/F08) | Accepted core rules, immutable edits and candidate filtering tested. Production SDK adapter remains in M1-03; no storage or APK-feature claim. |
 | [M1-02 / #11](https://github.com/gustavtraff/tmm-sensor-planner/issues/11) | 1 | Persistent local storage (F04/A02/A09) | Restart/offline, errors without silent loss, schema and migration tests. Requires M1-01. |
 | [M1-03 / #12](https://github.com/gustavtraff/tmm-sensor-planner/issues/12) | 1 | Map/forms/review (F03/F06/N08) | Field errors, distinguishable markers, clear local-draft state, practical screen test. Requires E0-03/M1-02. |
 | [M1-04 / #13](https://github.com/gustavtraff/tmm-sensor-planner/issues/13) | 1 | Local image (F09/A05) | Add/view/replace/remove and missing-file handling; EXIF/size policy from E0-07. |
@@ -45,5 +45,10 @@ compatibility prompt is not a successful load.
 
 Issue #8's [decision record](decisions/0006-local-mvp-product-rules.md) records the
 owner's status/distance and image choices and the manual-ID clarification (`PIR 134`).
-Human PR review covers the remaining implementation defaults. #10–#13 must implement
-the adopted rules; this documentation does not change current core behavior or freeze storage.
+Human merge of PR #28 adopted the remaining MVP defaults. #10–#13 implement the
+rules; the decision record alone does not establish code behavior or freeze storage.
+
+Issue #10 implements validated immutable domain edits and PLANNED/DEPLOYED/ACTIVE
+distance candidates, with manual-ID, clock/revision, transition and neighbor tests.
+Storage remains #11, forms/map and duplicate-warning UI #12, image files #13.
+The later production SDK adapter is part of those UI/map gates, not a domain-test result.

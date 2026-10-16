@@ -15,9 +15,11 @@ public final class CoreTest {
         assert assertionsEnabled = true;
         if (!assertionsEnabled) throw new IllegalStateException("Run tests with -ea");
         validation();
+        edits();
         geographicDistances();
         neighbors();
-        System.out.println("Core tests passed (validation, bearing, distances and neighbor updates).");
+        statusFilteredNeighbors();
+        System.out.println("Core tests passed (validation, manual IDs, edits, bearing and filtered distances).");
     }
 
     private static void validation() {
@@ -54,6 +56,61 @@ public final class CoreTest {
         assert created.status == DeviceStatus.PLANNED && created.revision == 1;
         assert created.createdAt.equals(NOW) && created.updatedAt.equals(NOW);
         assert created.comment.isEmpty() && created.imageRef == null && created.deployedAt == null;
+        TmmDraft manual = TmmDraft.create(" PIR 134 ", DeviceType.PIR, " TEST ROLE ", new Position(0, 0), NOW);
+        TmmDraft duplicateLabel = TmmDraft.create("PIR 134", DeviceType.PIR, "TEST ROLE", new Position(0, 0), NOW);
+        assert manual.displayId.equals("PIR 134") && manual.owner.equals("TEST ROLE");
+        assert !manual.uid.equals(duplicateLabel.uid);
+        TmmDraft.create("Custom / åäö 007", DeviceType.MINI, "TEST", new Position(0, 0), NOW);
+        new TmmDraft(new UUID(0, 1), "TEST", DeviceType.PIR, DeviceStatus.PLANNED,
+                "TEST", NOW, NOW, null, repeated('x', TmmDraft.MAX_COMMENT_LENGTH),
+                new Position(0, 0), null, null, 1);
+    }
+
+    private static void edits() {
+        Instant deployed = NOW.plusSeconds(10);
+        Instant updated = NOW.plusSeconds(20);
+        TmmDraft original = new TmmDraft(new UUID(0, 1), "PIR 134", DeviceType.PIR,
+                DeviceStatus.DEPLOYED, "TEST ROLE", NOW, updated, deployed, "Keep",
+                new Position(0, 0), 0.0, "owned-image", 7);
+        for (DeviceStatus from : DeviceStatus.values()) {
+            TmmDraft source = original.edit(original.displayId, original.type, from, original.owner,
+                    deployed, original.comment, original.position, original.bearingDeg, original.imageRef, updated);
+            for (DeviceStatus to : DeviceStatus.values()) {
+                TmmDraft changed = source.edit(source.displayId, source.type, to, source.owner,
+                        source.deployedAt, source.comment, source.position, source.bearingDeg,
+                        source.imageRef, updated.plusSeconds(1));
+                assert changed.status == to && changed.revision == source.revision + 1;
+                assert changed.uid.equals(original.uid) && changed.createdAt.equals(NOW);
+                assert changed.deployedAt.equals(deployed) && changed.imageRef.equals("owned-image");
+                assert changed.comment.equals("Keep") && changed.updatedAt.equals(updated.plusSeconds(1));
+                assert source.status == from && source.revision == 8;
+            }
+        }
+        TmmDraft corrected = original.edit(" Scout 007 ", DeviceType.SCOUT, DeviceStatus.ACTIVE,
+                " NEW ROLE ", null, "Corrected", new Position(0, 1), 359.999, null, updated);
+        assert corrected.displayId.equals("Scout 007") && corrected.owner.equals("NEW ROLE");
+        assert corrected.uid.equals(original.uid) && corrected.revision == 8;
+        assert corrected.deployedAt == null && corrected.imageRef == null;
+        assert corrected.position.longitude == 1 && corrected.bearingDeg == 359.999;
+        rejects(() -> original.edit(" ", original.type, original.status, original.owner,
+                deployed, "Keep", original.position, 0.0, original.imageRef, updated));
+        rejects(() -> original.edit(original.displayId, DeviceType.GATEWAY, original.status,
+                original.owner, deployed, "Keep", original.position, 0.0, original.imageRef, updated));
+        rejects(() -> original.edit(original.displayId, original.type, original.status, original.owner,
+                deployed, "Keep", original.position, 0.0, original.imageRef, updated.minusSeconds(1)));
+        TmmDraft exhausted = new TmmDraft(original.uid, original.displayId, original.type,
+                original.status, original.owner, NOW, updated, deployed, "Keep", original.position,
+                0.0, original.imageRef, Long.MAX_VALUE);
+        TmmDraft lastRevision = new TmmDraft(original.uid, original.displayId, original.type,
+                original.status, original.owner, NOW, updated, deployed, "Keep", original.position,
+                0.0, original.imageRef, Long.MAX_VALUE - 1);
+        assert lastRevision.edit(lastRevision.displayId, lastRevision.type, lastRevision.status,
+                lastRevision.owner, deployed, "Keep", lastRevision.position, 0.0,
+                lastRevision.imageRef, updated).revision == Long.MAX_VALUE;
+        rejects(() -> exhausted.edit(exhausted.displayId, exhausted.type, exhausted.status,
+                exhausted.owner, deployed, "Keep", exhausted.position, 0.0, exhausted.imageRef, updated));
+        assert original.revision == 7 && original.displayId.equals("PIR 134");
+        assert original.deployedAt.equals(deployed) && original.imageRef.equals("owned-image");
     }
 
     private static void geographicDistances() {
@@ -100,6 +157,39 @@ public final class CoreTest {
     private static TmmDraft draft(long id, DeviceType type, double longitude, Double bearing) {
         return new TmmDraft(new UUID(0, id), "TEST-" + id, type, DeviceStatus.PLANNED,
                 "TEST-ROLE", NOW, NOW, null, "", new Position(0, longitude), bearing, null, 1);
+    }
+
+    private static void statusFilteredNeighbors() {
+        TmmDraft source = draft(1, DeviceType.GATEWAY, 0, null);
+        TmmDraft planned = draft(2, DeviceType.GATEWAY, 1, null);
+        TmmDraft deployed = withStatus(draft(3, DeviceType.SCOUT, 0.5, 0.0), DeviceStatus.DEPLOYED);
+        TmmDraft active = withStatus(draft(4, DeviceType.GATEWAY, -1, null), DeviceStatus.ACTIVE);
+        TmmDraft retrieved = withStatus(draft(5, DeviceType.GATEWAY, 0.001, null), DeviceStatus.RETRIEVED);
+        TmmDraft cancelled = withStatus(draft(6, DeviceType.PIR, 0.002, 0.0), DeviceStatus.CANCELLED);
+        List<TmmDraft> all = Arrays.asList(active, cancelled, retrieved, deployed, planned, source);
+        for (DeviceStatus state : DeviceStatus.values()) {
+            TmmDraft selected = withStatus(source, state);
+            assert DistanceCalculator.nearestOther(selected, all).get().draft.uid.equals(deployed.uid);
+            List<DistanceCalculator.Distance> gateways = DistanceCalculator.otherGateways(selected, all);
+            assert gateways.size() == 2;
+            assert gateways.get(0).draft.uid.equals(planned.uid);
+            assert gateways.get(1).draft.uid.equals(active.uid);
+        }
+        assert !DistanceCalculator.nearestOther(source, Arrays.asList(retrieved, cancelled)).isPresent();
+        assert DistanceCalculator.otherGateways(source, Arrays.asList(retrieved, cancelled)).isEmpty();
+        assert DistanceCalculator.nearestOther(source, Arrays.asList(active, planned))
+                .get().draft.uid.equals(planned.uid);
+        assert DistanceCalculator.nearestOther(source, Arrays.asList(retrieved, planned))
+                .get().draft.uid.equals(planned.uid);
+        assert DistanceCalculator.nearestOther(source, Arrays.asList(withStatus(retrieved, DeviceStatus.ACTIVE), planned))
+                .get().draft.uid.equals(retrieved.uid);
+        assert !DistanceCalculator.nearestOther(source,
+                Collections.singletonList(withStatus(source, DeviceStatus.ACTIVE))).isPresent();
+    }
+
+    private static TmmDraft withStatus(TmmDraft draft, DeviceStatus status) {
+        return draft.edit(draft.displayId, draft.type, status, draft.owner, draft.deployedAt,
+                draft.comment, draft.position, draft.bearingDeg, draft.imageRef, NOW);
     }
 
     private static String repeated(char character, int count) {

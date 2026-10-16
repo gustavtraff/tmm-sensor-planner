@@ -23,10 +23,11 @@ separate copy without EXIF/embedded metadata; sharing remains deferred.
 
 MVP defaults for owner text, duplicate warnings, manual deployment time, true-north
 bearing, original symbols and bounded image decoding are recorded in
-[ADR 0006](decisions/0006-local-mvp-product-rules.md) for human PR review. Exact Mini
+[ADR 0006](decisions/0006-local-mvp-product-rules.md), adopted by human merge of PR #28. Exact Mini
 manual-symbol identification, sharing targets and editing received objects remain
 outside those local defaults. Existing core implementation limits are recorded in
 [the data model](DATA_MODEL.md).
 
-The decision record lists implementation/test work in #10–#13. Product decisions
-do not establish that the current core, APK or storage implements those rules.
+The core now implements validated local edits and accepted status-filtered distances.
+The decision record tracks remaining storage, UI and image work in #11–#13; this
+domain result does not establish APK functionality or persistence.

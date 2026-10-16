@@ -13,7 +13,12 @@ a fixture check, not an untrusted-file validator or network delivery test.
 
 sh scripts/test.sh checks domain validation and distances using synthetic
 coordinates. Tests cover UUID identity, bearing limits, invalid coordinates,
-time fields and sorting. They do not prove storage, map privacy or compatibility.
+time fields and sorting. The 2026-10-16 domain update additionally tests manual IDs
+such as synthetic `PIR 134`, distinct UUIDs for duplicate visible labels, all 25 manual
+status transitions, revision/clock failure cases, explicit field clearing and rejected
+type/bearing changes. Distance tests cover filtered/empty candidate sets, any source
+status, UUID self-exclusion, ties and recalculation after status/position changes.
+These tests do not prove storage, map privacy or compatibility.
 
 Acceptance tests A01–A10 are in project plan §7. A01/A06/A07/A08 require actual
 clients, an isolated test server and documented traffic/recipient observation.
@@ -21,12 +26,13 @@ A02/A05/A09 will be introduced with storage, images and migrations.
 
 [ADR 0006](decisions/0006-local-mvp-product-rules.md) records owner-confirmed product
 choices and PR-review implementation defaults. Its manual-ID preservation (for
-example `PIR 134`), status-filter, duplicate-ID, image-limit/metadata/orientation and
-replacement/failure cases are planned acceptance work in #10–#13, not passing tests.
+example `PIR 134`), status and distance-filter domain checks now pass. Duplicate-warning
+UI, image-limit/metadata/orientation and replacement/failure cases remain acceptance
+work in #11–#13, not passing tests.
 
 | Test | Result |
 |---|---|
-| Plain Java core | Passed locally on 2026-10-12 with Temurin 17.0.20.1+1 / --release 8 |
+| Plain Java core | Passed locally on 2026-10-16 with Temurin 17.0.20.1+1 / --release 8, including the accepted edit and status-filter rules |
 | Android development build / lint | Passed locally with SDK 5.6.0.24; zero lint errors |
 | APK static contract / signature | Passed; scripts/check-plugin-apk.py; Android Debug signature |
 | ATAK API 5.6.0 plugin loading | Passed in isolated API 35 arm64 emulator with SDK developer host 5.6.0.24 on 2026-10-13: load, click, unload, reload and host restart. Standard 5.6.0.12 phone/signing remains unverified; see [EMULATOR_TEST.md](EMULATOR_TEST.md) |

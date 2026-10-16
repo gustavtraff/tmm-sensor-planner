@@ -1,6 +1,6 @@
 # ADR 0006: Product rules for the local MVP
 
-Status: product choices confirmed; implementation defaults submitted for human PR review. Not implemented.
+Status: accepted by human merge of PR #28. Domain edits/filtering implemented; storage, forms and images pending.
 Date: 2026-10-16. Tracking: [Issue #8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8).
 
 ## Owner decisions recorded on 2026-10-16
@@ -12,9 +12,9 @@ Date: 2026-10-16. Tracking: [Issue #8](https://github.com/gustavtraff/tmm-sensor
 | Local image | One JPEG/PNG per device, at most 10 MiB input; save a separate copy without EXIF/embedded metadata. Image sharing remains deferred. |
 
 Owner text and duplicate handling retain the existing free-input approach as an
-MVP default for PR review; no organization-specific owner standard was supplied.
+MVP default adopted through PR #28; no organization-specific owner standard was supplied.
 The additional decoding, timestamp, bearing and artwork details below are
-implementation defaults for that review, not claims that the owner separately
+implementation defaults adopted in that review, not claims that the owner separately
 approved a pixel limit, automatic date behavior or a particular symbol design.
 
 ## Existing decisions
@@ -111,20 +111,20 @@ representation or production wire schema is fixed here. These belong to #14/#15,
 
 ## Consequences and implementation gates
 
-This decision record changes no running code or persisted format. The current core still
-counts every status in distances, has no duplicate-ID warning, no image file
-processing and no edit operation implementing these rules. It must not be described
-as conforming until the relevant implementation and tests land.
+The domain implementation now includes validated immutable edits and the accepted
+candidate filter, with manual-ID preservation and status/boundary tests. It still
+has no duplicate-ID warning UI, persisted format, image processing or production
+SDK adapter. Domain tests do not establish those remaining features.
 
-- #10: finalize domain rules and candidate filtering with synthetic validation,
+- #10: domain rules and candidate filtering implemented with synthetic validation,
   boundary, status, self-exclusion and tie-order tests.
 - #11: versioned storage, atomic record/image association, failure recovery and migrations.
 - #12: manual status/time edits, duplicate warnings, explicit bearing reference and original symbols.
 - #13: normalized image copies, decode limits, orientation, preview/replace/remove,
   cancellation, missing-file and failure tests. Use synthetic metadata/rotation fixtures.
 
-The three owner answers are recorded above. Human PR review adopts the remaining
-MVP implementation defaults; merge may close #8, while #10–#13 remain implementation
-work. No serialized draft storage exists yet, so this decision requires no data migration;
+The three owner answers are recorded above. Human merge of PR #28 adopted the remaining
+MVP defaults and closed #8. #11–#13 remain implementation work. No serialized draft
+storage exists yet, so this decision requires no data migration;
 later storage/schema changes still require migration tests. The original core
 assumptions in ADR 0001 remain provisional until a decision is accepted and implemented.
