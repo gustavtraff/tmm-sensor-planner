@@ -1,7 +1,7 @@
 # Data model
 
-The core's initial model is a local draft (schemaVersion 1), with no serialized
-storage or CoT standard yet. The full proposed record is in project plan §5.
+The core's initial model is a local draft (schemaVersion 1), with versioned local snapshot
+storage; no production CoT standard yet. The full proposed record is in project plan §5.
 
 UUID is the stable identity. displayId and owner are required, trimmed and must
 not be empty. Visible IDs are manually entered to match the device label (synthetic
@@ -40,8 +40,10 @@ by ascending distance, then UUID for ties. Empty eligible sets return no nearest
 neighbor/an empty gateway list. Re-querying an edited collection recalculates results. These are
 map distances, not terrain, link or line-of-sight measures.
 
-Production serialization, migration, unknown schema versions and CoT mapping remain
-to be implemented. The separate [synthetic CoT experiment](COT_ROUND_TRIP.md) uses
+The local storage byte contract, limits, first-version fixture and fail-closed schema
+handling are in [LOCAL_STORAGE.md](LOCAL_STORAGE.md). No older persisted format exists;
+future schema changes require migration tests. Production CoT mapping remains pending.
+The separate [synthetic CoT experiment](COT_ROUND_TRIP.md) uses
 fixed test fields; it does not freeze or implement the production draft wire schema.
 During the synchronization stage, conflicts must preserve the original for manual review.
 
@@ -49,6 +51,6 @@ Issue #8's [local MVP decision record](decisions/0006-local-mvp-product-rules.md
 covers status transitions, ID warnings, time behavior, candidate filtering and image
 limits. Confirmed owner choices and PR-review defaults are identified separately.
 The core now implements manual-ID validation, validated edits and candidate filtering.
-Duplicate warnings, persistent storage, forms and image-file processing remain #11–#13.
-No serialized storage exists; this change requires no migration and does not define
-a production stored/wire format. Later schema changes still require migration tests.
+Duplicate warnings, Android persistence integration, forms and image-file processing
+remain #11–#13. The core store persists all current fields, including an opaque image
+handle; it does not persist or validate image bytes. Unknown schemas are not overwritten.

@@ -9,7 +9,8 @@ plus an offline synthetic feature-layer experiment compiled against SDK 5.6.0.24
 See [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md) and [ADR 0003](decisions/0003-local-feature-layer-experiment.md).
 A separate synthetic CoT experiment exercises explicit single-recipient transport and
 host marker detail import/re-export; see [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md).
-Storage, production map/publishing adapters and attachment transport do not exist yet.
+A versioned Java-core [local snapshot store](LOCAL_STORAGE.md) exists; the APK does
+not call it yet. Production map/publishing adapters and attachment transport remain pending.
 Direct Data Sync integration is deferred because no applicable plugin API contract
 is available in the inspected inputs. Mission Package APIs are documented SDK
 candidates; the separate [attachment investigation](DATA_SYNC_AND_ATTACHMENTS.md)

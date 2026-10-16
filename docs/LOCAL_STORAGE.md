@@ -1,0 +1,99 @@
+# Local draft storage
+
+Issue #11 adds `core/DraftStore`, a dependency-free local snapshot store. It has
+no ATAK, network, image-decoding or publishing operations. The current APK does
+not call it. Production forms/map integration is tracked in #12, local image
+ownership in #13. This is not a phone A02/A09 acceptance result.
+
+## API and failure behavior
+
+- Construct with a private, plugin-owned directory. `load()` returns an immutable
+  list; an absent snapshot means a new empty store. An existing empty, unreadable,
+  corrupt or unsupported snapshot is an error, never an empty-list fallback.
+- `save(draft)` inserts revision 1 or updates the same UUID at exactly the saved
+  revision plus one, with unchanged creation time and a nondecreasing update time.
+  Duplicate visible labels remain separate records. Stale edits fail explicitly.
+- `delete(uid, expectedRevision)` requires the saved revision and deletes metadata
+  only. Neither save nor delete resolves, opens or removes `imageRef` files.
+- Every operation obtains a nonblocking exclusive lock on `drafts.lock`, including
+  reads. Another instance/process holding the lock gives an explicit retry error.
+  Keep that lock file; deleting/replacing it defeats coordination.
+- Save validates the complete existing snapshot before changing anything. It writes
+  a same-directory temporary file, flushes and syncs its bytes, then requests atomic
+  replacement of `drafts.bin`. Unsupported/failed atomic replacement has **no**
+  copy/delete fallback. Failure before replacement preserves the previous snapshot;
+  temporary-file cleanup is attempted on normal exit. If an I/O error occurs after
+  replacement, reload to determine the committed state before retrying. A killed
+  process may leave an ignored temporary file.
+- Limits: 1,000 records, 16 MiB total file size including digest, 65,536 UTF-8 bytes
+  per string. Domain validation also applies (including the smaller comment limit).
+  Oversized input/output fails without replacing saved data. These are bounded MVP
+  storage limits, not performance claims for a trial phone.
+
+The revision check protects ordinary local edits; it is not a distributed conflict
+policy. Deleting then explicitly recreating a UUID starts a new local record. The
+UI must generate fresh UUIDs for new devices and must not silently retry failed
+writes, reset the store, or display success before `save` returns. Map previews
+must reflect the saved result. On failure keep the user's edit and show an error.
+
+The snapshot is plaintext sensitive local data, **not** encryption or a backup.
+Use private app storage, never shared Downloads or a feed. Do not log snapshots,
+field values, raw filesystem exceptions/paths or attachment references. Android
+backup/export policy must be checked before this store is wired into the APK.
+A missing file is indistinguishable from a fresh installation; external deletion,
+storage failure and sudden power-loss durability are not solved by this format.
+The parent directory is not fsynced; atomic replacement is not a claim of surviving
+power loss. On process restart the committed snapshot is reopened, not a temporary
+file. Keep unsupported data in place for a compatible app/recovery decision.
+
+## Version 1 byte contract
+
+All numbers are big-endian. `int` = signed 32-bit; `long` = signed 64-bit;
+`double` = IEEE 754 binary64. Strings use an `int` byte length followed by strict
+UTF-8 (no Java modified UTF). Flags are exactly one byte, 0 or 1. Required trimmed
+text must already be canonical; the reader rejects padding rather than changing it.
+
+| Order | Bytes |
+|---|---|
+| Header | `int 0x544d4d44` (`TMMD`), `int schemaVersion=1`, `int recordCount` |
+| Each record, in saved insertion order | UUID most/least significant `long`s; strings displayId, type, status, owner; createdAt and updatedAt; deployedAt flag and optional instant; comment string; latitude and longitude doubles; bearing flag and optional double; imageRef flag and optional string; revision long |
+| Trailer | 32-byte SHA-256 of all preceding bytes |
+
+An instant is epoch seconds (`long`) and nanoseconds (`int`, 0–999,999,999).
+Type/status strings are enum **names**, never ordinals: `MINI`, `SCOUT`, `PIR`,
+`GATEWAY`; `PLANNED`, `DEPLOYED`, `ACTIVE`, `RETRIEVED`, `CANCELLED`.
+No trailing payload bytes or duplicate UUIDs are allowed. Every decoded record
+passes the domain constructor's validation. The digest detects accidental
+corruption, not deliberate modification/authenticity. No local path is a wire field.
+
+This is the **first persisted format**. There is no earlier production version to
+migrate. The fixed independently encoded [v1 fixture](../test-fixtures/synthetic/storage/v1.base64)
+pins compatibility, including nanoseconds, Unicode, zero bearing and optional data.
+Future-version, malformed and truncated files are rejected without rewriting them.
+Every future schema change must add a real old-to-new fixture migration test before
+changing the writer; never reinterpret an unknown schema as empty storage. This
+format does not define a production CoT wire schema.
+
+## Verification and Android handoff
+
+On 2026-10-17, `sh scripts/test.sh` passed with Temurin 17.0.20.1+1 and `--release 8`:
+all fields/UUID/revision survive reopen; a separate JVM writer exits before a new
+reader process opens its data. Tests also cover updates, deletion, duplicate visible
+labels, stale saves/deletes, failed atomic replacement, lock contention, v1 fixture
+compatibility, digest/UTF-8/enum/domain errors, duplicate UUIDs, padding, future
+versions, truncation, trailing bytes, string/file/record limits and a broken symlink.
+Rejected files remain byte-identical after attempted reads, saves and deletes.
+These tests use synthetic coordinates only. No emulator/server/phone was started
+for this change; a local no-network API is not observed ATAK offline behavior.
+
+The implementation uses NIO file APIs available on Android API 26+, while the APK
+currently declares minSdk 21; the Android references list
+[Files](https://developer.android.com/reference/java/nio/file/Files) and
+[Instant](https://developer.android.com/reference/java/time/Instant) at API 26.
+`Instant` in the existing model also needs Android
+compatibility handling. **Do not wire it unguarded into API 21–25.** #12 must resolve
+that runtime boundary (verified desugaring or a compatible storage adapter, or an
+explicitly approved support-floor change), choose private app storage/backup rules,
+translate errors, save off the UI thread, rebuild the private map after load, and
+run ATAK offline restart tests. #13 must separately prove actual image bytes survive
+restart. Future APK upgrade/migration and physical-phone A02/A09 remain open.

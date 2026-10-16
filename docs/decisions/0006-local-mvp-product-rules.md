@@ -1,6 +1,6 @@
 # ADR 0006: Product rules for the local MVP
 
-Status: accepted by human merge of PR #28. Domain edits/filtering implemented; storage, forms and images pending.
+Status: accepted by human merge of PR #28. Domain edits/filtering and core storage implemented; Android integration, forms and images pending.
 Date: 2026-10-16. Tracking: [Issue #8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8).
 
 ## Owner decisions recorded on 2026-10-16
@@ -113,18 +113,21 @@ representation or production wire schema is fixed here. These belong to #14/#15,
 
 The domain implementation now includes validated immutable edits and the accepted
 candidate filter, with manual-ID preservation and status/boundary tests. It still
-has no duplicate-ID warning UI, persisted format, image processing or production
-SDK adapter. Domain tests do not establish those remaining features.
+has no duplicate-ID warning UI, image processing or production SDK adapter.
+The first [persisted format](../LOCAL_STORAGE.md) now has a fixed v1 fixture and
+separate-process reopen tests. Neither result establishes APK integration.
 
 - #10: domain rules and candidate filtering implemented with synthetic validation,
   boundary, status, self-exclusion and tie-order tests.
-- #11: versioned storage, atomic record/image association, failure recovery and migrations.
+- #11: core versioned storage and failure tests implemented; Android restart/upgrade
+  evidence remains open. Image association stores an opaque handle only; actual
+  image-file replacement/failure ordering remains #13.
 - #12: manual status/time edits, duplicate warnings, explicit bearing reference and original symbols.
 - #13: normalized image copies, decode limits, orientation, preview/replace/remove,
   cancellation, missing-file and failure tests. Use synthetic metadata/rotation fixtures.
 
 The three owner answers are recorded above. Human merge of PR #28 adopted the remaining
-MVP defaults and closed #8. #11–#13 remain implementation work. No serialized draft
-storage exists yet, so this decision requires no data migration;
-later storage/schema changes still require migration tests. The original core
+MVP defaults and closed #8. #11–#13 retain Android integration/acceptance work.
+ADR 0007 introduces the first persisted format; there was no older stored format
+to migrate. Later storage/schema changes still require migration tests. The original core
 assumptions in ADR 0001 remain provisional until a decision is accepted and implemented.

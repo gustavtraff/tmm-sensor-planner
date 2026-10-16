@@ -23,6 +23,11 @@ Do not put the token in documentation, command-line arguments or chat.
 Install JDK 17 and run sh scripts/test.sh. Alternatively, set JAVA_HOME to a
 local JDK. The script compiles Java 8-compatible code and runs tests without libraries.
 This JDK is only the core's test environment, not a decision about the ATAK toolchain.
+The script includes local snapshot tests and launches separate writer/reader JVMs;
+it needs a writable temporary directory and uses only synthetic data. No server is needed.
+See [LOCAL_STORAGE.md](LOCAL_STORAGE.md) for schema and failure behavior. The APK does
+not call this store yet: Android API 21–25 NIO/Instant compatibility and private
+storage/backup/lifecycle must be resolved in #12 before integration.
 
 ## Current ATAK target and SDK
 
