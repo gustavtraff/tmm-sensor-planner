@@ -1,0 +1,28 @@
+plugins {
+    id 'com.android.library' version '8.13.0'
+}
+
+android {
+    namespace 'se.tmm.sensorplanner.images'
+    compileSdk 36
+    buildToolsVersion '35.0.0'
+    defaultConfig {
+        minSdk 21
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    sourceSets {
+        test.java.srcDir '../core/src/main/java'
+    }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
+}
+
+dependencies {
+    implementation 'androidx.exifinterface:exifinterface:1.4.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.16.1'
+}
