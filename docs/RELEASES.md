@@ -16,10 +16,16 @@ based on the HV Reports package label; that label is retained below as reported.
 | ATAK API | 5.6.0 active target | User-approved target; integration unverified |
 | Installed phone client | ATAK-CIV full build 5.6.0.12 | User-reported; plugin loading not tested |
 | Supplied SDK | Directory labeled full build 5.6.0.24; app, guide and JARs present | Local debug build/toolchain verified; provenance and runtime compatibility with 5.6.0.12 pending |
-| HV Reports/8S | 1.1.9 [5.5.0] | User-reported; coexistence on 5.6.0 unverified |
-| Data Sync | 3.7.4 [5.6.0] | User-reported; coexistence and integration unverified |
-| TAK Voice | 2.1.0 [5.6.0] | User-reported; coexistence unverified |
+| HV Reports/8S | Inspected APK 1.1.9 [5.5.0], API 5.5.0.CIV | Android installation passed; loading failed in SDK host 5.6.0.24 with and without TMM active. Standard-phone behavior remains unverified; see [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md) |
+| Data Sync | Inspected APK 3.7.4 (58746181) [5.6.0] | Installation passed; SDK 5.6.0.24 load attempt failed with missing host class. Standard-host coexistence and TMM integration unverified |
+| TAK Voice | Inspected split package 2.1.0 (20251122) [5.6.0] | Installation/signature checks passed; SDK 5.6.0.24 load attempt failed with missing host class. APKPure provenance not independently confirmed; standard-host coexistence unverified |
 | TAK Server | Unknown | Not needed for initial local build; required before server-dependent tests |
+
+Issue #7 remains open. The official third-party signing service is a candidate
+route only; no signing submission or standard-host acceptance test has occurred.
+The SDK host skips its signature check. Valid Android APK signatures and a plugin
+manager compatibility prompt do not establish successful loading or production trust.
+See [the partial signing/coexistence result](SIGNING_AND_COEXISTENCE.md).
 
 API 5.6.0 and full builds 5.6.0.12/5.6.0.24 are distinct version facts. Matching
 API versions do not replace installation, round-trip or coexistence tests.

@@ -37,3 +37,8 @@ Issue #6 investigation: [DATA_SYNC_AND_ATTACHMENTS.md](DATA_SYNC_AND_ATTACHMENTS
 records a passed standalone synthetic Mission Package transfer in the isolated SDK
 lab and explicit deferral of Data Sync integration and production image sharing.
 This does not close local image Issue #13 or the product-policy decisions in #8.
+
+Issue #7 remains open: [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md)
+records failed HV Reports, Data Sync and TAK Voice SDK-host attempts. The standard
+host installer, signing and physical-client gates remain open. A plugin-manager
+compatibility prompt is not a successful load.

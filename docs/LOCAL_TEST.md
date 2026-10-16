@@ -1,5 +1,10 @@
 # Private offline test: development loading probe
 
+Historical loading-only checklist for `0.1.0-dev`. The current development APK
+contains additional synthetic lab tools; use its version-specific instructions.
+For standard-host signing and companion-plugin gates, see
+[SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md).
+
 This test checks only plugin discovery, loading, the toolbar item and unloading.
 The planning forms, map view, persistent drafts, images and sharing are not implemented.
 Mini, Scout, PIR and Gateway are currently domain catalogue entries, not a working
@@ -10,7 +15,7 @@ device-creation screen. Issue #3 remains open for physical-client verification.
 The supplied test plugin is an **Android Debug-signed development APK**, built against
 the local ATAK-CIV 5.6.0.24 SDK and declaring plugin API 5.6.0.CIV. Use a separate
 test phone or emulator with the **developer atak.apk included in that SDK**.
-Developer-app loading has not been tested yet.
+Developer-host loading passed in the isolated SDK emulator; see [EMULATOR_TEST.md](EMULATOR_TEST.md).
 
 The reported standard phone app is ATAK-CIV 5.6.0.12. This APK is not a TAK-signed
 production plugin and is not a validated installation for that app. A matching API
@@ -34,7 +39,7 @@ TAK describes its developer host and third-party signing process in
    Data Sync feed, mission package, shared folder or app repository.
 4. Install by opening the APK from Android's file manager, using the Android package
    installer. Do not use ATAK's Share, Send, Data Sync, feed or package-upload actions.
-5. This plugin requests no Android permissions and its code only registers a toolbar
+5. This historical loading-only version requests no Android permissions and only registers a toolbar
    item and displays a toast. It contains no CoT, feed, publication or server adapter.
    This source/artifact inspection is not a substitute for the later two-client
    network-observation test when map integration and sharing are introduced.

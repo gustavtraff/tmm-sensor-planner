@@ -30,7 +30,9 @@ A02/A05/A09 will be introduced with storage, images and migrations.
 | Synthetic CoT round trip / manual target | Passed in the bounded SDK lab on 2026-10-15–16: all four types, actual marker import/re-export, same UUID, all fixture fields, repeated UID, cancellation, disconnect and recovery. See [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md); production sharing is not implemented |
 | Standalone synthetic image package | Passed on 2026-10-16 in the isolated two-client SDK lab: recipient cancellation check, byte-identical PNG/ZIP/server resource, remote manifest without local references, viewing and local deletion. Stock PNG import started a placement tool, cancelled without choosing a position. See [DATA_SYNC_AND_ATTACHMENTS.md](DATA_SYNC_AND_ATTACHMENTS.md) |
 | Production TMM image sharing / Data Sync | Deferred; no TMM image association, acknowledgment, EXIF/size policy or applicable Data Sync plugin API verified. A05 and production image A07 remain open |
-| HV Reports / Data Sync / TAK Voice coexistence | Not run – reported versions: HV Reports 1.1.9 [5.5.0], Data Sync 3.7.4 [5.6.0], TAK Voice 2.1.0 [5.6.0] |
+| HV Reports SDK-host loading attempt | Failed on 2026-10-16: provided 1.1.9 [5.5.0] installed but could not construct its plugin extension in SDK 5.6.0.24; same missing-class failure after unloading TMM. No reporting workflow passed. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md) |
+| Data Sync / TAK Voice package follow-up | APK/split signatures and installation passed on 2026-10-16; both SDK 5.6.0.24 load attempts failed with missing `gov.tak.api.plugin.a`, including after TMM unload. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md); no feed or voice workflow passed |
+| Standard signing / full A08 coexistence | Open: standard 5.6.0.12 installer, supported companion/host combination, appropriately signed TMM artifact and physical-client test still required |
 
 Core CI is a public check. Android lint, APK and SDK builds will be added
 when a permitted build environment exists, as a separate required check. Scanning before
