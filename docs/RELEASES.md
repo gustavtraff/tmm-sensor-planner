@@ -33,3 +33,8 @@ API versions do not replace installation, round-trip or coexistence tests.
 Keep a changelog with schema changes, limitations and installation steps.
 Rollback must not delete local drafts; the backup/migration policy must be tested
 before releasing a version with persistent storage. Do not publish SDKs/certificates.
+
+Repository protection, separate SDK-check procedure and unresolved licensing,
+distribution and named-role decisions are recorded in
+[repository governance](REPOSITORY_GOVERNANCE.md). Issue #9 remains open for those
+gates; this CI work does not create a release or approve a distribution channel.

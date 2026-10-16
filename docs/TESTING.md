@@ -68,3 +68,12 @@ For Issue #3, install on a dedicated SDK developer client, load the plugin, veri
 that the toolbar item appears once and shows Lokal prototyp, stop/unload the plugin
 and verify removal, then restart and repeat. Record exact versions. Do not treat
 passing compilation or absence of APK permissions as proof of local map privacy.
+
+## CI enforcement and separate SDK evidence
+
+The public `core` job also checks patch whitespace. `sh scripts/check-sdk.sh`
+provides the separate local Android build/lint/APK procedure with private external
+inputs; it is not an automated required GitHub check. See
+[repository governance](REPOSITORY_GOVERNANCE.md) for main-protection evidence,
+the failing-PR experiment and the remaining #9 acceptance gaps. No SDK/device
+verification is implied by repository-check results.
