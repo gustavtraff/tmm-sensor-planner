@@ -1,6 +1,6 @@
 # ADR 0007: Versioned local snapshot storage
 
-Date: 2026-10-17. Status: proposed for human review in Issue #11's PR.
+Date: 2026-10-17. Status: accepted by human merge of PR #30. Android integration is tracked in #12.
 
 ## Decision
 

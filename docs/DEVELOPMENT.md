@@ -25,9 +25,10 @@ local JDK. The script compiles Java 8-compatible code and runs tests without lib
 This JDK is only the core's test environment, not a decision about the ATAK toolchain.
 The script includes local snapshot tests and launches separate writer/reader JVMs;
 it needs a writable temporary directory and uses only synthetic data. No server is needed.
-See [LOCAL_STORAGE.md](LOCAL_STORAGE.md) for schema and failure behavior. The APK does
-not call this store yet: Android API 21–25 NIO/Instant compatibility and private
-storage/backup/lifecycle must be resolved in #12 before integration.
+See [LOCAL_STORAGE.md](LOCAL_STORAGE.md) for schema and failure behavior. The APK
+now calls it only through an API-26-guarded offline prototype; minSdk remains 21
+and older clients show an unavailable message. See [LOCAL_PLANNER.md](LOCAL_PLANNER.md)
+for private storage, lifecycle and the remaining Android/phone gates.
 
 ## Current ATAK target and SDK
 
@@ -150,3 +151,13 @@ Issue #7's offline companion-plugin attempt and standard signing prerequisites
 are recorded in [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md). The supplied
 HV Reports APK installed but failed to load in this SDK host, including with TMM
 unloaded. Do not use that result to infer behavior on the standard phone build.
+
+## Local planner prototype
+
+The main tool now opens local draft forms/review and a private layer, version
+`0.1.0-local-planner.1` / versionCode 5. Only synthetic offline tests on Android 8+
+are supported by this prototype. Core sources compile directly into the app source
+set without another dependency. `app/lint.xml` scopes NewApi suppression to the
+SDK-independent core; all app callers are guarded/annotated for API 26. Keep that
+boundary when adding callers. The former one-point map tool was removed; its older
+APK evidence remains historical. The CoT lab tool remains fixed-fixture only.

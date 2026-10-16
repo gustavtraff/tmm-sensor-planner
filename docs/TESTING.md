@@ -25,7 +25,8 @@ fixture, a writer/reader in separate JVM processes, stale edits/deletes, lock co
 failed replacement, input limits and malformed/future schemas with byte-preservation
 checks. See [LOCAL_STORAGE.md](LOCAL_STORAGE.md) for the exact scope and format.
 The tests passed locally on 2026-10-17 with Temurin 17.0.20.1+1 / --release 8.
-No ATAK/phone offline restart or upgrade acceptance is claimed.
+The later [offline planner test](LOCAL_PLANNER.md) adds bounded API-35 SDK-host
+restart/install-in-place and future-schema failure evidence; phone acceptance remains open.
 
 Acceptance tests A01–A10 are in project plan §7. A01/A06/A07/A08 require actual
 clients, an isolated test server and documented traffic/recipient observation.
@@ -68,3 +69,14 @@ For Issue #3, install on a dedicated SDK developer client, load the plugin, veri
 that the toolbar item appears once and shows Lokal prototyp, stop/unload the plugin
 and verify removal, then restart and repeat. Record exact versions. Do not treat
 passing compilation or absence of APK permissions as proof of local map privacy.
+
+## Offline planner adapter — 2026-10-17
+
+[LOCAL_PLANNER.md](LOCAL_PLANNER.md) records actual headless SDK-host results for
+forms, comma input, edits, duplicate warning, map selection, directional cues,
+private storage, process restart, in-place APK replacement, plugin unload/reload,
+future-schema preservation and two emulated landscape sizes. The initial datastore
+lifetime crash and decimal-keyboard bug were fixed and retested. Current app builds
+and lint pass with the guarded API-26 core boundary; this is not API 21–25 planning
+support. Actual image bytes, rotated-map/phone behavior and production connected
+privacy remain open; public CI is core-only.

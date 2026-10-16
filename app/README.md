@@ -1,11 +1,15 @@
-# Offline map probe
+# Offline local planner prototype
 
-This independently written SDK experiment registers one ATAK toolbar item. It opens
-Swedish create/move/delete controls for one disposable synthetic point in a separate
-feature layer. It requires offline mode and clears the point on unload/restart.
-It does not implement saved TMM drafts or sharing. See [the experiment](../docs/LOCAL_MAP_PROBE.md).
+The main tool opens Swedish local-draft list/forms/review with private storage,
+map selection, bearing and distances. It requires offline mode and Android API 26+;
+older clients get an unavailable message, without changing APK minSdk 21.
+The separate CoT lab tool retains fixed synthetic fixtures and explicit lab confirmation.
 
 Target: ATAK-CIV API 5.6.0.CIV, supplied SDK developer app 5.6.0.24.
-The earlier loading-only build passed its isolated emulator lifecycle test; see
-[EMULATOR_TEST.md](../docs/EMULATOR_TEST.md). Standard phone/signing and network/privacy
-verification remain pending. No SDK, signing files or permissions are added to the APK.
+See [LOCAL_PLANNER.md](../docs/LOCAL_PLANNER.md) for behavior, SDK verification,
+runtime evidence and limits. The old one-point map tool was replaced; its earlier
+[experiment](../docs/LOCAL_MAP_PROBE.md) remains historical evidence.
+
+Use only synthetic data in the isolated test emulator. This is not a release or a
+verified standard-phone installation. No SDK, signing files or permissions are added
+to the APK. Image files and production sharing remain separate work.

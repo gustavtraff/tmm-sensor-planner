@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- SDK-independent Java sources cannot import Android TargetApi. Their only
+         Android consumers are the API-26-guarded LocalPlanner/LocalDraftLayer.
+         Keep NewApi enabled everywhere else; do not use core from older paths. -->
+    <issue id="NewApi">
+        <ignore path="**/core/src/main/java/**" />
+    </issue>
+</lint>
