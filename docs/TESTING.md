@@ -80,3 +80,12 @@ lifetime crash and decimal-keyboard bug were fixed and retested. Current app bui
 and lint pass with the guarded API-26 core boundary; this is not API 21–25 planning
 support. Actual image bytes, rotated-map/phone behavior and production connected
 privacy remain open; public CI is core-only.
+
+## CI enforcement and separate SDK evidence
+
+The public `core` job also checks patch whitespace. `sh scripts/check-sdk.sh`
+provides the separate local Android build/lint/APK procedure with private external
+inputs; it is not an automated required GitHub check. See
+[repository governance](REPOSITORY_GOVERNANCE.md) for main-protection evidence,
+the failing-PR experiment and the remaining #9 acceptance gaps. No SDK/device
+verification is implied by repository-check results.

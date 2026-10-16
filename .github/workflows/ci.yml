@@ -9,6 +9,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Check patch whitespace
+        run: git diff --check HEAD^ HEAD
       - name: Compile and test Java core
         run: |
           export JAVA_HOME="$JAVA_HOME_17_X64"

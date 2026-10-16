@@ -161,3 +161,11 @@ set without another dependency. `app/lint.xml` scopes NewApi suppression to the
 SDK-independent core; all app callers are guarded/annotated for API 26. Keep that
 boundary when adding callers. The former one-point map tool was removed; its older
 APK evidence remains historical. The CoT lab tool remains fixed-fixture only.
+
+## Separate SDK verification command
+
+With the environment above configured, run `sh scripts/check-sdk.sh` from the
+reviewed worktree. It combines the existing Android build/lint and static APK check;
+it does not upload outputs. Record the tested commit and bounded results in the PR.
+See [repository governance](REPOSITORY_GOVERNANCE.md) for the currently unenforced
+SDK status and remaining environment/owner decisions.
