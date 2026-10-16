@@ -6,8 +6,9 @@ Initial project setup for an ATAK-CIV plugin for local planning of TMM devices.
 The repository currently contains an SDK-independent Java core for local drafts,
 validation, horizontal map distances and a versioned local snapshot store, plus a locally built minimal development
 APK. Loading passed in the isolated SDK developer emulator; standard-app signing
-and phone compatibility remain unverified. The APK does not yet use the
-[core storage](docs/LOCAL_STORAGE.md); production forms/map and sharing remain pending. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
+and phone compatibility remain unverified. The [offline local prototype](docs/LOCAL_PLANNER.md)
+now connects forms, review, private storage and map selection on Android API 26+.
+Production connected privacy, image files and sharing remain pending. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
 and a separate [synthetic CoT lab tool](docs/COT_ROUND_TRIP.md) support SDK investigations.
 The CoT tool sends fixed test fixtures only after recipient selection and confirmation
 through the isolated localhost lab; it does not publish domain drafts.

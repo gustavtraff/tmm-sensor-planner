@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TMM Sensor Planner</string>
-    <string name="app_desc">Lokalt kartprov och isolerat CoT-labb med syntetiska data.</string>
+    <string name="app_desc">Lokal offline-prototyp för TMM-utkast och isolerat CoT-labb med syntetiska data.</string>
 </resources>

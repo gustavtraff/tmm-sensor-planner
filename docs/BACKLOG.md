@@ -58,3 +58,10 @@ reopen and fail-closed tests; see [LOCAL_STORAGE.md](LOCAL_STORAGE.md). #11 stay
 for actual Android offline restart/upgrade evidence. #12 must integrate private storage,
 resolve the API 21–25 NIO/Instant boundary, backup policy, field errors and map lifecycle.
 No image-file or phone acceptance result is implied.
+
+Issue #12 now implements the guarded API-26 offline planner adapter: validated forms,
+review/duplicate warning, host-private no-backup storage and a private feature layer
+with original type symbols and map selection. Bounded SDK-host results and remaining
+physical/connected/rotation gates are in [LOCAL_PLANNER.md](LOCAL_PLANNER.md). #11/#12
+remain open for actual-client acceptance; image files remain #13. No new sharing or
+Data Sync capability is implied.

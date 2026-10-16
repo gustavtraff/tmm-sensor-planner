@@ -1,14 +1,16 @@
 # Private offline test: development loading probe
 
 Historical loading-only checklist for `0.1.0-dev`. The current development APK
-contains additional synthetic lab tools; use its version-specific instructions.
+now includes the offline planner and separate synthetic lab tools. Use
+[LOCAL_PLANNER.md](LOCAL_PLANNER.md) for `0.1.0-local-planner.1`; the checklist below
+only describes the historical loading build.
 For standard-host signing and companion-plugin gates, see
 [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md).
 
 This test checks only plugin discovery, loading, the toolbar item and unloading.
-The planning forms, map view, persistent drafts, images and sharing are not implemented.
-Mini, Scout, PIR and Gateway are currently domain catalogue entries, not a working
-device-creation screen. Issue #3 remains open for physical-client verification.
+That historical build did not implement forms, maps, saved drafts, images or sharing.
+The current prototype adds local forms/storage/maps; images and production sharing
+remain pending. Issue #3 remains open for physical-client verification.
 
 ## Choose the correct host app
 

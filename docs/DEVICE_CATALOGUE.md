@@ -34,3 +34,12 @@ remain restricted to PIR and Scout, and distances include all four types.
 
 The proposed status catalogue, allowed transitions, ID/owner conventions and other
 product decisions remain open in Issue #8. Selecting the names does not close that Issue.
+
+## Original prototype symbols
+
+The offline planner uses four original 64 px transparent PNG symbols in
+`app/src/main/res/drawable-nodpi`: a black disc with a white M/S/P/G glyph and ring,
+tinted by planning status. Glyphs are simple independently drawn vector strokes;
+no font, manual graphic or third-party icon is copied. Type is visible even if ATAK
+declutters the longer label. These are local prototype symbols, not claimed manual
+symbol identifications or sensor alarm states. See [LOCAL_PLANNER.md](LOCAL_PLANNER.md).

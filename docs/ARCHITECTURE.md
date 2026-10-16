@@ -4,13 +4,15 @@ Intended chain: domain model → local storage → local map representation →
 explicit publishing adapter → verified ATAK/CoT route.
 
 Implemented: core/ with plain Java for drafts, validation and distances.
-app/ contains a loading probe whose lifecycle passed in the SDK developer emulator,
-plus an offline synthetic feature-layer experiment compiled against SDK 5.6.0.24.
+app/ contains a guarded offline local planner prototype with list/forms/review and
+a private feature layer, plus the separate fixed-fixture CoT lab tool. The earlier
+disposable map experiment established candidate SDK signatures.
 See [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md) and [ADR 0003](decisions/0003-local-feature-layer-experiment.md).
 A separate synthetic CoT experiment exercises explicit single-recipient transport and
 host marker detail import/re-export; see [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md).
-A versioned Java-core [local snapshot store](LOCAL_STORAGE.md) exists; the APK does
-not call it yet. Production map/publishing adapters and attachment transport remain pending.
+The [offline planner adapter](LOCAL_PLANNER.md) calls the versioned Java-core
+[local snapshot store](LOCAL_STORAGE.md) in the host's private no-backup directory.
+Production connected privacy, publishing adapters and image-file handling remain pending.
 Direct Data Sync integration is deferred because no applicable plugin API contract
 is available in the inspected inputs. Mission Package APIs are documented SDK
 candidates; the separate [attachment investigation](DATA_SYNC_AND_ATTACHMENTS.md)

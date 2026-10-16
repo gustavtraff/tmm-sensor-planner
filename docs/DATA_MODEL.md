@@ -50,7 +50,8 @@ During the synchronization stage, conflicts must preserve the original for manua
 Issue #8's [local MVP decision record](decisions/0006-local-mvp-product-rules.md)
 covers status transitions, ID warnings, time behavior, candidate filtering and image
 limits. Confirmed owner choices and PR-review defaults are identified separately.
-The core now implements manual-ID validation, validated edits and candidate filtering.
-Duplicate warnings, Android persistence integration, forms and image-file processing
-remain #11–#13. The core store persists all current fields, including an opaque image
+The core now implements manual-ID validation, validated edits, form parsing and candidate filtering.
+The [offline planner](LOCAL_PLANNER.md) now connects duplicate warnings, validated
+forms and Android persistence on API 26+. Physical acceptance, connected privacy
+and image-file processing remain #11–#13. The core store persists all current fields, including an opaque image
 handle; it does not persist or validate image bytes. Unknown schemas are not overwritten.
