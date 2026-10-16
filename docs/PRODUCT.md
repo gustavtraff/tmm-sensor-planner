@@ -13,14 +13,20 @@ are outside the first version. Distance says nothing about radio links or terrai
 
 The initial core implements parts of F01/F02/F03/F07/F08, without a user interface.
 Accepted display names: Mini, Scout, PIR and Gateway, selected on 2026-10-12.
-See [the device catalogue](DEVICE_CATALOGUE.md). Proposed status catalog: planned, deployed,
-active, retrieved, cancelled. Status transitions have not been decided.
+See [the device catalogue](DEVICE_CATALOGUE.md). On 2026-10-16 the owner confirmed
+the five statuses (planned, deployed, active, retrieved, cancelled), manual status
+changes, and distance candidates restricted to planned/deployed/active records.
+The visible device ID is entered manually to match its real label, for example
+synthetic `PIR 134`; no automatic numbering or forced naming format is intended.
+The owner also confirmed one local JPEG/PNG, at most 10 MiB input, stored as a
+separate copy without EXIF/embedded metadata; sharing remains deferred.
 
-Open decisions: Mini symbol mapping, ID/owner standards, status transitions, automatic deployment time,
-bearing reference/display, which statuses count when finding the nearest device,
-image size limit/EXIF, target channel and editing other users' objects.
-See [provisional core choices](decisions/0001-sdk-independent-core.md).
+MVP defaults for owner text, duplicate warnings, manual deployment time, true-north
+bearing, original symbols and bounded image decoding are recorded in
+[ADR 0006](decisions/0006-local-mvp-product-rules.md) for human PR review. Exact Mini
+manual-symbol identification, sharing targets and editing received objects remain
+outside those local defaults. Existing core implementation limits are recorded in
+[the data model](DATA_MODEL.md).
 
-The [local MVP product-rule proposal](decisions/0006-local-mvp-product-rules.md)
-collects the pending Issue #8 choices and their implementation gates. It is not
-an accepted replacement for the provisional rules until the owner's answers are recorded.
+The decision record lists implementation/test work in #10–#13. Product decisions
+do not establish that the current core, APK or storage implements those rules.

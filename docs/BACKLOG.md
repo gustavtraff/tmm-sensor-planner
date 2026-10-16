@@ -43,6 +43,7 @@ records failed HV Reports, Data Sync and TAK Voice SDK-host attempts. The standa
 host installer, signing and physical-client gates remain open. A plugin-manager
 compatibility prompt is not a successful load.
 
-Issue #8 has a [concrete local MVP proposal](decisions/0006-local-mvp-product-rules.md).
-Owner answers on status/distance rules, ID conventions and image policy are pending.
-The proposal does not close #8, freeze the schema or change current core behavior.
+Issue #8's [decision record](decisions/0006-local-mvp-product-rules.md) records the
+owner's status/distance and image choices and the manual-ID clarification (`PIR 134`).
+Human PR review covers the remaining implementation defaults. #10–#13 must implement
+the adopted rules; this documentation does not change current core behavior or freeze storage.

@@ -4,7 +4,9 @@ The core's initial model is a local draft (schemaVersion 1), with no serialized
 storage or CoT standard yet. The full proposed record is in project plan §5.
 
 UUID is the stable identity. displayId and owner are required, trimmed and must
-not be empty. ID uniqueness across a working area is not implemented.
+not be empty. Visible IDs are manually entered to match the device label (synthetic
+example: `PIR 134`), without automatic numbering or an enforced naming format.
+ID uniqueness across a working area is not implemented; UUID remains the record identity.
 Position: finite degrees, latitude [-90,90], longitude [-180,180].
 createdAt/updatedAt: UTC Instant; updatedAt must not precede createdAt.
 Optional deployedAt: actual time, not automatically derived from status.
@@ -24,15 +26,18 @@ sharedAt and conflict metadata will be introduced when identity/SDK and the sync
 
 Distances use haversine, meters, and a mean radius of 6371008.8 m. The same UUID
 is excluded. The gateway list filters for gateways and sorts in ascending order. All statuses
-provisionally count. These are map distances, not terrain, link or line-of-sight measures.
+currently count in the implementation. The owner-confirmed target is to count only
+PLANNED/DEPLOYED/ACTIVE candidates; #10 must add that filter and tests. These are
+map distances, not terrain, link or line-of-sight measures.
 
 Production serialization, migration, unknown schema versions and CoT mapping remain
 to be implemented. The separate [synthetic CoT experiment](COT_ROUND_TRIP.md) uses
 fixed test fields; it does not freeze or implement the production draft wire schema.
 During the synchronization stage, conflicts must preserve the original for manual review.
 
-Issue #8's [proposed local MVP rules](decisions/0006-local-mvp-product-rules.md)
+Issue #8's [local MVP decision record](decisions/0006-local-mvp-product-rules.md)
 cover status transitions, ID warnings, time behavior, candidate filtering and image
-limits. They are pending product-owner answers and do not change this implemented
-core contract or introduce a stored/wire format. #10/#11/#13 must implement and test
+limits. Confirmed owner choices and PR-review defaults are identified separately.
+They do not change this implemented core contract or introduce a stored/wire format.
+#10/#11/#13 must implement and test
 the accepted rules before conformance or persistence is claimed.

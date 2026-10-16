@@ -1,7 +1,21 @@
 # ADR 0006: Product rules for the local MVP
 
-Status: proposed; product-owner answers pending. No schema freeze or implementation approval is implied.
+Status: product choices confirmed; implementation defaults submitted for human PR review. Not implemented.
 Date: 2026-10-16. Tracking: [Issue #8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8).
+
+## Owner decisions recorded on 2026-10-16
+
+| Topic | Confirmed choice |
+|---|---|
+| Status and neighbors | Planerad, Utplacerad, Aktiv, Intagen and Avbruten; manual status changes. Count only PLANNED/DEPLOYED/ACTIVE candidates in distance results. |
+| Visible ID | Manually enter the actual device's ID, for example synthetic `PIR 134`. No automatic numbering or enforced prefix/format. |
+| Local image | One JPEG/PNG per device, at most 10 MiB input; save a separate copy without EXIF/embedded metadata. Image sharing remains deferred. |
+
+Owner text and duplicate handling retain the existing free-input approach as an
+MVP default for PR review; no organization-specific owner standard was supplied.
+The additional decoding, timestamp, bearing and artwork details below are
+implementation defaults for that review, not claims that the owner separately
+approved a pixel limit, automatic date behavior or a particular symbol design.
 
 ## Existing decisions
 
@@ -10,7 +24,7 @@ Users save local drafts and explicitly review before any later sharing operation
 Images are local in the MVP; Data Sync and production image transport remain deferred.
 See [DEVICE_CATALOGUE.md](../DEVICE_CATALOGUE.md) and [ADR 0005](0005-defer-data-sync-and-image-sharing.md).
 
-## Proposed rules
+## Rules and implementation defaults
 
 ### Status and deployment time
 
@@ -33,9 +47,11 @@ overwrite or erase it: entering data later must not invent a deployment time.
 ### Identity and owner
 
 Keep the random stable UUID as identity across edits. Visible ID and owner are
-required, trimmed free text. Examples use synthetic IDs such as PIR-01 and generic
-group/role designations; no enforced type prefix, personal identity or organizational
-directory is introduced. The owner field is descriptive, not access control.
+required, trimmed free text. The user enters the actual device label, such as
+synthetic `PIR 134`, preserving its internal spaces and spelling. Do not generate,
+renumber, derive from UUID or enforce a type prefix/regular expression. Changing
+the visible label does not change the record's UUID. Owner remains a descriptive
+group/role field, not access control; no organizational directory is introduced.
 
 Warn about duplicate visible IDs in the local collection after trimming and
 case-insensitive comparison; retain the entered spelling. Do not block saving or
@@ -52,7 +68,7 @@ Store optional decimal degrees clockwise from **true north**, finite and in
 magnetic conversion or inference from the host's display settings is allowed.
 The Android adapter must verify rendered direction against the actual ATAK settings.
 
-For nearest-device and gateway lists, propose PLANNED, DEPLOYED and ACTIVE
+For nearest-device and gateway lists, use PLANNED, DEPLOYED and ACTIVE
 **candidates** only. RETRIEVED and CANCELLED records remain available for editing
 but do not count as neighbors. The selected source record may have any status;
 always exclude its UUID, even if a second object instance carries that UUID.
@@ -95,7 +111,7 @@ representation or production wire schema is fixed here. These belong to #14/#15,
 
 ## Consequences and implementation gates
 
-This proposal changes no running code or persisted format. The current core still
+This decision record changes no running code or persisted format. The current core still
 counts every status in distances, has no duplicate-ID warning, no image file
 processing and no edit operation implementing these rules. It must not be described
 as conforming until the relevant implementation and tests land.
@@ -107,7 +123,8 @@ as conforming until the relevant implementation and tests land.
 - #13: normalized image copies, decode limits, orientation, preview/replace/remove,
   cancellation, missing-file and failure tests. Use synthetic metadata/rotation fixtures.
 
-Record the owner's answers before marking this ADR accepted or closing #8. No
-serialized draft storage exists yet, so this proposal requires no data migration;
+The three owner answers are recorded above. Human PR review adopts the remaining
+MVP implementation defaults; merge may close #8, while #10–#13 remain implementation
+work. No serialized draft storage exists yet, so this decision requires no data migration;
 later storage/schema changes still require migration tests. The original core
 assumptions in ADR 0001 remain provisional until a decision is accepted and implemented.
