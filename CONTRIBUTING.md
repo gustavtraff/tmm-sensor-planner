@@ -33,4 +33,29 @@ Verified on 2026-10-12 after PR #16 was merged: an active ruleset on `main` requ
 a pull request, resolved conversations, the GitHub Actions `core` check and an
 up-to-date branch. It also blocks deletion and force pushes and requires linear
 history. Required approvals are zero. No bypass actor is shown in the applicable
-ruleset. The failing-PR enforcement test remains pending in Issue #9.
+ruleset. The failing-PR enforcement test was verified on 2026-10-17 in PR #31;
+see [the evidence and remaining #9 gates](docs/REPOSITORY_GOVERNANCE.md).
+
+## Parallel agents and worktrees
+
+Each task uses its own worktree and branch from the latest `origin/main`. Never
+switch branches, stash, reset, clean or edit files in another agent's worktree.
+For example, for Issue #9:
+
+```sh
+git fetch origin
+git worktree add -b chore/9-ci-repository-decisions /tmp/tmm-ci-issue-9 origin/main
+```
+
+`chore/<issue>-description` is also accepted for repository/CI work. Worktrees
+share Git refs and remotes, so give every task a unique branch and avoid changing
+shared Git configuration. Stage explicit paths and inspect the staged diff before
+committing. Push only the task branch and open one PR referencing the Issue.
+
+After another PR merges, update this task branch from `origin/main` in its own
+worktree, resolve overlaps and rerun the affected checks. The strict required
+`core` check must pass against current `main` before human squash merge. Remove
+the task worktree/branch only after merge or deliberate abandonment.
+
+The current protection evidence, separate SDK procedure and unresolved owner
+choices are tracked in [repository governance](docs/REPOSITORY_GOVERNANCE.md).

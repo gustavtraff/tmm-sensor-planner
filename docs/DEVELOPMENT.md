@@ -150,3 +150,11 @@ Issue #7's offline companion-plugin attempt and standard signing prerequisites
 are recorded in [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md). The supplied
 HV Reports APK installed but failed to load in this SDK host, including with TMM
 unloaded. Do not use that result to infer behavior on the standard phone build.
+
+## Separate SDK verification command
+
+With the environment above configured, run `sh scripts/check-sdk.sh` from the
+reviewed worktree. It combines the existing Android build/lint and static APK check;
+it does not upload outputs. Record the tested commit and bounded results in the PR.
+See [repository governance](REPOSITORY_GOVERNANCE.md) for the currently unenforced
+SDK status and remaining environment/owner decisions.
