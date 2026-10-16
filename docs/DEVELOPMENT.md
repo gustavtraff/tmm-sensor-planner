@@ -140,3 +140,8 @@ records the exact SDK's Mission Package API candidates, Data Sync deferral and a
 separate synthetic attachment test through the host's stock Data Packages UI.
 Generate its ZIP with `scripts/create-attachment-fixture.py`; keep generated files
 and lab evidence in ignored `private-data/`. No Data Sync dependency is added.
+
+Issue #7's offline companion-plugin attempt and standard signing prerequisites
+are recorded in [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md). The supplied
+HV Reports APK installed but failed to load in this SDK host, including with TMM
+unloaded. Do not use that result to infer behavior on the standard phone build.
