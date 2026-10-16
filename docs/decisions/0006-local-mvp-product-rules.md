@@ -1,0 +1,130 @@
+# ADR 0006: Product rules for the local MVP
+
+Status: product choices confirmed; implementation defaults submitted for human PR review. Not implemented.
+Date: 2026-10-16. Tracking: [Issue #8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8).
+
+## Owner decisions recorded on 2026-10-16
+
+| Topic | Confirmed choice |
+|---|---|
+| Status and neighbors | Planerad, Utplacerad, Aktiv, Intagen and Avbruten; manual status changes. Count only PLANNED/DEPLOYED/ACTIVE candidates in distance results. |
+| Visible ID | Manually enter the actual device's ID, for example synthetic `PIR 134`. No automatic numbering or enforced prefix/format. |
+| Local image | One JPEG/PNG per device, at most 10 MiB input; save a separate copy without EXIF/embedded metadata. Image sharing remains deferred. |
+
+Owner text and duplicate handling retain the existing free-input approach as an
+MVP default for PR review; no organization-specific owner standard was supplied.
+The additional decoding, timestamp, bearing and artwork details below are
+implementation defaults for that review, not claims that the owner separately
+approved a pixel limit, automatic date behavior or a particular symbol design.
+
+## Existing decisions
+
+The owner selected Mini, Scout, PIR and Gateway. Only PIR and Scout support bearing.
+Users save local drafts and explicitly review before any later sharing operation.
+Images are local in the MVP; Data Sync and production image transport remain deferred.
+See [DEVICE_CATALOGUE.md](../DEVICE_CATALOGUE.md) and [ADR 0005](0005-defer-data-sync-and-image-sharing.md).
+
+## Rules and implementation defaults
+
+### Status and deployment time
+
+| Stored value | Swedish label | Meaning |
+|---|---|---|
+| `PLANNED` | Planerad | Intended placement; position may be approximate |
+| `DEPLOYED` | Utplacerad | Manually recorded physical deployment |
+| `ACTIVE` | Aktiv | Manually recorded active state; not measured telemetry or an alarm |
+| `RETRIEVED` | Intagen | Device recorded as retrieved; retain its record |
+| `CANCELLED` | Avbruten | Plan recorded as cancelled; retain its record |
+
+New drafts start as PLANNED. Allow explicit manual changes between any of the five
+statuses, including correction or reopening. No automatic status changes, deletion,
+sharing or field clearing occurs as a consequence. A cancelled edit saves nothing.
+
+Keep `deployedAt` optional and manually editable. A status change does not stamp,
+overwrite or erase it: entering data later must not invent a deployment time.
+`createdAt` and `updatedAt` remain automatic UTC instants, displayed locally.
+
+### Identity and owner
+
+Keep the random stable UUID as identity across edits. Visible ID and owner are
+required, trimmed free text. The user enters the actual device label, such as
+synthetic `PIR 134`, preserving its internal spaces and spelling. Do not generate,
+renumber, derive from UUID or enforce a type prefix/regular expression. Changing
+the visible label does not change the record's UUID. Owner remains a descriptive
+group/role field, not access control; no organizational directory is introduced.
+
+Warn about duplicate visible IDs in the local collection after trimming and
+case-insensitive comparison; retain the entered spelling. Do not block saving or
+merge records by visible ID. UUID is authoritative. Cross-client uniqueness and a
+future working-area scope are outside the local MVP.
+
+Retain the existing comment limit of 2000 UTF-16 code units. Keep this unit explicit
+in validation documentation; do not claim it counts user-perceived characters.
+
+### Bearing and distances
+
+Store optional decimal degrees clockwise from **true north**, finite and in
+`[0, 360)`, only for PIR and Scout. Label the reference explicitly. No implicit
+magnetic conversion or inference from the host's display settings is allowed.
+The Android adapter must verify rendered direction against the actual ATAK settings.
+
+For nearest-device and gateway lists, use PLANNED, DEPLOYED and ACTIVE
+**candidates** only. RETRIEVED and CANCELLED records remain available for editing
+but do not count as neighbors. The selected source record may have any status;
+always exclude its UUID, even if a second object instance carries that UUID.
+The gateway list additionally restricts candidates to Gateway, sorted by distance
+then UUID for ties. No eligible candidate means an explicit empty result.
+Keep great-circle horizontal meters; these distances do not estimate radio coverage.
+
+### Local image lifecycle
+
+One optional static JPEG or PNG per record. Reject input over **10 MiB
+(10,485,760 bytes)** before decoding. Check decoded dimensions before allocating a
+full bitmap and reject over **20,000,000 pixels**; a small compressed file can still
+be too large to decode safely. Reject corrupt, unsupported or animated inputs
+without replacing an existing image. Do not trust extensions or a supplied MIME type.
+
+Decode and save a new plugin-owned image from pixels only, without EXIF, GPS,
+embedded text or other source metadata. Never copy the original file into draft
+storage. Enforce the same byte/pixel limits on the normalized result. Do not silently
+downscale; show an error when the image cannot be saved within the limits.
+Apply source orientation to pixels before discarding its metadata; verify with
+synthetic rotated images. This does not remove information visibly drawn in an image.
+
+Keep originals untouched. Preview the new copy before committing replacement;
+cancel/failure retains the previous record and image. Remove the old owned file
+only after a successful replacement commit. Removing the attachment clears only
+the local association/owned copy; no server or recipient deletion is implied.
+A missing owned file produces a visible error and does not silently drop metadata.
+`imageRef` remains an internal local handle, never a shared file path or CoT field.
+
+### Symbols and sharing boundary
+
+Use original plugin symbols with type letters M/S/P/G and explicit type/status
+text for the first local UI. Do not copy manual graphics or map alarm colors to
+planning statuses. This does not identify Mini with an unconfirmed manual symbol.
+Exact manual symbol matching remains outside this initial artwork choice.
+
+No feed selection, edit rights over received objects, recipient-without-plugin
+representation or production wire schema is fixed here. These belong to #14/#15,
+#25 and #26. Metadata-only sharing must explicitly state that an image is not shared.
+
+## Consequences and implementation gates
+
+This decision record changes no running code or persisted format. The current core still
+counts every status in distances, has no duplicate-ID warning, no image file
+processing and no edit operation implementing these rules. It must not be described
+as conforming until the relevant implementation and tests land.
+
+- #10: finalize domain rules and candidate filtering with synthetic validation,
+  boundary, status, self-exclusion and tie-order tests.
+- #11: versioned storage, atomic record/image association, failure recovery and migrations.
+- #12: manual status/time edits, duplicate warnings, explicit bearing reference and original symbols.
+- #13: normalized image copies, decode limits, orientation, preview/replace/remove,
+  cancellation, missing-file and failure tests. Use synthetic metadata/rotation fixtures.
+
+The three owner answers are recorded above. Human PR review adopts the remaining
+MVP implementation defaults; merge may close #8, while #10–#13 remain implementation
+work. No serialized draft storage exists yet, so this decision requires no data migration;
+later storage/schema changes still require migration tests. The original core
+assumptions in ADR 0001 remain provisional until a decision is accepted and implemented.

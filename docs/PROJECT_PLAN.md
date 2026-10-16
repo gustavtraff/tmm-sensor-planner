@@ -29,6 +29,16 @@ ATAK examples show plugin structure and map integration, but must not replace ve
 **Accepted device catalogue · 2026-10-12:** Mini, Scout, PIR and Gateway.
 See [DEVICE_CATALOGUE.md](DEVICE_CATALOGUE.md). Only PIR and Scout support bearing.
 
+**Owner-confirmed local MVP choices · 2026-10-16:** the five proposed statuses and
+manual status changes are accepted. Nearest-device and gateway distance candidates
+include only Planned/Deployed/Active; Retrieved/Cancelled are excluded. Enter the
+visible ID manually to match the device label, for example synthetic `PIR 134`,
+without automatic numbering or an enforced naming format. Keep one local JPEG/PNG
+per device, at most 10 MiB input, saved as a separate copy without EXIF/embedded
+metadata; image sharing remains deferred. [ADR 0006](decisions/0006-local-mvp-product-rules.md)
+records these answers, the implementation defaults for human PR review and the
+remaining code/test work. Current core behavior is not yet fully aligned.
+
 ### Functional requirements
 
 | ID | Requirement | Stage |
@@ -46,7 +56,7 @@ See [DEVICE_CATALOGUE.md](DEVICE_CATALOGUE.md). Only PIR and Scout support beari
 | F11 | Provide a controlled method for changes, conflicts, withdrawal and deletion of already shared objects. | Synchronization stage |
 | F12 | Show understandable status when sharing or import fails, without claiming the device was shared. | MVP when the first sharing route is added |
 
-**F02 – catalog decision:** The repository owner selected Mini, Scout, PIR and Gateway on 2026-10-12. Other sensor types are outside the current scope. The manual supports terminology and local symbol references; Mini symbol mapping still needs confirmation. Status rules must be decided and changed through version-controlled decisions. Proposed MVP status list: `Planned`, `Deployed`, `Active`, `Retrieved`, `Cancelled`; permitted transitions must be decided and tested.
+**F02 – catalog decision:** The repository owner selected Mini, Scout, PIR and Gateway on 2026-10-12. Other sensor types are outside the current scope. The manual supports terminology and local symbol references; Mini's exact manual-symbol mapping is unconfirmed. On 2026-10-16 the owner accepted `Planned`, `Deployed`, `Active`, `Retrieved`, `Cancelled` with manual status changes. ADR 0006 records the local rules and original-artwork fallback; implementation and tests remain required.
 
 ### Non-functional requirements
 
@@ -92,7 +102,7 @@ Improved search/filtering, export of **sanitized synthetic** test data, stabilit
 | Field | Rule |
 |---|---|
 | `uid` | Random, stable UUID; technical identity across editing and sharing. |
-| `displayId` | User-visible ID, for example `PIR-01` in **synthetic** tests. Uniqueness should apply within an agreed working area, not be assumed globally. |
+| `displayId` | Manually entered device label, for example `PIR 134` in **synthetic** tests; no automatic numbering or enforced format. UUID determines identity. ADR 0006 proposes local duplicate warnings without blocking; working-area/global uniqueness is not established. |
 | `type` | Version-controlled enum. Current types: `mini`, `scout`, `pir`, `gateway`. |
 | `status` | Version-controlled enum; display label separate from stored value. |
 | `owner` | Organization or role designation according to an agreed naming standard. Avoid personal data by default. |
@@ -209,7 +219,7 @@ tmm-sensor-planner/
 | Public repository reveals environment details in examples or history | Only synthetic fixtures; review the entire history before publication and each release. Security lead owns the gate. |
 | Real test phones use private accounts and images | Establish local deletion/backup/access policy before field trials. Information owner decides. |
 
-**Open product decisions:** Mini symbol mapping; ID and owner standards; permitted status transitions; whether deployment time should be set automatically on status change; sharing targets (person, group, feed); whether recipients without the plugin should see a simple marker; rights to edit others' objects; maximum image size and EXIF policy; whether the nearest-device calculation also includes retrieved/cancelled objects. Record the decisions as Issues and ADRs before dependent functionality is finalized.
+**Local MVP decision record:** the 2026-10-16 owner choices for manual IDs, status/distance rules and one normalized local image are in ADR 0006. That ADR also submits manual deployment time, true-north bearing, free owner text, duplicate warnings, decode limits and original type-letter symbols for human PR review. Exact Mini manual-symbol identification remains unconfirmed and is not needed for the original-artwork fallback. **Later sharing decisions:** person/group/feed targets, presentation without the plugin, rights to edit received objects and any working-area uniqueness standard remain separate synchronization-stage work. Implement and test adopted local rules before claiming the data model conforms.
 
 ## 11. Initial setup – step by step
 

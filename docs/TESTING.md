@@ -19,6 +19,11 @@ Acceptance tests A01–A10 are in project plan §7. A01/A06/A07/A08 require actu
 clients, an isolated test server and documented traffic/recipient observation.
 A02/A05/A09 will be introduced with storage, images and migrations.
 
+[ADR 0006](decisions/0006-local-mvp-product-rules.md) records owner-confirmed product
+choices and PR-review implementation defaults. Its manual-ID preservation (for
+example `PIR 134`), status-filter, duplicate-ID, image-limit/metadata/orientation and
+replacement/failure cases are planned acceptance work in #10–#13, not passing tests.
+
 | Test | Result |
 |---|---|
 | Plain Java core | Passed locally on 2026-10-12 with Temurin 17.0.20.1+1 / --release 8 |
