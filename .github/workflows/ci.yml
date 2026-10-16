@@ -10,8 +10,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 2
-      - name: Issue 9 temporary failure-enforcement probe
-        run: exit 1
       - name: Check patch whitespace
         run: git diff --check HEAD^ HEAD
       - name: Compile and test Java core

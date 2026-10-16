@@ -54,11 +54,17 @@ to squash remains a proposed owner setting change; no settings were changed here
 
 ## Failing-PR enforcement evidence
 
-Pending: create an isolated, deliberately failing `core` check, observe its failed
-conclusion and the PR's blocked merge state under this ruleset, then repair or close
-the probe. Never merge the failing change or call the merge endpoint as a test.
-Record the PR, failing commit and Actions result here. Green checks alone do not
-establish that failure blocks merging.
+Observed on [PR #31](https://github.com/gustavtraff/tmm-sensor-planner/pull/31),
+commit `3fdd76058a5c7b5c9dd45a638672a7eb575509e7`: a temporary `exit 1` step
+made the required `core` check [fail](https://github.com/gustavtraff/tmm-sensor-planner/actions/runs/38978073099/job/117232189312).
+The GitHub API then reported an open, non-draft PR with no merge conflicts
+(`mergeable: MERGEABLE`), current base `d073d606b3ad2903355ed038ba121e038bf396ba`,
+failing status rollup and `mergeStateStatus: BLOCKED`. Together with the active
+required-check rule and no bypass actors, this verifies the observed merge block.
+No merge endpoint was called and no failing change was merged. The temporary
+failure step is removed from the final branch; a fresh successful `core` run is
+required before human review/merge. This is API merge-state evidence, not an
+attempted merge rejection or a device/SDK test.
 
 ## Owner decisions and release boundary
 
@@ -78,7 +84,7 @@ One human may hold several roles. Record each appointment and decision with name
 date and scope before closing #9. No data contracts change in this task.
 
 Issue #9 remains open until the separate SDK enforcement, approved license and
-distribution decisions, accountable owners and failure-enforcement evidence are
-complete. The existing public repository does not establish that its source,
+distribution decisions and accountable owners are complete. The failure-enforcement
+experiment above is complete. The existing public repository does not establish that its source,
 history and artifacts have passed the information/licensing review required by
 the project plan. Review those separately before any further distribution.

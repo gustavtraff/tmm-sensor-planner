@@ -33,7 +33,8 @@ Verified on 2026-10-12 after PR #16 was merged: an active ruleset on `main` requ
 a pull request, resolved conversations, the GitHub Actions `core` check and an
 up-to-date branch. It also blocks deletion and force pushes and requires linear
 history. Required approvals are zero. No bypass actor is shown in the applicable
-ruleset. The failing-PR enforcement test remains pending in Issue #9.
+ruleset. The failing-PR enforcement test was verified on 2026-10-17 in PR #31;
+see [the evidence and remaining #9 gates](docs/REPOSITORY_GOVERNANCE.md).
 
 ## Parallel agents and worktrees
 
