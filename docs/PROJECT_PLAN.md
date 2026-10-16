@@ -38,7 +38,8 @@ per device, at most 10 MiB input, saved as a separate copy without EXIF/embedded
 metadata; image sharing remains deferred. [ADR 0006](decisions/0006-local-mvp-product-rules.md)
 records these answers, the MVP defaults adopted by human merge of PR #28 and the
 remaining code/test work. The core now implements validated edits and candidate
-filtering; storage, forms, image handling and production SDK integration remain pending.
+filtering and a versioned Java-core snapshot store. Forms, Android storage integration,
+image handling and production SDK integration remain pending. See [LOCAL_STORAGE.md](LOCAL_STORAGE.md).
 
 ### Functional requirements
 

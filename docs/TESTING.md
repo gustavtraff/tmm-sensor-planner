@@ -18,11 +18,19 @@ such as synthetic `PIR 134`, distinct UUIDs for duplicate visible labels, all 25
 status transitions, revision/clock failure cases, explicit field clearing and rejected
 type/bearing changes. Distance tests cover filtered/empty candidate sets, any source
 status, UUID self-exclusion, ties and recalculation after status/position changes.
-These tests do not prove storage, map privacy or compatibility.
+These domain tests do not prove map privacy or compatibility.
+
+Issue #11 adds storage tests to the same script: all-field reopening, a fixed v1
+fixture, a writer/reader in separate JVM processes, stale edits/deletes, lock contention,
+failed replacement, input limits and malformed/future schemas with byte-preservation
+checks. See [LOCAL_STORAGE.md](LOCAL_STORAGE.md) for the exact scope and format.
+The tests passed locally on 2026-10-17 with Temurin 17.0.20.1+1 / --release 8.
+No ATAK/phone offline restart or upgrade acceptance is claimed.
 
 Acceptance tests A01–A10 are in project plan §7. A01/A06/A07/A08 require actual
 clients, an isolated test server and documented traffic/recipient observation.
-A02/A05/A09 will be introduced with storage, images and migrations.
+The core storage fixture/restart tests support A02/A09; actual APK integration,
+offline restart, images (A05) and physical-device upgrade/migration remain open.
 
 [ADR 0006](decisions/0006-local-mvp-product-rules.md) records owner-confirmed product
 choices and PR-review implementation defaults. Its manual-ID preservation (for

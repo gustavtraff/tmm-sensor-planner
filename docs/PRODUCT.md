@@ -29,5 +29,6 @@ outside those local defaults. Existing core implementation limits are recorded i
 [the data model](DATA_MODEL.md).
 
 The core now implements validated local edits and accepted status-filtered distances.
-The decision record tracks remaining storage, UI and image work in #11–#13; this
-domain result does not establish APK functionality or persistence.
+A [local snapshot store](LOCAL_STORAGE.md) now persists the core model and passes
+separate-process reopen tests. Android storage integration, UI and image work remain
+in #11–#13; this does not establish APK functionality or phone restart acceptance.

@@ -52,3 +52,9 @@ Issue #10 implements validated immutable domain edits and PLANNED/DEPLOYED/ACTIV
 distance candidates, with manual-ID, clock/revision, transition and neighbor tests.
 Storage remains #11, forms/map and duplicate-warning UI #12, image files #13.
 The later production SDK adapter is part of those UI/map gates, not a domain-test result.
+
+Issue #11 adds versioned core snapshot storage with a fixed v1 fixture, separate-process
+reopen and fail-closed tests; see [LOCAL_STORAGE.md](LOCAL_STORAGE.md). #11 stays open
+for actual Android offline restart/upgrade evidence. #12 must integrate private storage,
+resolve the API 21–25 NIO/Instant boundary, backup policy, field errors and map lifecycle.
+No image-file or phone acceptance result is implied.
