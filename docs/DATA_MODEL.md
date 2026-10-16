@@ -10,8 +10,8 @@ ID uniqueness across a working area is not implemented; UUID remains the record 
 Position: finite degrees, latitude [-90,90], longitude [-180,180].
 createdAt/updatedAt: UTC Instant; updatedAt must not precede createdAt.
 Optional deployedAt: actual time, not automatically derived from status.
-Bearing: optional for PIR/Scout, finite [0,360), provisionally true north; Gateway and Mini
-reject bearing. Comment: provisionally at most 2000 UTF-16 code units (Java String.length()).
+Bearing: optional for PIR/Scout, finite [0,360), clockwise from true north; Gateway and Mini
+reject bearing. Comment: at most 2000 UTF-16 code units (Java String.length()).
 Image reference: optional local reference; no image blob, file handling or sharing.
 It is not a wire field or recipient-readable path. Keep it out of CoT and package
 manifests; a future attachment needs separate content identity and verified bytes.
@@ -19,15 +19,25 @@ The [attachment investigation](DATA_SYNC_AND_ATTACHMENTS.md) tests a standalone
 synthetic PNG only; its package UID does not establish a TMM image association.
 Revision: positive local revision number, with no synchronization/acknowledgment claims.
 
+`TmmDraft.edit(...)` returns a validated new instance, preserving UUID and createdAt,
+setting updatedAt from the supplied clock instant and advancing revision by one.
+All editable fields are explicit inputs; no status change derives/clears deployedAt,
+bearing or an image handle. All five statuses can be selected manually. A type change
+with an incompatible bearing is rejected rather than silently dropping that bearing.
+An edit time before the previous updatedAt or an exhausted revision is rejected.
+An equal timestamp is permitted. Failure leaves the original immutable instance intact.
+This is a domain edit, not a storage commit, concurrency policy or image-file operation.
+
 Types are MINI, SCOUT, PIR and GATEWAY, with display names Mini, Scout, PIR and Gateway.
 Status and type are separate enums. All objects are local drafts; a shared state
 will not be created before transport has been verified. createdBy/updatedBy, precision/source,
 sharedAt and conflict metadata will be introduced when identity/SDK and the synchronization stage are settled.
 
 Distances use haversine, meters, and a mean radius of 6371008.8 m. The same UUID
-is excluded. The gateway list filters for gateways and sorts in ascending order. All statuses
-currently count in the implementation. The owner-confirmed target is to count only
-PLANNED/DEPLOYED/ACTIVE candidates; #10 must add that filter and tests. These are
+is excluded. Both queries include only PLANNED/DEPLOYED/ACTIVE candidates; the source
+may have any status. The gateway list additionally filters for gateways. Results sort
+by ascending distance, then UUID for ties. Empty eligible sets return no nearest
+neighbor/an empty gateway list. Re-querying an edited collection recalculates results. These are
 map distances, not terrain, link or line-of-sight measures.
 
 Production serialization, migration, unknown schema versions and CoT mapping remain
@@ -36,8 +46,9 @@ fixed test fields; it does not freeze or implement the production draft wire sch
 During the synchronization stage, conflicts must preserve the original for manual review.
 
 Issue #8's [local MVP decision record](decisions/0006-local-mvp-product-rules.md)
-cover status transitions, ID warnings, time behavior, candidate filtering and image
+covers status transitions, ID warnings, time behavior, candidate filtering and image
 limits. Confirmed owner choices and PR-review defaults are identified separately.
-They do not change this implemented core contract or introduce a stored/wire format.
-#10/#11/#13 must implement and test
-the accepted rules before conformance or persistence is claimed.
+The core now implements manual-ID validation, validated edits and candidate filtering.
+Duplicate warnings, persistent storage, forms and image-file processing remain #11–#13.
+No serialized storage exists; this change requires no migration and does not define
+a production stored/wire format. Later schema changes still require migration tests.

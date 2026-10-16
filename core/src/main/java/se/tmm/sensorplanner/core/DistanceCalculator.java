@@ -46,7 +46,8 @@ public final class DistanceCalculator {
         List<Distance> result = new ArrayList<>();
         for (TmmDraft candidate : drafts) {
             Objects.requireNonNull(candidate, "candidate");
-            if (!source.uid.equals(candidate.uid) && (!gatewaysOnly || candidate.type == DeviceType.GATEWAY)) {
+            if (!source.uid.equals(candidate.uid) && candidate.status.isDistanceCandidate()
+                    && (!gatewaysOnly || candidate.type == DeviceType.GATEWAY)) {
                 result.add(new Distance(candidate, meters(source.position, candidate.position)));
             }
         }

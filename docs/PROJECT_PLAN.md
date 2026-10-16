@@ -36,8 +36,9 @@ visible ID manually to match the device label, for example synthetic `PIR 134`,
 without automatic numbering or an enforced naming format. Keep one local JPEG/PNG
 per device, at most 10 MiB input, saved as a separate copy without EXIF/embedded
 metadata; image sharing remains deferred. [ADR 0006](decisions/0006-local-mvp-product-rules.md)
-records these answers, the implementation defaults for human PR review and the
-remaining code/test work. Current core behavior is not yet fully aligned.
+records these answers, the MVP defaults adopted by human merge of PR #28 and the
+remaining code/test work. The core now implements validated edits and candidate
+filtering; storage, forms, image handling and production SDK integration remain pending.
 
 ### Functional requirements
 
@@ -219,7 +220,7 @@ tmm-sensor-planner/
 | Public repository reveals environment details in examples or history | Only synthetic fixtures; review the entire history before publication and each release. Security lead owns the gate. |
 | Real test phones use private accounts and images | Establish local deletion/backup/access policy before field trials. Information owner decides. |
 
-**Local MVP decision record:** the 2026-10-16 owner choices for manual IDs, status/distance rules and one normalized local image are in ADR 0006. That ADR also submits manual deployment time, true-north bearing, free owner text, duplicate warnings, decode limits and original type-letter symbols for human PR review. Exact Mini manual-symbol identification remains unconfirmed and is not needed for the original-artwork fallback. **Later sharing decisions:** person/group/feed targets, presentation without the plugin, rights to edit received objects and any working-area uniqueness standard remain separate synchronization-stage work. Implement and test adopted local rules before claiming the data model conforms.
+**Local MVP decision record:** the 2026-10-16 owner choices for manual IDs, status/distance rules and one normalized local image are in ADR 0006. Human merge of PR #28 adopted that ADR's defaults for manual deployment time, true-north bearing, free owner text, duplicate warnings, decode limits and original type-letter symbols. Exact Mini manual-symbol identification remains unconfirmed and is not needed for the original-artwork fallback. **Later sharing decisions:** person/group/feed targets, presentation without the plugin, rights to edit received objects and any working-area uniqueness standard remain separate synchronization-stage work. Implement and test adopted local rules before claiming the data model conforms.
 
 ## 11. Initial setup – step by step
 
