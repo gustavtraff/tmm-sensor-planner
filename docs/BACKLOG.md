@@ -32,3 +32,8 @@ versions, results and an ADR; a documentation proposal is not a passed test.
 The operational server version is unknown. The isolated lab uses TAK Server
 5.8-RELEASE-92; its bounded results are in TWO_CLIENT_LAB.md and COT_ROUND_TRIP.md.
 Record and test the operational configuration before compatibility claims.
+
+Issue #6 investigation: [DATA_SYNC_AND_ATTACHMENTS.md](DATA_SYNC_AND_ATTACHMENTS.md)
+records a passed standalone synthetic Mission Package transfer in the isolated SDK
+lab and explicit deferral of Data Sync integration and production image sharing.
+This does not close local image Issue #13 or the product-policy decisions in #8.

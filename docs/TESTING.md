@@ -6,6 +6,11 @@ the developer host from the standard app and keeps the test disconnected from fe
 `python3 scripts/test-github-auth.py` tests token verification using synthetic data
 and without network requests.
 
+`python3 scripts/create-attachment-fixture.py /path/to/new-fixture.zip` creates and
+reopens a fixed synthetic ZIP, checking manifest entries, absence of local references,
+PNG CRCs and decompressed size. Public CI runs it in a temporary directory. This is
+a fixture check, not an untrusted-file validator or network delivery test.
+
 sh scripts/test.sh checks domain validation and distances using synthetic
 coordinates. Tests cover UUID identity, bearing limits, invalid coordinates,
 time fields and sorting. They do not prove storage, map privacy or compatibility.
@@ -23,7 +28,8 @@ A02/A05/A09 will be introduced with storage, images and migrations.
 | Offline feature-layer experiment | Create/move/delete and normal unload tested in SDK developer emulator; see [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md). Not a production map or privacy result |
 | Local map privacy / two clients | Bounded disposable feature-layer test passed on 2026-10-14: two SDK developer 5.6.0.24 clients / lab server 5.8-RELEASE-92, controls before/after, no observed probe events. Production privacy gate remains open; see [TWO_CLIENT_LAB.md](TWO_CLIENT_LAB.md) |
 | Synthetic CoT round trip / manual target | Passed in the bounded SDK lab on 2026-10-15–16: all four types, actual marker import/re-export, same UUID, all fixture fields, repeated UID, cancellation, disconnect and recovery. See [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md); production sharing is not implemented |
-| Image sharing | Not run |
+| Standalone synthetic image package | Passed on 2026-10-16 in the isolated two-client SDK lab: recipient cancellation check, byte-identical PNG/ZIP/server resource, remote manifest without local references, viewing and local deletion. Stock PNG import started a placement tool, cancelled without choosing a position. See [DATA_SYNC_AND_ATTACHMENTS.md](DATA_SYNC_AND_ATTACHMENTS.md) |
+| Production TMM image sharing / Data Sync | Deferred; no TMM image association, acknowledgment, EXIF/size policy or applicable Data Sync plugin API verified. A05 and production image A07 remain open |
 | HV Reports / Data Sync / TAK Voice coexistence | Not run – reported versions: HV Reports 1.1.9 [5.5.0], Data Sync 3.7.4 [5.6.0], TAK Voice 2.1.0 [5.6.0] |
 
 Core CI is a public check. Android lint, APK and SDK builds will be added
