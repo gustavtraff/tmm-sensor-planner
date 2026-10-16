@@ -1,9 +1,10 @@
 # Local draft storage
 
 Issue #11 adds `core/DraftStore`, a dependency-free local snapshot store. It has
-no ATAK, network, image-decoding or publishing operations. The current APK does
-not call it. Production forms/map integration is tracked in #12, local image
-ownership in #13. This is not a phone A02/A09 acceptance result.
+no ATAK, network, image-decoding or publishing operations. The [offline planner
+adapter](LOCAL_PLANNER.md) now calls it on Android API 26+ using host-private
+no-backup storage. Physical forms/map acceptance remains #12, image ownership #13.
+This is not a phone A02/A09 acceptance result.
 
 ## API and failure behavior
 
@@ -91,9 +92,9 @@ currently declares minSdk 21; the Android references list
 [Files](https://developer.android.com/reference/java/nio/file/Files) and
 [Instant](https://developer.android.com/reference/java/time/Instant) at API 26.
 `Instant` in the existing model also needs Android
-compatibility handling. **Do not wire it unguarded into API 21–25.** #12 must resolve
-that runtime boundary (verified desugaring or a compatible storage adapter, or an
-explicitly approved support-floor change), choose private app storage/backup rules,
-translate errors, save off the UI thread, rebuild the private map after load, and
-run ATAK offline restart tests. #13 must separately prove actual image bytes survive
-restart. Future APK upgrade/migration and physical-phone A02/A09 remain open.
+compatibility handling. The #12 prototype uses a runtime API 26 guard before
+constructing its adapter; older clients get an unavailable message without raising
+APK minSdk. It uses private host no-backup storage, translated errors, background
+I/O and map rebuilding after load. See LOCAL_PLANNER.md for bounded runtime results.
+This is not API 21–25 planner support. #13 must separately prove actual image bytes
+survive restart. Future schema migration and physical-phone A02/A09 remain open.

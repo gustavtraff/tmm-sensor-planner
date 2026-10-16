@@ -1,11 +1,11 @@
 package se.tmm.sensorplanner.plugin;
 
 import android.content.Context;
+import android.os.Build;
 import android.graphics.drawable.Drawable;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atakmap.android.maps.MapView;
-import com.atakmap.map.layer.feature.DataStoreException;
 
 import java.util.Objects;
 
@@ -17,13 +17,13 @@ import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
 
-/** SDK experiments for local rendering and explicit synthetic lab transport. */
+/** Offline local planner prototype and explicit synthetic lab transport. */
 public final class SensorPlannerPlugin implements IPlugin {
     private final IHostUIService hostUi;
     private final ToolbarItem entry;
     private final ToolbarItem cotEntry;
     private boolean started;
-    private LocalMapProbe probe;
+    private LocalPlanner planner;
     private CotRoundTripProbe cotProbe;
 
     public SensorPlannerPlugin(IServiceController services) {
@@ -43,14 +43,19 @@ public final class SensorPlannerPlugin implements IPlugin {
                         hostUi.queueEvent(() -> {
                             if (!started) return;
                             try {
-                                if (probe == null) {
-                                    probe = new LocalMapProbe(Objects.requireNonNull(
-                                            MapView.getMapView(), "Map view unavailable"), hostUi);
+                                if (Build.VERSION.SDK_INT < 26) {
+                                    hostUi.showToast("Den lokala prototypen kräver Android 8 eller senare");
+                                    return;
                                 }
-                                probe.show();
-                            } catch (DataStoreException | RuntimeException error) {
-                                hostUi.showNotification(IHostUIService.NotificationStatus.Error,
-                                        "Kartprovet kunde inte startas", error);
+                                if (!OfflineMode.isOffline(MapView.getMapView().getContext())) {
+                                    hostUi.showToast("Prototypen kräver flygplansläge och avstängt nätverk");
+                                    return;
+                                }
+                                if (planner == null) planner = new LocalPlanner(
+                                        Objects.requireNonNull(MapView.getMapView()), hostUi);
+                                planner.show();
+                            } catch (Exception error) {
+                                hostUi.showToast("Den lokala prototypen kunde inte startas");
                             }
                         });
                     }
@@ -94,9 +99,10 @@ public final class SensorPlannerPlugin implements IPlugin {
                 cotProbe.close();
                 cotProbe = null;
             }
-            if (probe != null) {
-                probe.close();
-                probe = null;
+            if (planner != null) {
+                LocalPlanner stopping = planner;
+                planner = null;
+                hostUi.queueEvent(stopping::close);
             }
         }
     }

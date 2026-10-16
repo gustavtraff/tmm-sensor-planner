@@ -30,5 +30,6 @@ outside those local defaults. Existing core implementation limits are recorded i
 
 The core now implements validated local edits and accepted status-filtered distances.
 A [local snapshot store](LOCAL_STORAGE.md) now persists the core model and passes
-separate-process reopen tests. Android storage integration, UI and image work remain
-in #11–#13; this does not establish APK functionality or phone restart acceptance.
+separate-process reopen tests. The [guarded offline prototype](LOCAL_PLANNER.md) connects Android storage, forms,
+review and local map selection on API 26+. It has no image-file or production
+sharing support; physical-phone restart/field acceptance remains open.

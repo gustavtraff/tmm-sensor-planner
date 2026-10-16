@@ -1,6 +1,6 @@
 # ADR 0006: Product rules for the local MVP
 
-Status: accepted by human merge of PR #28. Domain edits/filtering and core storage implemented; Android integration, forms and images pending.
+Status: accepted by human merge of PR #28. Domain edits/filtering and core storage implemented; guarded offline forms/map integration added; images and physical acceptance pending.
 Date: 2026-10-16. Tracking: [Issue #8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8).
 
 ## Owner decisions recorded on 2026-10-16
@@ -113,9 +113,9 @@ representation or production wire schema is fixed here. These belong to #14/#15,
 
 The domain implementation now includes validated immutable edits and the accepted
 candidate filter, with manual-ID preservation and status/boundary tests. It still
-has no duplicate-ID warning UI, image processing or production SDK adapter.
-The first [persisted format](../LOCAL_STORAGE.md) now has a fixed v1 fixture and
-separate-process reopen tests. Neither result establishes APK integration.
+now has an offline duplicate-warning/form/map adapter on API 26+; image processing
+and production connected/physical acceptance remain pending. The first [persisted format](../LOCAL_STORAGE.md) now has a fixed v1 fixture and
+separate-process reopen tests. See [LOCAL_PLANNER.md](../LOCAL_PLANNER.md) for bounded APK integration results.
 
 - #10: domain rules and candidate filtering implemented with synthetic validation,
   boundary, status, self-exclusion and tie-order tests.
