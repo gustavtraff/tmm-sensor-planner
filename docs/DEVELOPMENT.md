@@ -134,3 +134,9 @@ local map probe and adds a separate, fixed-fixture **TMM CoT-labb** tool restric
 to the isolated loopback server and one explicitly selected recipient. Its SDK
 round-trip, cancellation, failure and lifecycle results are recorded in
 [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md). It is not a production publishing adapter.
+
+Issue #6 adds no APK changes. [DATA_SYNC_AND_ATTACHMENTS.md](DATA_SYNC_AND_ATTACHMENTS.md)
+records the exact SDK's Mission Package API candidates, Data Sync deferral and a
+separate synthetic attachment test through the host's stock Data Packages UI.
+Generate its ZIP with `scripts/create-attachment-fixture.py`; keep generated files
+and lab evidence in ignored `private-data/`. No Data Sync dependency is added.

@@ -11,6 +11,10 @@ Optional deployedAt: actual time, not automatically derived from status.
 Bearing: optional for PIR/Scout, finite [0,360), provisionally true north; Gateway and Mini
 reject bearing. Comment: provisionally at most 2000 UTF-16 code units (Java String.length()).
 Image reference: optional local reference; no image blob, file handling or sharing.
+It is not a wire field or recipient-readable path. Keep it out of CoT and package
+manifests; a future attachment needs separate content identity and verified bytes.
+The [attachment investigation](DATA_SYNC_AND_ATTACHMENTS.md) tests a standalone
+synthetic PNG only; its package UID does not establish a TMM image association.
 Revision: positive local revision number, with no synchronization/acknowledgment claims.
 
 Types are MINI, SCOUT, PIR and GATEWAY, with display names Mini, Scout, PIR and Gateway.

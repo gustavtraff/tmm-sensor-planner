@@ -11,6 +11,8 @@ sharing are not implemented. An [offline synthetic map probe](docs/LOCAL_MAP_PRO
 and a separate [synthetic CoT lab tool](docs/COT_ROUND_TRIP.md) support SDK investigations.
 The CoT tool sends fixed test fixtures only after recipient selection and confirmation
 through the isolated localhost lab; it does not publish domain drafts.
+A separate [image-package investigation](docs/DATA_SYNC_AND_ATTACHMENTS.md) verified
+standalone synthetic file transport; Data Sync and production image sharing remain deferred.
 
 ## Getting started
 
