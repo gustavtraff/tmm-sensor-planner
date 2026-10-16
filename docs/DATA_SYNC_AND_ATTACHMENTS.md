@@ -8,9 +8,11 @@ Investigation date: 2026-10-16. Target: ATAK-CIV API 5.6.0, supplied SDK full bu
 
 Defer direct Data Sync integration. The supplied `main.jar`, `atak-javadoc.jar`
 and sample inventory do not provide a Data Sync plugin integration contract.
-No separate Data Sync API documentation or installation package was found in the
-inspected Downloads inventory. The reported phone version, Data Sync 3.7.4 [5.6.0],
-is not installed or tested in the isolated developer clients.
+At the initial investigation, no separate Data Sync API documentation or installation
+package was found in the inspected Downloads inventory. Later on 2026-10-16, the
+owner supplied Data Sync 3.7.4 [5.6.0] and an isolated SDK loading attempt was made;
+see [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md). The installer does not
+provide a documented TMM integration contract, so direct integration remains deferred.
 
 This is a limit of the available evidence, not a claim that no such API exists.
 Do not reverse-engineer private plugin internals, use guessed broadcasts, add a

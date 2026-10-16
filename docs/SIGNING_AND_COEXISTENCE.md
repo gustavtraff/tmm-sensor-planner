@@ -13,7 +13,8 @@ standard-phone compatibility result or a release approval.
 | HV Reports | Provided `ATAK-Plugin-hvreports-1.1.9--5.5.0.apk`; package `com.atakmap.android.hvreports.plugin`, versionCode 1, versionName `1.1.9 () - [5.5.0]` |
 | HV Reports API | Manifest declares `com.atakmap.app@5.5.0.CIV`; no native libraries in the APK |
 | Phone host | Owner reports standard ATAK-CIV 5.6.0.12; its installer and a dedicated phone test are unavailable |
-| Data Sync / TAK Voice | Reported 3.7.4 [5.6.0] / 2.1.0 [5.6.0]; installers unavailable, not tested |
+| Data Sync | Supplied APK 3.7.4 (58746181) - [5.6.0], API 5.6.0.CIV; follow-up below |
+| TAK Voice | Supplied APKPure XAPK, base manifest 2.1.0 (20251122) - [5.6.0], API 5.6.0.CIV; follow-up below |
 
 HV Reports APK SHA-256:
 `7c9fdc6beb3f9282efd3be59c17eebd55ebfa969e0d5991245bc4ea49912afc9`.
@@ -56,7 +57,7 @@ Obtain a supported test build or test the intended standard host through its
 approved signing path before drawing a product compatibility conclusion.
 
 Because HV Reports did not load, no reporting workflow or successful coexistence
-was tested. Data Sync and TAK Voice remain untested. Raw logs and UI evidence are
+was tested. Data Sync and TAK Voice were not present during that attempt. Raw logs and UI evidence are
 kept in ignored `private-data/coexistence-test/`.
 
 After the baseline attempt, TMM was reloaded normally and its CoT lab tool opened
@@ -66,6 +67,72 @@ The other emulator and all three task-owned lab containers remained stopped.
 The existing TMM APK's static signature/discovery/packaging check passed; it still
 reports the existing Gradle metadata signature warning. No app code, APK or domain
 contract changed, so no Android rebuild/lint or domain-test rerun was required.
+
+## Companion-package intake follow-up
+
+Later on 2026-10-16, the owner supplied the Data Sync APK and TAK Voice XAPK.
+The reported version families match the inspected APK manifests:
+
+| Package | Inspected identity |
+|---|---|
+| Data Sync | `com.atakmap.android.datasync.plugin`, versionCode `1769093904`, versionName `3.7.4 (58746181) - [5.6.0]`, minSdk 21 |
+| TAK Voice | `com.atakmap.android.gbr.vx.plugin`, versionCode `20251122`, versionName `2.1.0 (20251122) - [5.6.0]`, minSdk 26 |
+
+Fingerprints identify the supplied bytes; no official publisher checksum or
+independently trusted signer fingerprint has been compared:
+
+| Input | SHA-256 |
+|---|---|
+| Data Sync APK | `d785c5819d727796e56fcd0124bfd67dcbc8e53de9cc1ac0545601c1a17d54a0` |
+| TAK Voice XAPK | `4e25e102e15feaf79d946bd2c95a58323415218806eddfad13622869bb4535d8` |
+| TAK Voice base APK | `6663a438ef1d8ee36ac5c8418140e7424593961ce7445b222620a41256d12832` |
+
+The XAPK was inspected as a ZIP: CRCs passed, names were unique and flat, entries
+were size-bounded and symlinks rejected before extracting only APKs into ignored
+private storage. It contains a base APK and 19 configuration splits, including
+arm64-v8a. All 20 Voice APKs have matching package/version and signer certificate;
+all 21 APK signature checks, including Data Sync, passed. Android installed Data
+Sync normally and Voice using `adb install-multiple` with the verified splits.
+No APKPure installer app or replacement SDK was used.
+
+Signature integrity and split consistency do not establish publisher provenance,
+standard-host acceptance or operational suitability. TAK Voice declares microphone,
+overlay, Bluetooth, notification and network permissions; Data Sync declares no
+uses-permission entries in its APK manifest. Plugins still run through the host,
+so manifest permissions alone do not establish privacy. Runtime checks use the
+isolated SDK client with external egress blocked, no reverse tunnels and no server.
+
+An installer is not a documented Data Sync integration contract. The direct TMM
+integration remains deferred in Issue #25 and [ADR 0005](decisions/0005-defer-data-sync-and-image-sharing.md).
+
+### Companion runtime results
+
+Using the same offline SDK client, refresh the normal plugin inventory (8 → 10
+local products), choose each companion's Not loaded action and confirm Load.
+First attempt both with TMM loaded. Then unload TMM, verify its Not loaded state,
+and repeat each companion attempt. This is a same-process inactive-TMM comparison,
+not a clean-process or standard-host baseline.
+
+| Check | Actual result |
+|---|---|
+| Data Sync with TMM loaded | Installation/discovery passed; extension loading failed, nested `ClassNotFoundException` for `gov.tak.api.plugin.a`; remained Not loaded |
+| TAK Voice with TMM loaded | Split installation/discovery passed; same missing-class load failure; remained Not loaded |
+| Both after TMM unload | Each reproduced the same missing-class failure with TMM confirmed Not loaded |
+
+The host's compatibility prompt was not an actual successful load. No plugin/API
+metadata, host validation setting or third-party binary was modified. There is no
+passed Data Sync feed workflow, voice/audio workflow or full A08 result. Do not
+infer a general API-version failure, publisher authenticity, or standard-phone
+behavior from this SDK-host class-loading result. A supported host/plugin build
+combination and the standard signing/phone gates are still needed.
+
+Private evidence for the intake, four attempts, host diagnostics and plugin-state
+snapshots is in ignored `private-data/coexistence-packages/`. No operational
+data, server connection, audio session or signing-service submission was used.
+After the attempts, TMM reloaded and its CoT lab tool opened with zero received
+fixtures; no send action was selected. Both task-installed companion packages were
+uninstalled from client A and the emulator stopped. Client B and the three lab
+containers remained stopped. App source, domain contracts and the TMM APK are unchanged.
 
 ## Standard signing route
 
