@@ -30,3 +30,9 @@ Production serialization, migration, unknown schema versions and CoT mapping rem
 to be implemented. The separate [synthetic CoT experiment](COT_ROUND_TRIP.md) uses
 fixed test fields; it does not freeze or implement the production draft wire schema.
 During the synchronization stage, conflicts must preserve the original for manual review.
+
+Issue #8's [proposed local MVP rules](decisions/0006-local-mvp-product-rules.md)
+cover status transitions, ID warnings, time behavior, candidate filtering and image
+limits. They are pending product-owner answers and do not change this implemented
+core contract or introduce a stored/wire format. #10/#11/#13 must implement and test
+the accepted rules before conformance or persistence is claimed.

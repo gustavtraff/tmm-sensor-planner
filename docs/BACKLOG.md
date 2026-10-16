@@ -42,3 +42,7 @@ Issue #7 remains open: [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md)
 records failed HV Reports, Data Sync and TAK Voice SDK-host attempts. The standard
 host installer, signing and physical-client gates remain open. A plugin-manager
 compatibility prompt is not a successful load.
+
+Issue #8 has a [concrete local MVP proposal](decisions/0006-local-mvp-product-rules.md).
+Owner answers on status/distance rules, ID conventions and image policy are pending.
+The proposal does not close #8, freeze the schema or change current core behavior.

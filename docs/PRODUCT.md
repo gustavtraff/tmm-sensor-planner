@@ -20,3 +20,7 @@ Open decisions: Mini symbol mapping, ID/owner standards, status transitions, aut
 bearing reference/display, which statuses count when finding the nearest device,
 image size limit/EXIF, target channel and editing other users' objects.
 See [provisional core choices](decisions/0001-sdk-independent-core.md).
+
+The [local MVP product-rule proposal](decisions/0006-local-mvp-product-rules.md)
+collects the pending Issue #8 choices and their implementation gates. It is not
+an accepted replacement for the provisional rules until the owner's answers are recorded.
