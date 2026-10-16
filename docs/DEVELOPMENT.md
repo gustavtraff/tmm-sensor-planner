@@ -158,3 +158,10 @@ reviewed worktree. It combines the existing Android build/lint and static APK ch
 it does not upload outputs. Record the tested commit and bounded results in the PR.
 See [repository governance](REPOSITORY_GOVERNANCE.md) for the currently unenforced
 SDK status and remaining environment/owner decisions.
+
+## Independent image library
+
+Run `./gradlew -p images --no-daemon testDebugUnitTest lintDebug` with JDK 17 and
+the documented Android SDK to verify #13's standalone library. It has its own Gradle
+settings and needs no ATAK SDK or emulator; the plugin does not yet depend on it.
+See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) before integrating it into the planner.

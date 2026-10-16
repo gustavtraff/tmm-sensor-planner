@@ -77,3 +77,14 @@ inputs; it is not an automated required GitHub check. See
 [repository governance](REPOSITORY_GOVERNANCE.md) for main-protection evidence,
 the failing-PR experiment and the remaining #9 acceptance gaps. No SDK/device
 verification is implied by repository-check results.
+
+## Independent local image tests (#13)
+
+`./gradlew -p images --no-daemon testDebugUnitTest lintDebug` tests and lints the
+standalone image library without the ATAK SDK or shared emulator. Native graphics
+Robolectric tests use synthetic JPEG/PNG and EXIF at API 26/35; they cover rotations/
+reflections, metadata removal, input/output and pixel limits, animation/corruption,
+source preservation, cancel/replace, ambiguous saves, restart reopening, missing
+files and invalid paths/symlinks. See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for the API,
+remaining UI/phone gates and decoder limitations. The public `images` job is separate
+from required `core`; it does not establish full A05 or ATAK acceptance.

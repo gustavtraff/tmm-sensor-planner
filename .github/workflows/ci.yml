@@ -20,3 +20,14 @@ jobs:
         run: python3 scripts/test-github-auth.py
       - name: Generate and verify synthetic attachment fixture
         run: python3 scripts/create-attachment-fixture.py "$RUNNER_TEMP/TMM-IMAGE-PROBE.zip"
+  images:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Test and lint isolated local image library
+        run: |
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+          ./gradlew -p images --no-daemon testDebugUnitTest lintDebug
