@@ -33,6 +33,7 @@ The tests require no external libraries or ATAK SDK.
 - [SDK intake and integration probes](docs/SDK_VERIFICATION.md)
 - [Feasibility backlog](docs/BACKLOG.md)
 - [Testing](docs/TESTING.md)
+- [Synthetic 100-device trial inputs](docs/HUNDRED_DEVICE_SCENARIO.md)
 
 The minimal plugin builds and loads in the local 5.6.0.24 SDK developer app.
 See [the emulator result](docs/EMULATOR_TEST.md). Physical-client verification remains pending.
