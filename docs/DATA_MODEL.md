@@ -61,3 +61,9 @@ copies with opaque UUID-based handles for later #13 UI integration. Snapshot v1
 and existing handles are unchanged. Image save/detach ordering, ambiguous failures
 and old/missing handle behavior are specified there; no image bytes enter the
 snapshot or wire schema.
+
+The proposed [metadata import review](IMPORT_REVIEW.md) compares validated snapshots
+by UUID without writes. It ignores local revision counters and preserves local image
+handles; different metadata requires explicit review. Incoming image handles are
+rejected. This preparatory #15 helper changes neither snapshot v1 nor the production
+wire contract and does not implement a receiver or durable conflict storage.

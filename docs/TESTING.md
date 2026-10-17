@@ -100,3 +100,13 @@ source preservation, cancel/replace, ambiguous saves, restart reopening, missing
 files and invalid paths/symlinks. See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for the API,
 remaining UI/phone gates and decoder limitations. The public `images` job is separate
 from required `core`; it does not establish full A05 or ATAK acceptance.
+
+## Metadata import-review core (#15)
+
+`sh scripts/test.sh` now also runs ImportReviewTest: UUID matching, repeated metadata,
+each compared field, optional values, numeric zero, unrelated duplicate UUIDs, null
+inputs, local revision independence and the image-handle boundary. A real stored
+snapshot remains byte-identical after assessment. See [IMPORT_REVIEW.md](IMPORT_REVIEW.md)
+for the proposed conservative policy, local-image preservation and remaining
+source/version, persisted-conflict, transport and UI gates. Passing these tests does
+not establish two-client import behavior or ATAK compatibility.
