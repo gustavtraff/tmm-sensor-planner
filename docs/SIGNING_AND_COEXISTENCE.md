@@ -295,3 +295,26 @@ Keep original installers outside Git. Record versions and hashes on receipt, and
 inspect permissions/signatures before testing. If only newer official builds are
 available, record and approve a separate compatibility matrix; that cannot prove
 compatibility with the versions already reported on the phone.
+
+## Pipeline investigation follow-up — 2026-10-18
+
+The [source preparation procedure](SIGNING_SOURCE.md#build-tool-decision-and-actual-access-result--2026-10-18)
+now separates the SDK-aligned 3.x candidate from the service's still-unconfirmed
+2.x wording. Official immutable source examples match API 5.6.0 / takdev 3.x /
+AGP 8.13.0 / Gradle 8.14.3; no working 2.x alternative was found or claimed.
+
+Actual online 2.x and 3.x forced-Maven release attempts both failed at metadata parsing.
+A separate credential-free HTTP check identified the cause: the metadata request
+redirects to TAK's Appgate SDP HTML portal rather than returning Maven XML. This
+is not a Gradle version-compatibility result and cannot be fixed by substituting
+another major version. The temporary JDK was incomplete and was recovered from
+the official Temurin release with published SHA-256 verification before that
+attempt; system Java was not changed. No source, credentials or signing material
+were uploaded. The original SDK archive provenance, signed artifact, standard
+client runtime, companion workflows and physical-phone gates remain open.
+
+For the 3.x candidate, local SDK debug/release assembly and lint passed (171 tasks
+executed); rebuilt debug APK signature/discovery/packaging checks passed with
+existing metadata warnings. Core tests, four archive tests and whitespace checks
+also passed. This verifies the preserved local path, not Maven artifact availability
+or service acceptance. See the source procedure for the distinct next gates.
