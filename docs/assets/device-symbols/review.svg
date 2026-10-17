@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="680" viewBox="0 0 1000 680">
+<rect width="1000" height="680" fill="#f4f5f7"/>
+<g font-family="Helvetica,Arial,sans-serif" fill="#17212b">
+<text x="32" y="44" font-size="26" font-weight="bold">TMM device symbols — proposal for review</text>
+<text x="32" y="74" font-size="17">Original pictograms · planning status only · not alarms or hardware health</text>
+<rect x="32" y="100" width="220" height="540" rx="12" fill="white" stroke="#d2d7dd"/>
+<text x="48" y="134" font-size="22" font-weight="bold">Mini</text>
+<text x="48" y="160" font-size="14">Seismic/acoustic sensor</text>
+<g transform="translate(52 185) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 41v11M23 52h18" fill="none"/>
+    <rect x="24" y="18" width="16" height="23" rx="5" fill="black"/>
+    <path d="M18 23v13M46 23v13" fill="none"/>
+  </g>
+</g>
+<g transform="translate(166 209) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 41v11M23 52h18" fill="none"/>
+    <rect x="24" y="18" width="16" height="23" rx="5" fill="black"/>
+    <path d="M18 23v13M46 23v13" fill="none"/>
+  </g>
+</g>
+<text x="48" y="296" font-size="15">Planned</text>
+<g transform="translate(52 322) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 41v11M23 52h18" fill="none"/>
+    <rect x="24" y="18" width="16" height="23" rx="5" fill="black"/>
+    <path d="M18 23v13M46 23v13" fill="none"/>
+  </g>
+</g>
+<g transform="translate(166 346) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 41v11M23 52h18" fill="none"/>
+    <rect x="24" y="18" width="16" height="23" rx="5" fill="black"/>
+    <path d="M18 23v13M46 23v13" fill="none"/>
+  </g>
+</g>
+<text x="48" y="433" font-size="15">Deployed / Active</text>
+<g transform="translate(52 459) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 41v11M23 52h18" fill="none"/>
+    <rect x="24" y="18" width="16" height="23" rx="5" fill="black"/>
+    <path d="M18 23v13M46 23v13" fill="none"/>
+  </g>
+</g>
+<g transform="translate(166 483) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 41v11M23 52h18" fill="none"/>
+    <rect x="24" y="18" width="16" height="23" rx="5" fill="black"/>
+    <path d="M18 23v13M46 23v13" fill="none"/>
+  </g>
+</g>
+<text x="48" y="570" font-size="15">Retrieved / Cancelled</text>
+<text x="167" y="620" font-size="13" fill="#5b6670">32 px</text>
+<rect x="274" y="100" width="220" height="540" rx="12" fill="white" stroke="#d2d7dd"/>
+<text x="290" y="134" font-size="22" font-weight="bold">Scout</text>
+<text x="290" y="160" font-size="14">EO/IR camera</text>
+<g transform="translate(294 185) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <g fill="black" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="24" width="24" height="17" rx="3"/>
+    <path d="M38 28l12-6v21l-12-6z"/>
+    <path d="M25 41v10m-7 0h14" fill="none"/>
+  </g>
+</g>
+<g transform="translate(408 209) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <g fill="black" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="24" width="24" height="17" rx="3"/>
+    <path d="M38 28l12-6v21l-12-6z"/>
+    <path d="M25 41v10m-7 0h14" fill="none"/>
+  </g>
+</g>
+<text x="290" y="296" font-size="15">Planned</text>
+<g transform="translate(294 322) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <g fill="black" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="24" width="24" height="17" rx="3"/>
+    <path d="M38 28l12-6v21l-12-6z"/>
+    <path d="M25 41v10m-7 0h14" fill="none"/>
+  </g>
+</g>
+<g transform="translate(408 346) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <g fill="black" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="24" width="24" height="17" rx="3"/>
+    <path d="M38 28l12-6v21l-12-6z"/>
+    <path d="M25 41v10m-7 0h14" fill="none"/>
+  </g>
+</g>
+<text x="290" y="433" font-size="15">Deployed / Active</text>
+<g transform="translate(294 459) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <g fill="black" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="24" width="24" height="17" rx="3"/>
+    <path d="M38 28l12-6v21l-12-6z"/>
+    <path d="M25 41v10m-7 0h14" fill="none"/>
+  </g>
+</g>
+<g transform="translate(408 483) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <g fill="black" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="24" width="24" height="17" rx="3"/>
+    <path d="M38 28l12-6v21l-12-6z"/>
+    <path d="M25 41v10m-7 0h14" fill="none"/>
+  </g>
+</g>
+<text x="290" y="570" font-size="15">Retrieved / Cancelled</text>
+<text x="409" y="620" font-size="13" fill="#5b6670">32 px</text>
+<rect x="516" y="100" width="220" height="540" rx="12" fill="white" stroke="#d2d7dd"/>
+<text x="532" y="134" font-size="22" font-weight="bold">PIR</text>
+<text x="532" y="160" font-size="14">Passive infrared sensor</text>
+<g transform="translate(536 185) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <rect x="18" y="13" width="28" height="39" rx="6" fill="black"/>
+  <circle cx="32" cy="35" r="10" fill="#FFFF00"/>
+  <path d="M22 35h20m-10-10v20" stroke="black" stroke-width="2.5"/>
+  <path d="M28 19h8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</g>
+<g transform="translate(650 209) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <rect x="18" y="13" width="28" height="39" rx="6" fill="black"/>
+  <circle cx="32" cy="35" r="10" fill="#FFFF00"/>
+  <path d="M22 35h20m-10-10v20" stroke="black" stroke-width="2.5"/>
+  <path d="M28 19h8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</g>
+<text x="532" y="296" font-size="15">Planned</text>
+<g transform="translate(536 322) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <rect x="18" y="13" width="28" height="39" rx="6" fill="black"/>
+  <circle cx="32" cy="35" r="10" fill="#00FF00"/>
+  <path d="M22 35h20m-10-10v20" stroke="black" stroke-width="2.5"/>
+  <path d="M28 19h8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</g>
+<g transform="translate(650 346) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <rect x="18" y="13" width="28" height="39" rx="6" fill="black"/>
+  <circle cx="32" cy="35" r="10" fill="#00FF00"/>
+  <path d="M22 35h20m-10-10v20" stroke="black" stroke-width="2.5"/>
+  <path d="M28 19h8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</g>
+<text x="532" y="433" font-size="15">Deployed / Active</text>
+<g transform="translate(536 459) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <rect x="18" y="13" width="28" height="39" rx="6" fill="black"/>
+  <circle cx="32" cy="35" r="10" fill="#CCCCCC"/>
+  <path d="M22 35h20m-10-10v20" stroke="black" stroke-width="2.5"/>
+  <path d="M28 19h8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</g>
+<g transform="translate(650 483) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <rect x="18" y="13" width="28" height="39" rx="6" fill="black"/>
+  <circle cx="32" cy="35" r="10" fill="#CCCCCC"/>
+  <path d="M22 35h20m-10-10v20" stroke="black" stroke-width="2.5"/>
+  <path d="M28 19h8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</g>
+<text x="532" y="570" font-size="15">Retrieved / Cancelled</text>
+<text x="651" y="620" font-size="13" fill="#5b6670">32 px</text>
+<rect x="758" y="100" width="220" height="540" rx="12" fill="white" stroke="#d2d7dd"/>
+<text x="774" y="134" font-size="22" font-weight="bold">Gateway</text>
+<text x="774" y="160" font-size="14">Gateway device</text>
+<g transform="translate(778 185) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 34V19m20 15V19" fill="none"/>
+    <rect x="14" y="34" width="36" height="14" rx="4" fill="black"/>
+    <path d="M17 18l5-5 5 5m10 0 5-5 5 5" fill="none"/>
+  </g>
+  <circle cx="23" cy="41" r="2" fill="#FFFF00"/>
+  <circle cx="32" cy="41" r="2" fill="#FFFF00"/>
+</g>
+<g transform="translate(892 209) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#FFFF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 34V19m20 15V19" fill="none"/>
+    <rect x="14" y="34" width="36" height="14" rx="4" fill="black"/>
+    <path d="M17 18l5-5 5 5m10 0 5-5 5 5" fill="none"/>
+  </g>
+  <circle cx="23" cy="41" r="2" fill="#FFFF00"/>
+  <circle cx="32" cy="41" r="2" fill="#FFFF00"/>
+</g>
+<text x="774" y="296" font-size="15">Planned</text>
+<g transform="translate(778 322) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 34V19m20 15V19" fill="none"/>
+    <rect x="14" y="34" width="36" height="14" rx="4" fill="black"/>
+    <path d="M17 18l5-5 5 5m10 0 5-5 5 5" fill="none"/>
+  </g>
+  <circle cx="23" cy="41" r="2" fill="#00FF00"/>
+  <circle cx="32" cy="41" r="2" fill="#00FF00"/>
+</g>
+<g transform="translate(892 346) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#00FF00" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 34V19m20 15V19" fill="none"/>
+    <rect x="14" y="34" width="36" height="14" rx="4" fill="black"/>
+    <path d="M17 18l5-5 5 5m10 0 5-5 5 5" fill="none"/>
+  </g>
+  <circle cx="23" cy="41" r="2" fill="#00FF00"/>
+  <circle cx="32" cy="41" r="2" fill="#00FF00"/>
+</g>
+<text x="774" y="433" font-size="15">Deployed / Active</text>
+<g transform="translate(778 459) scale(1.25)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 34V19m20 15V19" fill="none"/>
+    <rect x="14" y="34" width="36" height="14" rx="4" fill="black"/>
+    <path d="M17 18l5-5 5 5m10 0 5-5 5 5" fill="none"/>
+  </g>
+  <circle cx="23" cy="41" r="2" fill="#CCCCCC"/>
+  <circle cx="32" cy="41" r="2" fill="#CCCCCC"/>
+</g>
+<g transform="translate(892 483) scale(.5)">
+  <circle cx="32" cy="32" r="29" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+  <g stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 34V19m20 15V19" fill="none"/>
+    <rect x="14" y="34" width="36" height="14" rx="4" fill="black"/>
+    <path d="M17 18l5-5 5 5m10 0 5-5 5 5" fill="none"/>
+  </g>
+  <circle cx="23" cy="41" r="2" fill="#CCCCCC"/>
+  <circle cx="32" cy="41" r="2" fill="#CCCCCC"/>
+</g>
+<text x="774" y="570" font-size="15">Retrieved / Cancelled</text>
+<text x="893" y="620" font-size="13" fill="#5b6670">32 px</text>
+</g></svg>

@@ -7,7 +7,7 @@ outside the current type catalogue.
 
 | Display name | Domain type | Bearing | Manual terminology / evidence |
 |---|---|---|---|
-| Mini | MINI | Not supported | The manual lists a seismic/acoustic sensor; associating its symbol with Mini is a candidate, not a confirmed model identification |
+| Mini | MINI | Not supported | The manual lists a seismic/acoustic sensor; the owner confirmed the Mini-to-seismic/acoustic symbol mapping in #43 (2026-10-17) |
 | Scout | SCOUT | Optional | The manual's §4.4.12.8 explicitly associates Scout Camera settings with the EO/IR camera |
 | PIR | PIR | Optional | The manual identifies PIR with the passive infrared sensor |
 | Gateway | GATEWAY | Not supported | Gateway TMM; base station and mobile-base symbols describe roles, not additional plugin types |
@@ -22,8 +22,9 @@ pages, screenshots or original graphics are included in this repository.
 Original reference PNGs were extracted locally at native resolution (27–46 pixels).
 The source colors indicate live detection/alarm state and must not be reused as
 planning statuses such as planned or deployed. A Gateway role is distinct from a
-device type. The Mini symbol mapping and permission to redistribute the graphics
-are not established. Use original plugin artwork until those decisions are settled.
+device type. Mini mapping is now confirmed; permission to redistribute the manual
+graphics remains unestablished. Use original plugin artwork. The owner approved
+planning-status colors on 2026-10-18; these colors carry no detection/alarm meaning.
 
 ## Data impact
 
@@ -32,8 +33,8 @@ order. There is no serialized storage format yet, so no stored records are migra
 Do not serialize enum ordinals when storage is introduced. Existing bearing rules
 remain restricted to PIR and Scout, and distances include all four types.
 
-The proposed status catalogue, allowed transitions, ID/owner conventions and other
-product decisions remain open in Issue #8. Selecting the names does not close that Issue.
+Local status and ID rules were subsequently adopted in [ADR 0006](decisions/0006-local-mvp-product-rules.md).
+Symbol replacement is tracked separately in [#43](https://github.com/gustavtraff/tmm-sensor-planner/issues/43).
 
 ## Original prototype symbols
 
@@ -43,3 +44,10 @@ tinted by planning status. Glyphs are simple independently drawn vector strokes;
 no font, manual graphic or third-party icon is copied. Type is visible even if ATAK
 declutters the longer label. These are local prototype symbols, not claimed manual
 symbol identifications or sensor alarm states. See [LOCAL_PLANNER.md](LOCAL_PLANNER.md).
+
+## Replacement artwork review (#43)
+
+[The original pictogram proposal](DEVICE_SYMBOLS.md) shows all four device types
+in the owner-approved yellow/green/gray planning palette, including 32 px samples.
+Artwork approval and actual map rendering remain pending; the proposal has not
+replaced runtime assets. Snapshot/wire contracts and bearing rules are unchanged.
