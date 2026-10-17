@@ -100,3 +100,12 @@ source preservation, cancel/replace, ambiguous saves, restart reopening, missing
 files and invalid paths/symlinks. See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for the API,
 remaining UI/phone gates and decoder limitations. The public `images` job is separate
 from required `core`; it does not establish full A05 or ATAK acceptance.
+
+## Integrated local images (#35)
+
+[LOCAL_IMAGES.md](LOCAL_IMAGES.md) records guarded saved-device image actions and
+bounded SDK 5.6.0.24 emulator evidence for picker/normalized preview cancellation,
+attachment, replacement, metadata removal/source preservation and restart viewing.
+The standalone suite now includes real DraftStore coordination tests: stale edits,
+shared handles, ambiguous atomic commits, fresh-read failures and cleanup warnings.
+These are separate from physical-provider, standard-client and sharing acceptance.

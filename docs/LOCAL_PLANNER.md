@@ -27,8 +27,9 @@ merging UUIDs or changing labels. Edits preserve UUID, creation time and image h
 **Spara lokalt** commits on one background executor. Review shows the saved fields,
 local status, dates/revision, nearest eligible other device and a sorted gateway list.
 Distances use the accepted core rules, rounded to whole meters, with no coverage claim.
-The image field only reports presence/absence of an opaque association; image UI/files
-remain #13. **Ta bort lokalt utkast** requires confirmation and affects metadata only.
+Saved-device review provides local image add/preview/view/replace/remove actions;
+see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). **Ta bort lokalt utkast** requires confirmation,
+commits metadata and then cleans an image only after a fresh reference check.
 Cancellation saves nothing. **Läs om** reloads the snapshot; storage errors never reset it.
 An uncertain save keeps entered text and disables repeat saving until the user reloads.
 
@@ -52,8 +53,8 @@ retains saved data and reports an error. After ATAK restart, open the toolbar to
 
 - The entry point checks Android API 26 **before constructing** the separate planner
   class. Existing minSdk 21 is unchanged; below Android 8, local planning is unavailable
-  with an explicit message. No API 21–25 planner support is claimed. No new dependency
-  is added. Native NIO/Instant avoids unverified desugaring/classloader behavior.
+  with an explicit message. No API 21–25 planner support is claimed. The image library adds AndroidX ExifInterface; the host also supplies its own version,
+  so actual ATAK codec behavior requires runtime checks. Native NIO/Instant avoids unverified desugaring/classloader behavior.
   `app/lint.xml` excludes NewApi only for the SDK-independent core source directory;
   core consumers are isolated in API-26-annotated classes behind that runtime guard.
   NewApi remains enabled for all app sources; future callers must keep this boundary.
