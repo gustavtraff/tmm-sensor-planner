@@ -1,11 +1,11 @@
-# Device symbol proposal (#43)
+# Device symbols (#43)
 
-Status: **artwork awaiting owner review**. The runtime still uses its provisional
-letter icons until the proposed pictograms are approved.
+Status: **artwork and palette approved by the owner on 2026-10-18**. The map now
+uses the approved pictograms in place of the provisional letter icons.
 
 ![Revised reference-based device pictograms and approved planning palette](assets/device-symbols/review.svg)
 
-| Device | Proposed original pictogram | Mapping |
+| Device | Approved pictogram | Mapping |
 |---|---|---|
 | Mini | Compact sensor head on a narrow stake | Owner-confirmed association recorded in #43 |
 | Scout | Angled elongated camera body and front lens | EO/IR camera |
@@ -28,11 +28,19 @@ The owner approved the following palette in the project conversation on 2026-10-
 | Retrieved / Cancelled | Gray (`#CCCCCC`) |
 
 No red/fault state is introduced. Status remains manually maintained and explicitly
-readable in labels/details. The preview contains enlarged and 32 px samples. Small
-pictogram recognition, map-background contrast, actual SDK rendering at relevant
-scales and PIR/Scout bearing cues still require verification after artwork approval;
-physical screen/accessibility checks remain under #12.
+readable in labels/details. The preview contains enlarged and 32 px samples. Actual SDK rendering and remaining verification are recorded below; physical
+screen/accessibility checks remain under #12.
 
-No domain, snapshot or wire change is proposed. Source masters are the four SVGs
+No domain, snapshot or wire change is introduced. Source masters are the four SVGs
 in `docs/assets/device-symbols/`. White areas receive the SDK planning tint; black
 outlines/pictograms provide contrast and shape identification independently of hue.
+
+## Implementation and verification
+
+The four 64 px transparent PNGs retain the existing resource names, numeric resource
+URIs and 32 px IconPointStyle. They were rasterized from the approved SVG masters
+using macOS AppKit; no manual bitmap is packaged. Tint changes only the planning
+colors. Existing text labels, selection radius, private feature layer and fixed
+100 m PIR/Scout bearing cues are unchanged. No SDK API was added.
+
+Runtime observations are recorded after the dedicated SDK-client check.

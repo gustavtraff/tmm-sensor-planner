@@ -38,11 +38,13 @@ The map uses one plugin-owned in-memory database/FeatureLayer3 per planner lifet
 Updates replace feature sets under the SDK bulk modification lock; unload queues
 database disposal after GL renderer release, so its query worker cannot access a
 closed database. The first emulator run exposed a crash from replacing/discarding
-the database on each refresh; that approach was removed before review readiness. Original M/S/P/G letters are built into four 64 px PNG point icons, so type remains
-visible even when the SDK declutters labels. They are independently drawn vector-stroke
-glyphs/rings, with no borrowed font or manual artwork. Numeric `android.resource` URIs
+the database on each refresh; that approach was removed before review readiness. The owner-approved [device pictograms](DEVICE_SYMBOLS.md) replace the provisional
+M/S/P/G disc artwork in four 64 px PNG point icons, so type shape remains visible
+even when the SDK declutters labels. The vector masters follow the private reference
+silhouettes; no extracted manual bitmap is packaged. Numeric `android.resource` URIs
 load the APK drawables through the SDK bitmap loader. Labels additionally contain
-the letter, manual ID, Swedish status and `Lokal`; status colors are a secondary cue.
+the letter, manual ID, Swedish status and `Lokal`; status colors are a secondary cue: yellow Planned, green Deployed/Active,
+gray Retrieved/Cancelled, as approved on 2026-10-18.
 A PIR/Scout arrow is a fixed **100 m direction cue**, not sensor range. Tapping within
 32 dp of a point opens review when another planner dialog is not already open; nearest
 point wins if labels overlap. The list remains an alternative for overlapping points.
@@ -98,8 +100,8 @@ host over a phone's standard ATAK app or put the APK on any feed.
    explicit emulator serial. Open the tool and create two synthetic devices near 0/0.
 2. Try blank ID/owner, invalid coordinates, comma decimals and unsupported bearing.
    Expect adjacent errors and unchanged saved records. Cancel another edit.
-3. Create Mini/Scout/PIR/Gateway, select statuses, and check distinct type letters and
-   status text. Test zero/north/east bearing with north-up map, then rotate the map.
+3. Create Mini/Scout/PIR/Gateway, select statuses, and check distinct device pictograms and
+   status text across all five statuses. Test zero/north/east bearing with north-up map, then rotate the map.
    Compare coordinate direction, not a magnetic-north display assumption.
 4. Review and tap points, move via form coordinates, check recalculated neighbors and
    gateway list. Try a duplicate label, cancel its warning, then explicitly save it.

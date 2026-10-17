@@ -36,18 +36,18 @@ remain restricted to PIR and Scout, and distances include all four types.
 Local status and ID rules were subsequently adopted in [ADR 0006](decisions/0006-local-mvp-product-rules.md).
 Symbol replacement is tracked separately in [#43](https://github.com/gustavtraff/tmm-sensor-planner/issues/43).
 
-## Original prototype symbols
+## Approved map symbols (#43)
 
-The offline planner uses four original 64 px transparent PNG symbols in
-`app/src/main/res/drawable-nodpi`: a black disc with a white M/S/P/G glyph and ring,
-tinted by planning status. Glyphs are simple independently drawn vector strokes;
-no font, manual graphic or third-party icon is copied. Type is visible even if ATAK
-declutters the longer label. These are local prototype symbols, not claimed manual
-symbol identifications or sensor alarm states. See [LOCAL_PLANNER.md](LOCAL_PLANNER.md).
+On 2026-10-18 the owner approved the revised reference-based Mini, Scout, PIR and
+Gateway pictograms and the yellow/green/gray planning palette. The map now uses
+four 64 px transparent PNGs in `app/src/main/res/drawable-nodpi`, rendered from the
+[approved SVG masters and review sheet](DEVICE_SYMBOLS.md). White areas receive
+status tint; black shapes/rings retain type identification independently of hue.
+The previous M/S/P/G disc artwork is replaced; type/status text and bearing rules
+remain unchanged. The manual and its extracted bitmaps are not packaged.
 
-## Replacement artwork review (#43)
-
-[The revised reference-based pictogram proposal](DEVICE_SYMBOLS.md) shows all four device types
-in the owner-approved yellow/green/gray planning palette, including 32 px samples.
-Artwork approval and actual map rendering remain pending; the proposal has not
-replaced runtime assets. Snapshot/wire contracts and bearing rules are unchanged.
+Planned is yellow; Deployed/Active are green; Retrieved/Cancelled are gray. Color
+means manually maintained planning status, never sensor detection, alarms, hardware
+health or connectivity. Status names remain in labels/details. Snapshot/wire
+contracts are unchanged; actual test evidence and physical-client gaps are in
+[the symbol record](DEVICE_SYMBOLS.md).

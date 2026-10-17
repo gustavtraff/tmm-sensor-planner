@@ -62,7 +62,7 @@ See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md
 | F11 | Provide a controlled method for changes, conflicts, withdrawal and deletion of already shared objects. | Synchronization stage |
 | F12 | Show understandable status when sharing or import fails, without claiming the device was shared. | MVP when the first sharing route is added |
 
-**F02 – catalog decision:** The repository owner selected Mini, Scout, PIR and Gateway on 2026-10-12. Other sensor types are outside the current scope. The manual supports terminology and local symbol references; Mini's exact manual-symbol mapping is unconfirmed. On 2026-10-16 the owner accepted `Planned`, `Deployed`, `Active`, `Retrieved`, `Cancelled` with manual status changes. ADR 0006 records the local rules and original-artwork fallback; implementation and tests remain required.
+**F02 – catalog decision:** The repository owner selected Mini, Scout, PIR and Gateway on 2026-10-12. Other sensor types are outside the current scope. The manual supports terminology and local symbol references; Mini's seismic/acoustic symbol mapping is now owner-confirmed in #43; approved artwork is recorded in DEVICE_SYMBOLS.md. On 2026-10-16 the owner accepted `Planned`, `Deployed`, `Active`, `Retrieved`, `Cancelled` with manual status changes. ADR 0006 records the local rules and original-artwork fallback; implementation and tests remain required.
 
 ### Non-functional requirements
 
@@ -225,7 +225,7 @@ tmm-sensor-planner/
 | Public repository reveals environment details in examples or history | Only synthetic fixtures; review the entire history before publication and each release. Security lead owns the gate. |
 | Real test phones use private accounts and images | Establish local deletion/backup/access policy before field trials. Information owner decides. |
 
-**Local MVP decision record:** the 2026-10-16 owner choices for manual IDs, status/distance rules and one normalized local image are in ADR 0006. Human merge of PR #28 adopted that ADR's defaults for manual deployment time, true-north bearing, free owner text, duplicate warnings, decode limits and original type-letter symbols. Exact Mini manual-symbol identification remains unconfirmed and is not needed for the original-artwork fallback. **Later sharing decisions:** person/group/feed targets, presentation without the plugin, rights to edit received objects and any working-area uniqueness standard remain separate synchronization-stage work. Implement and test adopted local rules before claiming the data model conforms.
+**Local MVP decision record:** the 2026-10-16 owner choices for manual IDs, status/distance rules and one normalized local image are in ADR 0006. Human merge of PR #28 adopted that ADR's defaults for manual deployment time, true-north bearing, free owner text, duplicate warnings, decode limits and original type-letter symbols. Mini's seismic/acoustic symbol mapping was confirmed in #43, with revised pictograms and the planning palette approved on 2026-10-18 (DEVICE_SYMBOLS.md). **Later sharing decisions:** person/group/feed targets, presentation without the plugin, rights to edit received objects and any working-area uniqueness standard remain separate synchronization-stage work. Implement and test adopted local rules before claiming the data model conforms.
 
 ## 11. Initial setup – step by step
 
