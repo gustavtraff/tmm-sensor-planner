@@ -22,3 +22,11 @@ find core/src/main/java core/src/test/java -name '*.java' -print > "$build_dir/s
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.DraftStoreTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.DraftStoreTest write "$build_dir/restart"
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.DraftStoreTest read "$build_dir/restart"
+"$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.HundredDeviceScenarioTest write "$build_dir/hundred-devices"
+"$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.HundredDeviceScenarioTest verify "$build_dir/hundred-devices"
+"$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.HundredDeviceScenarioTest exercise "$build_dir/hundred-devices"
+if "$java_cmd" -cp "$build_dir/classes" se.tmm.sensorplanner.core.HundredDeviceScenarioTest write "$build_dir/assertions-disabled" > "$build_dir/assertions-disabled.log" 2>&1; then
+    echo "Scenario utility unexpectedly accepted disabled assertions" >&2
+    exit 1
+fi
+test ! -e "$build_dir/assertions-disabled"
