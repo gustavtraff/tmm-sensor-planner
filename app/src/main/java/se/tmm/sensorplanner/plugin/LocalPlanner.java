@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 
 import gov.tak.api.ui.IHostUIService;
 import se.tmm.sensorplanner.core.*;
+import se.tmm.sensorplanner.images.LocalImages;
+import se.tmm.sensorplanner.plugin.images.DraftAttachments;
 
 /** Offline local prototype; kept behind the entry point's API 26 runtime guard. */
 @TargetApi(26)
@@ -31,11 +33,13 @@ final class LocalPlanner {
     private final IHostUIService ui;
     private final DraftStore store;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private final DraftAttachments attachments;
+    private final LocalImageUi imagesUi;
     private LocalDraftLayer layer;
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
     private AlertDialog confirmation;
-    private boolean closed;
+    private volatile boolean closed;
     private boolean loading;
 
     LocalPlanner(MapView map, IHostUIService ui) throws Exception {
@@ -45,11 +49,24 @@ final class LocalPlanner {
         // The plugin executes as ATAK's UID; no-backup host storage avoids shared files and backups.
         store = new DraftStore(new java.io.File(context.getNoBackupFilesDir(),
                 "se.tmm.sensorplanner/local-drafts-v1").toPath());
+        LocalImages images = new LocalImages(new java.io.File(context.getNoBackupFilesDir(),
+                "se.tmm.sensorplanner/local-images-v1").toPath());
+        attachments = new DraftAttachments(store, images);
+        imagesUi = new LocalImageUi(context, worker, images, attachments, new LocalImageUi.Listener() {
+            @Override public boolean available() { return !closed && OfflineMode.isOffline(context); }
+            @Override public void committed(DraftAttachments.Result result, UUID uid) {
+                if (closed) return;
+                refresh(result.drafts);
+                for (TmmDraft saved : drafts) if (saved.uid.equals(uid)) { review(saved); break; }
+                if (result.cleanupFailed) ui.showToast("Ändringen är sparad men en äldre bildkopia kunde inte tas bort");
+            }
+            @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
+        });
         layer = new LocalDraftLayer(map, this::selected);
     }
 
     private void selected(UUID uid) {
-        if (!closed && !loading && (dialog == null || !dialog.isShowing()) && OfflineMode.isOffline(context)) {
+        if (!closed && !loading && !imagesUi.isBusy() && (dialog == null || !dialog.isShowing()) && OfflineMode.isOffline(context)) {
             for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) {
                 review(draft);
                 break;
@@ -58,7 +75,7 @@ final class LocalPlanner {
     }
 
     void show() {
-        if (!offline() || closed || loading) return;
+        if (!offline() || closed || loading || imagesUi.isBusy()) return;
         if (dialog != null && dialog.isShowing()) return;
         loading = true;
         dismiss();
@@ -93,7 +110,7 @@ final class LocalPlanner {
     }
 
     private void list() {
-        if (!offline() || closed) return;
+        if (!offline() || closed || imagesUi.isBusy()) return;
         String[] rows = new String[drafts.size()];
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
@@ -116,7 +133,7 @@ final class LocalPlanner {
                 .append("\nUtplacerad: ").append(draft.deployedAt == null ? "Ej angivet" : localTime(draft.deployedAt))
                 .append("\nBäring från sann nord: ").append(draft.bearingDeg == null ? "Ej angivet" : draft.bearingDeg + "°")
                 .append("\nKommentar: ").append(draft.comment.isEmpty() ? "Ingen" : draft.comment)
-                .append("\nBild: ").append(draft.imageRef == null ? "Ingen (bildstöd kommer senare)" : "Lokal koppling bevarad; bildvisning saknas")
+                .append("\nBild: ").append(draft.imageRef == null ? "Ingen" : "Sparad lokal kopia")
                 .append("\nRevision: ").append(draft.revision);
         if (DraftForm.hasDuplicateId(draft.displayId, draft.uid, drafts)) {
             text.append("\n\nVarning: samma synliga ID finns på en annan enhet.");
@@ -138,6 +155,11 @@ final class LocalPlanner {
             catch (RuntimeException failure) { ui.showToast("Kartan kunde inte centreras"); }
         });
         content.addView(center);
+        content.addView(button(draft.imageRef == null ? "Lägg till bild" : "Ersätt bild", () -> imagesUi.pick(draft)));
+        if (draft.imageRef != null) {
+            content.addView(button("Visa bild", () -> imagesUi.view(draft)));
+            content.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
+        }
         content.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle(draft.displayId)
@@ -147,7 +169,7 @@ final class LocalPlanner {
     }
 
     private void form(TmmDraft original) {
-        if (closed || !offline()) return;
+        if (closed || imagesUi.isBusy() || !offline()) return;
         LinearLayout fields = column();
         fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
                 + "Positionen anges i decimalgrader; ny enhet använder kartans mittpunkt."));
@@ -241,6 +263,7 @@ final class LocalPlanner {
     }
 
     private void confirmDelete(TmmDraft draft) {
+        if (closed || imagesUi.isBusy() || !offline()) return;
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle("Ta bort lokalt utkast?")
                 .setMessage("Detta tar bara bort det lokala utkastet. Ingen server eller mottagare påverkas.")
@@ -249,9 +272,11 @@ final class LocalPlanner {
                     if (closed || !offline()) return;
                     worker.execute(() -> {
                         try {
-                            store.delete(draft.uid, draft.revision);
-                            List<TmmDraft> loaded = store.load();
-                            ui.queueEvent(() -> { if (!closed) { refresh(loaded); list(); } });
+                            DraftAttachments.Result result = attachments.delete(draft);
+                            ui.queueEvent(() -> { if (!closed) {
+                                refresh(result.drafts); list();
+                                if (result.cleanupFailed) ui.showToast("Utkastet är borttaget men bildkopian kunde inte tas bort");
+                            } });
                         } catch (Exception failure) {
                             ui.queueEvent(() -> { if (!closed) alert("Borttagningen kunde inte bekräftas", "Läs om listan innan du fortsätter."); });
                         }
@@ -343,7 +368,7 @@ final class LocalPlanner {
         Button button = new Button(context);
         button.setText(text);
         button.setMinHeight(dp(48));
-        button.setOnClickListener(view -> action.run());
+        button.setOnClickListener(view -> { if (!closed && !imagesUi.isBusy() && offline()) action.run(); });
         return button;
     }
 
@@ -395,6 +420,7 @@ final class LocalPlanner {
     void close() {
         closed = true;
         dismiss();
+        imagesUi.close();
         worker.shutdown();
         if (layer != null) layer.close();
     }

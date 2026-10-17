@@ -47,8 +47,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 5
-        versionName '0.1.0-local-planner.1'
+        versionCode 6
+        versionName '0.1.0-local-images.1'
     }
 
     compileOptions {
@@ -73,3 +73,7 @@ android {
 
 // Compile the dependency-free domain/storage sources into the plugin, never the SDK.
 android.sourceSets.main.java.srcDir '../core/src/main/java'
+
+dependencies {
+    implementation project(':images')
+}
