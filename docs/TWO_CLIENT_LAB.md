@@ -137,3 +137,106 @@ startup was corrected to use `LANG=C.UTF-8` and `-Dfile.encoding=UTF-8`. Postgre
 was already UTF8. The earlier ASCII control/feature-UID privacy observations are
 unchanged; they did not establish Unicode preservation. See
 [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md) for the separate metadata experiment.
+
+## Actual planner follow-up — 2026-10-17
+
+The original experiment above used a disposable point. This follow-up tests the
+merged **saved-draft planner**, including its labels, bearing geometry, private
+snapshot and local image integration. It adds no publishing code and does not
+relax the API-26/offline restriction.
+
+### Tested inputs and channels
+
+- Source: `3be458f13988cb69f78beaa13191585add6ecfc2` (main after PRs #36/#37).
+  Client A: `0.1.0-local-images.1`, versionCode 6. APK SHA-256:
+  `547b7f054d00bbc31f5bcd4d9dade5e36772199f26849d7eca5a5538673a0491`.
+- Both hosts: SDK developer ATAK-CIV **5.6.0.24**, AOSP API 35 arm64. B retained
+  `0.1.0-cot-probe.1`, versionCode 4, as the fixed-fixture control receiver;
+  no production receiver or draft synchronization exists on B.
+- Existing isolated TAK Server **5.8-RELEASE-92**, task-owned internal Docker
+  network and localhost relay. Only config/messaging roles were needed; the unused
+  API role was stopped to reduce memory pressure. No HTTP resource-upload test is
+  inferred from this run.
+- Both guests retained airplane mode, disabled radios, IPv4/IPv6 egress blocking
+  and the explicit loopback ADB reverse tunnel. Android's offline flag therefore
+  coexisted with an actual authenticated CoT connection. This does not exercise a
+  normal connected phone network or establish that the offline check is a firewall.
+- A fresh authenticated subscriber recorded decrypted broadcast traffic. Independent
+  SQL queries checked server CoT records in the observation window. Checks searched
+  all five draft UUIDs, visible IDs/owner/comment canaries, the owned image handle,
+  source filenames/private directory names, and the moved `POINT(0.001 0)` position.
+  Feature names do not contain the draft UUID, so UUID-only searching is insufficient.
+  Historical rows before the observation window were excluded from negative checks.
+
+### Procedure and observed behavior
+
+1. Verify a targeted B → A fixed-fixture transfer, then A → B. On each recipient,
+   the existing test tool found exactly one ordinary host marker for that control
+   UUID and successfully re-exported its fixed metadata.
+2. Verify a separate broadcast control in both the subscriber and B's actual marker
+   export. The control socket first announced a synthetic source identity. An earlier
+   unannounced control was recorded by the server without observed forwarding; it
+   was excluded from positive-control evidence.
+3. Open the actual planner on A, reload its four pre-existing synthetic records and
+   create `TMM-LOCAL-CANARY-4`: a PIR at 0/0 with unique owner/comment text and
+   359.125° bearing. Save through the real form; the list grows to five records.
+4. Attach the synthetic rotated PNG through the real picker/normalized preview and
+   explicit save. Move the record to longitude 0.001 with comma input and change
+   its bearing to 90°. The saved review shows revision 3 and retains the image.
+5. Unload/reload the plugin with the point/image present. Reload all five saved
+   records, then force-stop/restart ATAK, reopen the planner and view the owned image.
+6. Confirm deletion of only the new canary draft. The list returns to four records
+   and the owned image directory is empty. The original records' inspected UUIDs,
+   labels, revisions, coordinates, owners, comments and image references are unchanged.
+7. Inspect B's stock item-to-move pick-list at the synthetic control cluster, including
+   its scrollable entries. Ordinary controls are visible; the unique local draft is
+   absent. Cancel without selecting or moving any item. This is a bounded UI check,
+   not an exhaustive recipient database audit.
+8. Require a fresh A → B control after restart and a final subscriber/B broadcast
+   control, then repeat the complete negative check. This brackets the absence
+   observations with working transport and recipient imports.
+
+### Result and verification
+
+Observation: **2026-10-17 12:48:52–13:08:57 UTC**. Mutation window started at
+**12:54:28 UTC**; checks include the earlier planner load within the broader window.
+The final scan covered **33 server CoT rows**, **18,854 subscriber bytes** and
+**19 draft/image/metadata canaries**. It found **zero matches**, and no server row
+had the moved `POINT(0.001 0)` position. This is an observed absence in those channels.
+
+| Positive control | Verified server record | Independent receipt |
+|---|---|---|
+| Initial B → A | 494 | One actual A marker, fixed metadata re-exported |
+| Initial A → B | 496 | One actual B marker, fixed metadata re-exported |
+| Initial announced broadcast | 500 | Subscriber bytes and one actual B marker |
+| Final A → B after restart | 512 | One actual B marker, fixed metadata re-exported |
+| Final announced broadcast | 518 | Subscriber bytes and one actual B marker |
+
+The final broadcast sender stayed connected until the independent subscriber had
+observed its source announcement and control. A premature-close attempt was not
+counted as a passing control. Neither empty ciphertext captures nor API send returns
+were used as delivery/absence evidence.
+
+`sh scripts/check-sdk.sh` passed on the tested source: APK build, Android lint and
+static signature/discovery/permission/packaging checks. No app, schema, dependency,
+permission or runtime guard changes are part of this follow-up. `sh scripts/test.sh` also passed (core, form, import review, storage and separate-process
+reopen). Repository checks are separate from the runtime observations above.
+
+### Scope of the result
+
+Runtime evidence is retained privately under `private-data/planner-privacy-4/`:
+control reviews/recipient exports, server summaries, decrypted subscriber bytes,
+per-operation negative results, saved-record readbacks and B's pick-list XML.
+Raw traffic, profiles, certificates, APKs and screenshots remain outside Git.
+
+Static review found no normal Marker/MapItem creation, root-group insertion,
+CoT dispatch or export-handler registration on the draft path. The actual adapter
+uses `FeatureSetDatabase2(null)` / `FeatureLayer3`, with private no-backup metadata
+and image files. The test did not add or invoke a domain-draft sharing action.
+
+This remains a bounded SDK-lab CoT result. Keep #4 open for human assessment of the
+production privacy gate and actual-client acceptance. Standard 5.6.0.12 signing,
+physical phones, companion plugins/Data Sync, arbitrary providers, explicit stock
+exports, all other transports and operational server configuration are not covered.
+Same-UID host plugins are not isolated, and the host can internally forward a picker
+URI. Local image sharing and the broader information-handling policy remain separate.
