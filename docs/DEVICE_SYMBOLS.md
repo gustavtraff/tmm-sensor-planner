@@ -3,18 +3,20 @@
 Status: **artwork awaiting owner review**. The runtime still uses its provisional
 letter icons until the proposed pictograms are approved.
 
-![Original device pictograms and approved planning palette](assets/device-symbols/review.svg)
+![Revised reference-based device pictograms and approved planning palette](assets/device-symbols/review.svg)
 
 | Device | Proposed original pictogram | Mapping |
 |---|---|---|
-| Mini | Upright seismic/acoustic pickup | Owner-confirmed association recorded in #43 |
-| Scout | Camera body and lens | EO/IR camera |
-| PIR | Sensor housing and segmented lens | Passive infrared sensor |
-| Gateway | Gateway housing with two antennas | Gateway device, independent of base/mobile roles |
+| Mini | Compact sensor head on a narrow stake | Owner-confirmed association recorded in #43 |
+| Scout | Angled elongated camera body and front lens | EO/IR camera |
+| PIR | Horizontal sensor housing with side extension | Passive infrared sensor |
+| Gateway | Round G mark with directional accent | Gateway device, independent of base/mobile roles |
 
-These are independently drawn SVG shapes, not traced or extracted manual images.
-The private manual was consulted for device meaning only. No permission to
-redistribute its artwork is inferred. Gateway roles, sensor alarms, radio links and
+The owner rejected the first generic pictograms on 2026-10-18 and requested a
+closer resemblance to the locally retained references. This revision redraws the
+reference silhouettes and orientations using SVG shapes; the extracted manual
+bitmaps remain private and excluded from Git/PR attachments. No permission to
+redistribute the manual or its artwork is inferred. Gateway roles, sensor alarms, radio links and
 hardware health are not represented by these planning symbols.
 
 The owner approved the following palette in the project conversation on 2026-10-18:

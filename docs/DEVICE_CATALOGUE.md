@@ -47,7 +47,7 @@ symbol identifications or sensor alarm states. See [LOCAL_PLANNER.md](LOCAL_PLAN
 
 ## Replacement artwork review (#43)
 
-[The original pictogram proposal](DEVICE_SYMBOLS.md) shows all four device types
+[The revised reference-based pictogram proposal](DEVICE_SYMBOLS.md) shows all four device types
 in the owner-approved yellow/green/gray planning palette, including 32 px samples.
 Artwork approval and actual map rendering remain pending; the proposal has not
 replaced runtime assets. Snapshot/wire contracts and bearing rules are unchanged.
