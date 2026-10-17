@@ -109,3 +109,13 @@ attachment, replacement, metadata removal/source preservation and restart viewin
 The standalone suite now includes real DraftStore coordination tests: stale edits,
 shared handles, ambiguous atomic commits, fresh-read failures and cleanup warnings.
 These are separate from physical-provider, standard-client and sharing acceptance.
+
+## Metadata import-review core (#15)
+
+`sh scripts/test.sh` now also runs ImportReviewTest: UUID matching, repeated metadata,
+each compared field, optional values, numeric zero, unrelated duplicate UUIDs, null
+inputs, local revision independence and the image-handle boundary. A real stored
+snapshot remains byte-identical after assessment. See [IMPORT_REVIEW.md](IMPORT_REVIEW.md)
+for the proposed conservative policy, local-image preservation and remaining
+source/version, persisted-conflict, transport and UI gates. Passing these tests does
+not establish two-client import behavior or ATAK compatibility.
