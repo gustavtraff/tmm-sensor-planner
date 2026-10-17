@@ -40,7 +40,9 @@ records these answers, the MVP defaults adopted by human merge of PR #28 and the
 remaining code/test work. The core now implements validated edits and candidate
 filtering and a versioned Java-core snapshot store. A guarded offline adapter now
 connects forms, review, Android storage and a private feature layer on API 26+.
-Image handling, production connected privacy and physical acceptance remain pending.
+Saved-device review integrates local image selection, normalized preview and
+view/replace/remove actions; see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). Production
+connected privacy, physical image/provider acceptance and sharing remain pending.
 See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md).
 
 ### Functional requirements

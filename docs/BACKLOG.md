@@ -65,3 +65,9 @@ with original type symbols and map selection. Bounded SDK-host results and remai
 physical/connected/rotation gates are in [LOCAL_PLANNER.md](LOCAL_PLANNER.md). #11/#12
 remain open for actual-client acceptance; image files remain #13. No new sharing or
 Data Sync capability is implied.
+
+Issue #35 integrates #13's merged image library into the saved-device review:
+local-only document picker, normalized preview, attach/view/replace/remove actions,
+and metadata-first cleanup after detach or draft deletion. Image and storage
+contracts remain snapshot v1. See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for bounded
+SDK-host evidence and remaining physical-provider/standard-client gates.

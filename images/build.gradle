@@ -15,6 +15,7 @@ android {
     }
     sourceSets {
         test.java.srcDir '../core/src/main/java'
+        test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/images'
     }
     testOptions {
         unitTests.includeAndroidResources = true

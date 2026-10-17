@@ -8,7 +8,9 @@ validation, horizontal map distances and a versioned local snapshot store, plus 
 APK. Loading passed in the isolated SDK developer emulator; standard-app signing
 and phone compatibility remain unverified. The [offline local prototype](docs/LOCAL_PLANNER.md)
 now connects forms, review, private storage and map selection on Android API 26+.
-Production connected privacy, image files and sharing remain pending. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
+Saved-device review now supports [local image](docs/LOCAL_IMAGES.md) selection,
+normalized preview, viewing, replacement and removal. Production connected privacy,
+phone acceptance and sharing remain pending. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
 and a separate [synthetic CoT lab tool](docs/COT_ROUND_TRIP.md) support SDK investigations.
 The CoT tool sends fixed test fixtures only after recipient selection and confirmation
 through the isolated localhost lab; it does not publish domain drafts.
