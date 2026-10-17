@@ -298,7 +298,7 @@ compatibility with the versions already reported on the phone.
 
 ## Pipeline investigation follow-up — 2026-10-18
 
-The [source preparation procedure](SIGNING_SOURCE.md#build-tool-decision-and-actual-access-result--2026-10-18)
+The [source preparation procedure](SIGNING_SOURCE.md#service-contract-correction-after-the-failed-trial--2026-10-18)
 now separates the SDK-aligned 3.x candidate from the service's still-unconfirmed
 2.x wording. Official immutable source examples match API 5.6.0 / takdev 3.x /
 AGP 8.13.0 / Gradle 8.14.3; no working 2.x alternative was found or claimed.
@@ -318,3 +318,15 @@ executed); rebuilt debug APK signature/discovery/packaging checks passed with
 existing metadata warnings. Core tests, four archive tests and whitespace checks
 also passed. This verifies the preserved local path, not Maven artifact availability
 or service acceptance. See the source procedure for the distinct next gates.
+
+## Full source-requirements audit after failed trial — 2026-10-18
+
+The complete owner-supplied [requirements](references/TAK_SOURCE_ARCHIVE_REQUIREMENTS.md)
+are now retained separately, together with a [requirement-by-requirement audit](SOURCE_REQUIREMENTS_AUDIT.md)
+of the actual `971a9ab` ZIP. Earlier documentation stored summaries and links.
+That ZIP passes the inspected structural/discovery/repackaging checks but fails
+the explicit latest-2.x requirement. SDK/public examples do not waive the service
+contract. The branch restores the candidate to `2.+` and adds an archive-generation
+guard with a wrong-version regression test. Local SDK 3.6.0 success does not verify
+the 2.x Maven route. Authorized Maven preflight and the first service failure's
+cause remain unverified; no additional upload or successful signing is claimed.

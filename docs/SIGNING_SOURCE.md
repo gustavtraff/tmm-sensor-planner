@@ -2,11 +2,16 @@
 
 Tracking: [#7](https://github.com/gustavtraff/tmm-sensor-planner/issues/7), with SDK
 provenance in #2 and historical developer-host loading in #3. The owner supplied
-TAK.gov's **Source Archive Requirements** on 2026-10-17, from
+TAK.gov's **Source Archive Requirements** on 2026-10-17, repeated on 2026-10-18, from
 [the third-party build page](https://tak.gov/user_builds). The owner supplied the
 page URL afterward. Our public web/HTTP checks could not retrieve its requirements
 (the direct HTTP request returned 421), so the pasted text is the requirements
 evidence; current form conditions remain unverified. Nothing has been submitted.
+
+The complete owner-supplied text is now saved in
+[the requirements snapshot](references/TAK_SOURCE_ARCHIVE_REQUIREMENTS.md).
+The [requirements audit](SOURCE_REQUIREMENTS_AUDIT.md) records the submitted
+archive's explicit version violation and the blocked preflight.
 
 The intended audience is a private group. This is not public catalogue/feed
 publication. The selected service receives source code, builds it and signs its
@@ -21,7 +26,7 @@ identifies the inspected 5.6.0.24 SDK. Local debug output is Android Debug-signe
 release output remains unsigned. No sample key is configured for release.
 
 With no local SDK environment variable, or with `takrepo.url` or
-`takrepo.force=true`, Gradle resolves `com.atakmap.gradle:atak-gradle-takdev:3.+`
+`takrepo.force=true`, Gradle resolves `com.atakmap.gradle:atak-gradle-takdev:2.+`
 and SDK artifacts through the TPC Maven route. The default repository is
 `https://artifacts.tak.gov/artifactory/maven`. A forced Maven build takes precedence
 over a local SDK environment variable; it must not silently fall back to that SDK.
@@ -42,39 +47,24 @@ The supplied instructions reserve artifacts.tak.gov access to USG Federal/Milita
 personnel. Ordinary TAK.gov website access is not proof of repository access.
 No such credentials have been requested or used here.
 
-## Build-tool decision and actual access result — 2026-10-18
+## Service contract correction after the failed trial — 2026-10-18
 
-Use **3.x as the SDK-aligned candidate** for this project's Maven build. The
-inspected 5.6.0.24 SDK requests 3.x and contains tooling 3.6.0. The official
-HelloWorld example at immutable source commit
-[`9f6893dd657feacc35ec5de03dad721c2e44170e`](https://github.com/TAK-Product-Center/atak-civ/tree/9f6893dd657feacc35ec5de03dad721c2e44170e/plugin-examples/helloworld)
-also declares API 5.6.0, takdev 3.x, AGP 8.13.0 and Gradle 8.14.3, matching our
-pinned Android build. The same example's 3.x choice was observed in public tags
-5.5.1.8, 5.5.1.9 and 5.5.1.10; tag labels are not SDK-host version evidence.
-PR #44 provisionally selected 2.x from the supplied website text. This follow-up
-changes that candidate explicitly rather than downgrading our verified toolchain
-or claiming the service text has been corrected. No compatible 2.x build was
-established. Latest 3.x Maven availability and service acceptance remain unproven.
+The supplied requirements explicitly mandate **latest 2.x** for targets >=4.2.
+The failed `971a9ab` source archive selected 3.x after PR #46, following the SDK
+and public API 5.6 example. Those sources do not establish permission to waive
+the service requirement. This branch restores the service candidate to `2.+`.
+The local SDK path still uses the inspected 3.6.0 tool; it is a separate route.
+No downgrade of the pinned AGP/Gradle/JDK or claim of Maven 2.x compatibility is
+made. The service trial returned no usable log, so the version mismatch is a
+known compliance defect, **not an established root cause** of its failure.
 
-A credential-free HTTP request for the exact takdev Maven metadata URL followed
-a redirect to `https://access.tak.gov/client`, returned HTTP 200 / `text/html`,
-and had the title **Appgate SDP**. It was not Maven metadata. Actual online,
-forced Maven-only `assembleCivRelease` attempts with empty credentials and JDK 17
-failed while parsing that response as XML for both PR #44's 2.x candidate and this
-SDK-aligned 3.x candidate. Unlike the earlier
-offline cache miss, this establishes a concrete repository-access failure. It does
-not establish that 2.x or 3.x is available, incompatible, or accepted by the signing
-service. No credentials were sent, no Appgate login was attempted and no access
-control was bypassed. TAK.gov website login does not establish Appgate access.
-
-The service's supplied text still explicitly says 2.x. Treat it as an unresolved
-**service acceptance** question, separate from the SDK-aligned build-tool choice.
-An authorized repository preflight or a human-approved source-pipeline trial is
-needed to settle it. A local developer without repository access cannot claim to
-have completed the USG Maven preflight. The public third-party service is described
-separately from that restricted access; do not infer that a failed direct Maven
-request means the owner cannot submit a source build through their existing TAK.gov
-account. No pipeline request or account eligibility test has occurred here.
+Actual online forced-Maven build attempts for both candidates failed at metadata
+parsing. A credential-free HTTP request to the exact Maven metadata URL redirected
+to `https://access.tak.gov/client`, returned HTTP 200 / HTML and the title Appgate
+SDP. It was not Maven metadata. No authorized preflight passed, no credentials
+were sent, and no Appgate access was attempted. Ordinary TAK.gov login does not
+establish artifact-repository access. A service trial and restricted direct Maven
+access remain different routes; neither route's success is established here.
 
 Release rules use the TAK plugin's `atak.proguard.mapping` property and
 `atakplugin.tmm.sensorplanner` namespace. Shrinking/optimization are disabled in
@@ -82,7 +72,7 @@ line with the inspected SDK sample's conservative release behavior. Discovery
 entry names remain kept. The local developer SDK has an empty mapping; this cannot
 verify release-host ABI mapping. Standard-client runtime tests remain mandatory.
 
-## Local verification of the 3.x candidate
+## Historical local verification of the noncompliant 3.x candidate
 
 On 2026-10-18, local SDK 5.6.0.24 debug/release assembly and lint passed (171
 executed tasks). The debug APK passed `scripts/check-plugin-apk.py` with the
@@ -104,7 +94,9 @@ mkdir -p private-data/signing
 python3 scripts/create-signing-source.py private-data/signing/TMM-Sensor-Planner-source.zip
 ```
 
-The output must not already exist. The helper prints the commit and archive
+The output must not already exist. The helper also rejects a source snapshot
+without this project's required literal takdev `2.+` Maven coordinate; this is a
+bounded static guard, not a successful Maven preflight. The helper prints the commit and archive
 SHA-256. It selects committed build scripts, wrapper, app resources/source, core
 source/tests, image-library source/tests and README. It excludes the repository's
 Git history, private directories, credentials/configuration and generated output
