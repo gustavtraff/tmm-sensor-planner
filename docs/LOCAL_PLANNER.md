@@ -149,3 +149,14 @@ unverified. Issues #11/#12 stay open for the relevant actual-client acceptance g
 Final private APK SHA-256:
 `733657c0e3675a47a07a4d054e60988219190c3d914b3d8ef5fbab969faee189`.
 Green public core CI is not Android runtime, connected privacy or signing evidence.
+
+## Connected SDK-lab follow-up
+
+On 2026-10-17 the merged saved-draft/image adapter was exercised with both SDK
+hosts connected to the isolated CoT lab through scoped ADB tunnels, while Android
+continued to report offline. The test covered real form creation, a local image,
+position/bearing edit, plugin unload/reload, persisted host restart and deletion.
+See [the exact protocol and limits](TWO_CLIENT_LAB.md#actual-planner-follow-up--2026-10-17).
+No draft publishing implementation or relaxation of the offline restriction is
+introduced by this evidence. Phone/standard-client, companion-plugin and other
+transport/privacy acceptance remain separate gates.

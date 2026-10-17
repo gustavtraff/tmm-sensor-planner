@@ -127,3 +127,14 @@ image handles/counters, both image states, stale fields/revisions/image associat
 destination changes and invalid text, deletion and read-only snapshot preservation.
 [SHARE_REVIEW.md](SHARE_REVIEW.md) documents the preparation and final-adapter gates.
 This adds no transport test and does not satisfy actual-client A06/A07.
+
+## Actual saved-planner CoT privacy (#4)
+
+The 2026-10-17 [two-client follow-up](TWO_CLIENT_LAB.md#actual-planner-follow-up--2026-10-17)
+uses the merged planner/image build rather than the earlier disposable map probe.
+It brackets saved-draft create/edit/image/reload/restart/delete operations with
+actual targeted and broadcast controls. Independent server/subscriber checks search
+UUID, visible metadata and local image canaries, plus the synthetic moved position;
+a stock recipient pick-list is inspected and cancelled. This is bounded SDK-lab
+CoT evidence, not a test of HTTP uploads, Data Sync, arbitrary providers, standard
+signing, all exports or normal connected phone networks. The offline guard remains.

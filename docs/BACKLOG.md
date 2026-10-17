@@ -71,3 +71,9 @@ local-only document picker, normalized preview, attach/view/replace/remove actio
 and metadata-first cleanup after detach or draft deletion. Image and storage
 contracts remain snapshot v1. See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for bounded
 SDK-host evidence and remaining physical-provider/standard-client gates.
+
+Issue #4's actual saved-planner follow-up is documented in [TWO_CLIENT_LAB.md](TWO_CLIENT_LAB.md#actual-planner-follow-up--2026-10-17).
+It extends the disposable-layer investigation to persistence, bearing geometry,
+local images and lifecycle operations in the isolated connected CoT lab. Human
+review and actual-client/other-transport privacy gates remain; this adds no sharing
+implementation and does not remove the offline restriction.
