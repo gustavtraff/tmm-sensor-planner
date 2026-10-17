@@ -119,3 +119,11 @@ snapshot remains byte-identical after assessment. See [IMPORT_REVIEW.md](IMPORT_
 for the proposed conservative policy, local-image preservation and remaining
 source/version, persisted-conflict, transport and UI gates. Passing these tests does
 not establish two-client import behavior or ATAK compatibility.
+
+## Metadata sharing-review core (#14)
+
+`sh scripts/test.sh` also runs ShareReviewTest for the metadata allowlist, excluded
+image handles/counters, both image states, stale fields/revisions/image associations,
+destination changes and invalid text, deletion and read-only snapshot preservation.
+[SHARE_REVIEW.md](SHARE_REVIEW.md) documents the preparation and final-adapter gates.
+This adds no transport test and does not satisfy actual-client A06/A07.

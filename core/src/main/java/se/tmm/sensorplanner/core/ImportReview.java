@@ -42,7 +42,7 @@ public final class ImportReview {
         return new ImportReview(kind, local, incoming);
     }
 
-    private static boolean sameMetadata(TmmDraft local, TmmDraft incoming) {
+    static boolean sameMetadata(TmmDraft local, TmmDraft incoming) {
         // Revisions count local writes; image handles belong to one client's private storage.
         return local.displayId.equals(incoming.displayId)
                 && local.type == incoming.type && local.status == incoming.status

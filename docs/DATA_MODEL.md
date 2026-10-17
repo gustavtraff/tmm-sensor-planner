@@ -67,3 +67,9 @@ by UUID without writes. It ignores local revision counters and preserves local i
 handles; different metadata requires explicit review. Incoming image handles are
 rejected. This preparatory #15 helper changes neither snapshot v1 nor the production
 wire contract and does not implement a receiver or durable conflict storage.
+
+The proposed [metadata sharing review](SHARE_REVIEW.md) exposes an explicit metadata
+projection without image handles or local revision counters. It retains the saved
+record privately to detect stale reviews and binds the destination selection to
+that review. This #14 preparation defines no production wire encoding, storage
+migration, sharing state or transport; local images remain excluded.
