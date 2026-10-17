@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="680" viewBox="0 0 1000 680">
 <rect width="1000" height="680" fill="#f4f5f7"/>
 <g font-family="Helvetica,Arial,sans-serif" fill="#17212b">
-<text x="32" y="44" font-size="26" font-weight="bold">TMM device symbols — revised reference-based proposal</text>
-<text x="32" y="74" font-size="17">Reference silhouettes · approved planning colors · artwork awaiting review</text>
+<text x="32" y="44" font-size="26" font-weight="bold">TMM device symbols — approved reference-based set</text>
+<text x="32" y="74" font-size="17">Approved 2026-10-18 · planning status only · 32 px samples</text>
 <rect x="32" y="100" width="220" height="540" rx="12" fill="white" stroke="#d2d7dd"/>
 <text x="48" y="134" font-size="22" font-weight="bold">Mini</text>
 <text x="48" y="160" font-size="14">Seismic/acoustic sensor</text>

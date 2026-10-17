@@ -70,3 +70,7 @@ claim that all labels are simultaneously readable. Physical phone/standard signi
 portrait/rotated-map field use, diverse light/imagery backgrounds and accessibility
 acceptance remain under #12 and the existing release gates. Color is secondary to
 shape/text and does not distinguish Deployed from Active or Retrieved from Cancelled.
+
+After integrating main `a1835b9` (#46), the SDK build/lint/static APK command passed
+again and produced the byte-identical tested APK above. No Maven/signing-service
+verification is implied. The dedicated test guest was stopped after verification.

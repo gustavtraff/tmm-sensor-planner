@@ -28,13 +28,11 @@ planning-status colors on 2026-10-18; these colors carry no detection/alarm mean
 
 ## Data impact
 
-MINI is added to the existing Java enum; GATEWAY, PIR and SCOUT keep their names and
-order. There is no serialized storage format yet, so no stored records are migrated.
-Do not serialize enum ordinals when storage is introduced. Existing bearing rules
-remain restricted to PIR and Scout, and distances include all four types.
-
-Local status and ID rules were subsequently adopted in [ADR 0006](decisions/0006-local-mvp-product-rules.md).
-Symbol replacement is tracked separately in [#43](https://github.com/gustavtraff/tmm-sensor-planner/issues/43).
+Symbol replacement changes no enum names, snapshot-v1 bytes or experimental wire
+fields. No migration is required. UUID remains identity; bearing remains restricted
+to PIR/Scout. Current local status/ID rules are recorded in
+[ADR 0006](decisions/0006-local-mvp-product-rules.md). Symbol replacement is tracked
+separately in [#43](https://github.com/gustavtraff/tmm-sensor-planner/issues/43).
 
 ## Approved map symbols (#43)
 
