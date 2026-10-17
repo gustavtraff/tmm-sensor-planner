@@ -168,3 +168,8 @@ combinations, zoom samples, north/east bearing cues, map selection and two lands
 size/density samples. Phone/accessibility, dense-label usability and standard-host
 acceptance remain open under #12 and the release gates. No domain or transport
 contract changes accompany these symbols.
+
+The source-archive tests additionally reject wrong/missing takdev Maven versions
+under the [saved service requirements](references/TAK_SOURCE_ARCHIVE_REQUIREMENTS.md).
+The [submitted-ZIP audit](SOURCE_REQUIREMENTS_AUDIT.md) distinguishes static
+conformance, actual task execution and the still-blocked authorized Maven preflight.

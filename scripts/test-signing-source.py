@@ -9,6 +9,8 @@ import zipfile
 
 prepare = runpy.run_path(str(Path(__file__).with_name('create-signing-source.py')))
 
+GRADLE_SOURCE = "synthetic\nclasspath 'com.atakmap.gradle:atak-gradle-takdev:2.+'\n"
+
 
 class SourceArchiveTest(unittest.TestCase):
     def setUp(self):
@@ -24,6 +26,7 @@ class SourceArchiveTest(unittest.TestCase):
             self.write(name)
         for name in prepare['REQUIRED']:
             self.write(name)
+        self.write('app/build.gradle', GRADLE_SOURCE)
         (self.repo / 'gradlew').chmod(0o755)
         self.commit()
 
@@ -53,7 +56,7 @@ class SourceArchiveTest(unittest.TestCase):
         self.assertEqual(commit, self.git('rev-parse', 'HEAD').decode().strip())
         self.assertEqual(len(digest), 64)
         with zipfile.ZipFile(self.output) as archive:
-            self.assertEqual(archive.read(prepare['ROOT'] + 'app/build.gradle'), b'synthetic')
+            self.assertEqual(archive.read(prepare['ROOT'] + 'app/build.gradle'), GRADLE_SOURCE.encode())
             self.assertTrue(all(n.startswith(prepare['ROOT']) for n in archive.namelist()))
             self.assertNotIn(prepare['ROOT'] + '.env.github', archive.namelist())
             self.assertNotIn(prepare['ROOT'] + 'app/build/ignored.apk', archive.namelist())
@@ -73,6 +76,15 @@ class SourceArchiveTest(unittest.TestCase):
                 self.assertFalse(self.output.exists())
                 path.unlink()
                 self.commit()
+
+    def test_rejects_noncompliant_takdev_major_or_missing_coordinate(self):
+        for version in ('3.+', '1.+', '3.6.0', None):
+            with self.subTest(version=version):
+                self.write('app/build.gradle', GRADLE_SOURCE.replace('2.+', version) if version else 'synthetic\n')
+                self.commit()
+                with self.assertRaisesRegex(ValueError, 'requires takdev 2'):
+                    self.create()
+                self.assertFalse(self.output.exists())
 
     def test_rejects_symlink(self):
         (self.repo / 'app/src/main/assets/link').symlink_to('plugin.xml')

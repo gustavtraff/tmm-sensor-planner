@@ -2,6 +2,7 @@
 """Prepare committed build sources for human review; never submit them."""
 import hashlib
 import io
+import re
 from pathlib import Path, PurePosixPath
 import stat
 import subprocess
@@ -31,6 +32,11 @@ def create_archive(repo, output):
             raise ValueError('Invalid source archive')
         if not all(ROOT + name in names for name in REQUIRED):
             raise ValueError('Missing required build files')
+        build_script = archive.read(ROOT + 'app/build.gradle').decode('utf-8')
+        if not re.search(
+                r"(?m)^\s*classpath\s+(['\"])com\.atakmap\.gradle:atak-gradle-takdev:2\.\+\1\s*$",
+                build_script):
+            raise ValueError('Source submission requires takdev 2.+ under the supplied service requirements')
         for entry in archive.infolist():
             path = PurePosixPath(entry.filename)
             if not entry.filename.startswith(ROOT) or '..' in path.parts or path.is_absolute():
