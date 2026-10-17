@@ -10,7 +10,9 @@ and phone compatibility remain unverified. The [offline local prototype](docs/LO
 now connects forms, review, private storage and map selection on Android API 26+.
 Saved-device review now supports [local image](docs/LOCAL_IMAGES.md) selection,
 normalized preview, viewing, replacement and removal. Production connected privacy,
-phone acceptance and sharing remain pending. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
+phone acceptance and production sharing remain pending. A guarded
+[manual metadata-sharing lab](docs/METADATA_SHARE_LAB.md) now connects saved drafts
+to one explicitly selected SDK-lab recipient, with full review and image exclusion. An [offline synthetic map probe](docs/LOCAL_MAP_PROBE.md)
 and a separate [synthetic CoT lab tool](docs/COT_ROUND_TRIP.md) support SDK investigations.
 The CoT tool sends fixed test fixtures only after recipient selection and confirmation
 through the isolated localhost lab; it does not publish domain drafts.
@@ -36,5 +38,5 @@ The tests require no external libraries or ATAK SDK.
 
 The minimal plugin builds and loads in the local 5.6.0.24 SDK developer app.
 See [the emulator result](docs/EMULATOR_TEST.md). Physical-client verification remains pending.
-APIs, local map privacy, and the sharing path must be verified before integration.
+SDK-lab results do not establish standard-phone privacy, signing or production sharing.
 Only synthetic test data belongs in this repository. The license decision is pending.

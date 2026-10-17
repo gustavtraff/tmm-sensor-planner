@@ -12,7 +12,12 @@ A separate synthetic CoT experiment exercises explicit single-recipient transpor
 host marker detail import/re-export; see [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md).
 The [offline planner adapter](LOCAL_PLANNER.md) calls the versioned Java-core
 [local snapshot store](LOCAL_STORAGE.md) in the host's private no-backup directory.
-Production connected privacy, publishing adapters and image-file handling remain pending.
+Normalized [local images](LOCAL_IMAGES.md) are integrated. The guarded
+[metadata-sharing lab](METADATA_SHARE_LAB.md) serializes fresh saved-record reads,
+review freshness checks and explicit one-recipient dispatch on the planner worker.
+Its strict experimental wire codec is separate from snapshot-v1. Recipient inspection
+uses actual SDK marker import/export without writing received data to DraftStore.
+Production connected privacy and publishing remain pending.
 Direct Data Sync integration is deferred because no applicable plugin API contract
 is available in the inspected inputs. Mission Package APIs are documented SDK
 candidates; the separate [attachment investigation](DATA_SYNC_AND_ATTACHMENTS.md)

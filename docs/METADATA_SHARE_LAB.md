@@ -122,4 +122,56 @@ Use only the dedicated two SDK 5.6.0.24/API-35 guests and isolated TAK Server
 - Unload/reload the inspector and repeat a positive control, checking one arrival.
 - Run core tests, isolated image/coordinator tests, SDK build/lint/static APK checks.
 
-Actual run evidence and remaining gaps are recorded below after verification.
+## Recorded results — 2026-10-17
+
+Two dedicated API-35 arm64 SDK developer hosts **5.6.0.24** used the existing
+isolated **TAK Server 5.8-RELEASE-92** harness. Android airplane mode was on,
+Wi-Fi/data and location were off; guest IPv4/IPv6 OUTPUT blocking permitted only
+loopback, with scoped ADB reverse tunnels. The internal Docker network and relay
+ports bound to 127.0.0.1 were checked. No ordinary connected phone was tested.
+The test harness disabled its unused HTTP API process; this run did not test HTTP
+privacy. Raw evidence and generated artifacts remain private and ignored.
+
+The final implementation at **59c0dd3** built versionCode **7** /
+`0.1.0-metadata-share-lab.1`. The installed/tested APK SHA-256 was
+`10efce9250fd0194cde6c6713a0331dd8448d0b401737d9c1da3b5aedb8d162d`.
+An earlier same-contract APK (`420ab088a77ca5fc03378d086a5b3afe5f80359730d53abca3a23c3a12863080`)
+provided the first four-type and picker/final cancellation controls. The final
+build repeated positive receipt for all four types after adding inner-text rejection,
+SDK-canonical dispatch and final-preflight ordering; the results below distinguish
+source data edits made deliberately by the negative-test harness.
+
+| Check | Observed result |
+|---|---|
+| Recipient picker and final-review cancellation | Initial server query contained zero of the four test UUIDs; both cancellations left zero. Recipient inspector had no validated event. Subsequent confirmed sends provided positive controls. |
+| Final-build stale review | Harness changed the actual saved PIR after review. Final confirmation showed `Inte skickat`; server count remained four and receiver had no new validated event. |
+| Final-build disconnected route | Relay stopped after review; confirmation showed `Inte skickat`, with server count still four. |
+| Final-build process restart before confirmation | ATAK was force-stopped with an unconfirmed review. Server count stayed four; recipient inspector still had no validated event. New review after reconnect sent normally. |
+| All four types on final build | PIR, Scout, Gateway and Mini each reached B. Independent server records showed one new event per confirmation and exactly one `marti/dest` for the synthetic selected recipient. |
+| Actual recipient import/export | Inspector counted exactly one root marker for each UUID and re-exported through CotEventFactory. All 15 custom fields, UUID and position checks passed. Repeated UUID sends updated the same single marker. |
+| Precision and text | Exact synthetic position beyond seven decimals survived in custom fields; standard waypoint matched SDK rounding. XML-sensitive characters, Swedish text, CR/LF, tab and emoji survived. Optional deployment time and true-north bearing were preserved; types without bearing retained absence. |
+| Image and source-state boundary | Both attached and unattached drafts were reviewed explicitly. Server payloads had `imageIncluded=false`, no image handle/path/revision. Source snapshot and owned image were byte-identical before/after the first four sends and again across final-build sends (after deliberate stale-test edits). |
+
+The independent server query progressed from zero, to four initial confirmations,
+to five after final-build recovery, to eight after the other three final-build
+confirmations. Sender UI only claimed an unconfirmed dispatch, never acknowledgment.
+
+Automated checks actually run: `sh scripts/test.sh` (domain/forms/import-review/
+share-review/lab-fields/storage/v1/separate-process reopen); standalone image and
+DraftStore-coordination tests **34 passed** across API 26/35 plus image lint;
+`sh scripts/check-sdk.sh` (Android development build, lint and static APK/signature).
+These use the supplied SDK privately; public CI does not run SDK/client tests.
+
+One initial guest startup encountered an Android GNSS/system-server ANR before
+opening the new feature. The guests were restarted with location disabled; the
+recorded sharing tests then completed. This does not establish phone reliability.
+
+## Remaining gates
+
+This is bounded F05/F12 and A06/A07 development evidence, not full production
+acceptance. Physical 5.6.0.12 clients, supported signing, companion coexistence,
+normal networks and other transports, lifecycle beyond these lab cases, operational
+permissions/provenance and production wire/conflict/withdrawal policy remain open.
+No TMM image transfer, Data Sync integration, delivery acknowledgment, automatic
+sharing or received-draft import is implemented. Issue #14 remains open for those
+applicable production gates; a human decides on merge and release.

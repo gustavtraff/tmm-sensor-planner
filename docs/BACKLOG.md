@@ -77,3 +77,8 @@ It extends the disposable-layer investigation to persistence, bearing geometry,
 local images and lifecycle operations in the isolated connected CoT lab. Human
 review and actual-client/other-transport privacy gates remain; this adds no sharing
 implementation and does not remove the offline restriction.
+
+Issue #14 now has a bounded [saved-metadata sharing lab](METADATA_SHARE_LAB.md):
+explicit individual selection/review, final freshness/route checks, excluded images
+and an actual recipient marker inspector. This is experimental SDK-lab evidence;
+production transport approval, standard clients and physical A06/A07 remain open.

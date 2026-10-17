@@ -31,5 +31,7 @@ outside those local defaults. Existing core implementation limits are recorded i
 The core now implements validated local edits and accepted status-filtered distances.
 A [local snapshot store](LOCAL_STORAGE.md) now persists the core model and passes
 separate-process reopen tests. The [guarded offline prototype](LOCAL_PLANNER.md) connects Android storage, forms,
-review and local map selection on API 26+. It has no image-file or production
-sharing support; physical-phone restart/field acceptance remains open.
+review and local map selection on API 26+, including normalized local images.
+The [manual metadata-sharing lab](METADATA_SHARE_LAB.md) adds explicitly reviewed
+saved metadata to one isolated SDK-lab recipient; images are excluded. Production
+sharing and physical-phone restart/field acceptance remain open.
