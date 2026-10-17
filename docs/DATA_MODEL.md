@@ -73,3 +73,8 @@ projection without image handles or local revision counters. It retains the save
 record privately to detect stale reviews and binds the destination selection to
 that review. This #14 preparation defines no production wire encoding, storage
 migration, sharing state or transport; local images remain excluded.
+
+The [manual sharing lab contract](METADATA_SHARE_LAB.md) uses a separate experimental
+`tmmShareLab` tag with exact coordinates alongside the SDK-rounded waypoint. It
+excludes image handles and local revision counters and imports nothing into the
+local snapshot. This is not the accepted production CoT/synchronization schema.

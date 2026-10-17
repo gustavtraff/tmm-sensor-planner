@@ -25,6 +25,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     private boolean started;
     private LocalPlanner planner;
     private CotRoundTripProbe cotProbe;
+    private ShareLabReceiver shareReceiver;
 
     public SensorPlannerPlugin(IServiceController services) {
         Objects.requireNonNull(services, "services");
@@ -69,8 +70,14 @@ public final class SensorPlannerPlugin implements IPlugin {
                         hostUi.queueEvent(() -> {
                             if (!started) return;
                             try {
+                                if (Build.VERSION.SDK_INT >= 26 && shareReceiver == null) {
+                                    shareReceiver = new ShareLabReceiver(Objects.requireNonNull(MapView.getMapView()), hostUi);
+                                }
                                 if (cotProbe == null) cotProbe = new CotRoundTripProbe(
-                                        Objects.requireNonNull(MapView.getMapView()), hostUi);
+                                        Objects.requireNonNull(MapView.getMapView()), hostUi, () -> {
+                                            if (shareReceiver != null) shareReceiver.show();
+                                            else hostUi.showToast("Metadatalabbet kräver Android 8 eller senare");
+                                        });
                                 cotProbe.show();
                             } catch (RuntimeException unavailable) {
                                 hostUi.showToast("CoT-labbet kunde inte startas");
@@ -99,9 +106,11 @@ public final class SensorPlannerPlugin implements IPlugin {
                 cotProbe.close();
                 cotProbe = null;
             }
+            if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
             if (planner != null) {
                 LocalPlanner stopping = planner;
                 planner = null;
+                stopping.cancelSharing();
                 hostUi.queueEvent(stopping::close);
             }
         }

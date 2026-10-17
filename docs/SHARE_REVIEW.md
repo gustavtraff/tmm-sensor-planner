@@ -1,6 +1,6 @@
 # Metadata sharing review preparation
 
-Status: proposed SDK-independent review contract for
+Status: core preparation adopted by human merge of PR #38 for
 [Issue #14](https://github.com/gustavtraff/tmm-sensor-planner/issues/14), F05/F12.
 Date: 2026-10-17. Human PR review may adopt this preparation; it does not approve
 production sharing or a wire schema. The production privacy work in #4 and the
@@ -73,7 +73,7 @@ and report actual failures without marking drafts/images shared. Do not cache th
 boolean as permission to send. Drop the review on cancel, unload or session changes;
 there is no send, storage-write or confirmation operation to invoke here.
 
-## Verification and remaining scope
+## Initial core verification and remaining scope
 
 On 2026-10-17, `JAVA_HOME=<Temurin-17> sh scripts/test.sh` passed with Temurin
 17.0.20.1+1 / `--release 8`. ShareReviewTest checks the projection allowlist/values,
@@ -83,8 +83,12 @@ text, deletion and new review. Creating/checking a review from real saved data l
 the snapshot byte-identical. Existing import-review, core/forms/storage tests,
 the v1 fixture and separate-process snapshot reopen also pass.
 
-No production caller, APK/UI/permission, SDK API, CoT encoder, transport, send status,
-image library or shared test environment changes. No SDK build, emulator, phone or
-two-client test was run for this preparation. CI compiles/tests it as Java core;
+The core-preparation PR changed no APK/UI/permission, SDK API, CoT encoder, transport,
+send status, image library or shared test environment. No SDK build, emulator, phone
+or two-client test was run for that preparation. CI compiles/tests it as Java core;
 it does not prove ATAK compatibility. Keep #14 open for reviewed UI, actual routing,
 explicit confirmation/cancellation/failure behavior and verified two-client delivery.
+
+The later [manual metadata lab](METADATA_SHARE_LAB.md) connects this review to an
+explicit, isolated one-recipient experiment. It does not approve production sharing
+or remove the offline/physical-client gates.
