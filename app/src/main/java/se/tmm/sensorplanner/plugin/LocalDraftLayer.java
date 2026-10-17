@@ -223,11 +223,11 @@ final class LocalDraftLayer {
 
     private static int color(DeviceStatus status) {
         switch (status) {
-            case PLANNED: return Color.CYAN;
-            case DEPLOYED: return Color.YELLOW;
+            case PLANNED: return Color.YELLOW;
+            case DEPLOYED: return Color.GREEN;
             case ACTIVE: return Color.GREEN;
-            case RETRIEVED: return Color.LTGRAY;
-            case CANCELLED: return Color.MAGENTA;
+            case RETRIEVED: return Color.rgb(204, 204, 204);
+            case CANCELLED: return Color.rgb(204, 204, 204);
             default: throw new IllegalArgumentException("Unknown device status");
         }
     }

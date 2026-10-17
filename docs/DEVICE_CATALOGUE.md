@@ -7,7 +7,7 @@ outside the current type catalogue.
 
 | Display name | Domain type | Bearing | Manual terminology / evidence |
 |---|---|---|---|
-| Mini | MINI | Not supported | The manual lists a seismic/acoustic sensor; associating its symbol with Mini is a candidate, not a confirmed model identification |
+| Mini | MINI | Not supported | The manual lists a seismic/acoustic sensor; the owner confirmed the Mini-to-seismic/acoustic symbol mapping in #43 (2026-10-17) |
 | Scout | SCOUT | Optional | The manual's §4.4.12.8 explicitly associates Scout Camera settings with the EO/IR camera |
 | PIR | PIR | Optional | The manual identifies PIR with the passive infrared sensor |
 | Gateway | GATEWAY | Not supported | Gateway TMM; base station and mobile-base symbols describe roles, not additional plugin types |
@@ -22,24 +22,30 @@ pages, screenshots or original graphics are included in this repository.
 Original reference PNGs were extracted locally at native resolution (27–46 pixels).
 The source colors indicate live detection/alarm state and must not be reused as
 planning statuses such as planned or deployed. A Gateway role is distinct from a
-device type. The Mini symbol mapping and permission to redistribute the graphics
-are not established. Use original plugin artwork until those decisions are settled.
+device type. Mini mapping is now confirmed; permission to redistribute the manual
+graphics remains unestablished. Use original plugin artwork. The owner approved
+planning-status colors on 2026-10-18; these colors carry no detection/alarm meaning.
 
 ## Data impact
 
-MINI is added to the existing Java enum; GATEWAY, PIR and SCOUT keep their names and
-order. There is no serialized storage format yet, so no stored records are migrated.
-Do not serialize enum ordinals when storage is introduced. Existing bearing rules
-remain restricted to PIR and Scout, and distances include all four types.
+Symbol replacement changes no enum names, snapshot-v1 bytes or experimental wire
+fields. No migration is required. UUID remains identity; bearing remains restricted
+to PIR/Scout. Current local status/ID rules are recorded in
+[ADR 0006](decisions/0006-local-mvp-product-rules.md). Symbol replacement is tracked
+separately in [#43](https://github.com/gustavtraff/tmm-sensor-planner/issues/43).
 
-The proposed status catalogue, allowed transitions, ID/owner conventions and other
-product decisions remain open in Issue #8. Selecting the names does not close that Issue.
+## Approved map symbols (#43)
 
-## Original prototype symbols
+On 2026-10-18 the owner approved the revised reference-based Mini, Scout, PIR and
+Gateway pictograms and the yellow/green/gray planning palette. The map now uses
+four 64 px transparent PNGs in `app/src/main/res/drawable-nodpi`, rendered from the
+[approved SVG masters and review sheet](DEVICE_SYMBOLS.md). White areas receive
+status tint; black shapes/rings retain type identification independently of hue.
+The previous M/S/P/G disc artwork is replaced; type/status text and bearing rules
+remain unchanged. The manual and its extracted bitmaps are not packaged.
 
-The offline planner uses four original 64 px transparent PNG symbols in
-`app/src/main/res/drawable-nodpi`: a black disc with a white M/S/P/G glyph and ring,
-tinted by planning status. Glyphs are simple independently drawn vector strokes;
-no font, manual graphic or third-party icon is copied. Type is visible even if ATAK
-declutters the longer label. These are local prototype symbols, not claimed manual
-symbol identifications or sensor alarm states. See [LOCAL_PLANNER.md](LOCAL_PLANNER.md).
+Planned is yellow; Deployed/Active are green; Retrieved/Cancelled are gray. Color
+means manually maintained planning status, never sensor detection, alarms, hardware
+health or connectivity. Status names remain in labels/details. Snapshot/wire
+contracts are unchanged; actual test evidence and physical-client gaps are in
+[the symbol record](DEVICE_SYMBOLS.md).

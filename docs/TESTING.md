@@ -159,3 +159,12 @@ file rejection, symlink rejection and required-file presence. The core CI job ru
 these SDK-independent tests. Local debug/release build/lint results and the blocked
 Maven preflight are recorded in [signing evidence](SIGNING_AND_COEXISTENCE.md).
 None of these checks verifies a service build, standard-client trust or A08.
+
+## Approved device symbols (#43)
+
+[DEVICE_SYMBOLS.md](DEVICE_SYMBOLS.md) records owner approval, SVG/PNG provenance,
+build/core checks and actual 5.6.0.24 SDK map rendering for all 20 type/status
+combinations, zoom samples, north/east bearing cues, map selection and two landscape
+size/density samples. Phone/accessibility, dense-label usability and standard-host
+acceptance remain open under #12 and the release gates. No domain or transport
+contract changes accompany these symbols.

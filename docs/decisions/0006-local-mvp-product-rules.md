@@ -131,3 +131,12 @@ MVP defaults and closed #8. #11–#13 retain Android integration/acceptance work
 ADR 0007 introduces the first persisted format; there was no older stored format
 to migrate. Later storage/schema changes still require migration tests. The original core
 assumptions in ADR 0001 remain provisional until a decision is accepted and implemented.
+
+## Symbol follow-up — 2026-10-18
+
+The owner confirmed Mini's seismic/acoustic association in #43 and approved the
+revised reference-based four-device pictograms plus planning colors: yellow Planned,
+green Deployed/Active, gray Retrieved/Cancelled. This supersedes the initial
+letter-disc artwork choice above. [DEVICE_SYMBOLS.md](../DEVICE_SYMBOLS.md) records
+source/PNG assets, acceptance evidence and remaining physical-client checks. No
+alarm/health status or domain/snapshot/wire field is added.
