@@ -2,8 +2,11 @@
 
 Tracking: [#7](https://github.com/gustavtraff/tmm-sensor-planner/issues/7), with SDK
 provenance in #2 and historical developer-host loading in #3. The owner supplied
-TAK.gov's **Source Archive Requirements** on 2026-10-17. The authenticated page URL
-and additional form conditions remain unrecorded. Nothing has been submitted.
+TAK.gov's **Source Archive Requirements** on 2026-10-17, from
+[the third-party build page](https://tak.gov/user_builds). The owner supplied the
+page URL afterward. Our public web/HTTP checks could not retrieve its requirements
+(the direct HTTP request returned 421), so the pasted text is the requirements
+evidence; current form conditions remain unverified. Nothing has been submitted.
 
 The intended audience is a private group. This is not public catalogue/feed
 publication. The selected service receives source code, builds it and signs its

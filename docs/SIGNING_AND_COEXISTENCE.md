@@ -219,8 +219,9 @@ this preparation alone. Keep Issue #7 and A08 open.
 
 The owner supplied the TAK.gov **Source Archive Requirements** text. It describes
 source ZIP submission, remote compilation and signing, not unsigned APK upload.
-The exact authenticated page URL and any additional submission-form conditions
-have not yet been recorded. The unsigned local build above is preparatory evidence
+The owner identified the page as [TAK.gov third-party builds](https://tak.gov/user_builds).
+Public web/HTTP checks could not retrieve its requirements (direct HTTP 421);
+additional submission-form conditions remain unverified. The unsigned local build above is preparatory evidence
 only; it does not demonstrate pipeline compatibility.
 
 Required work under Issue #7:
