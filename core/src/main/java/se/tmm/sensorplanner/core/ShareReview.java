@@ -44,7 +44,7 @@ public final class ShareReview {
         public final Position position;
         public final Double bearingDeg;
 
-        private Metadata(TmmDraft draft) {
+        Metadata(TmmDraft draft) {
             uid = draft.uid;
             displayId = draft.displayId;
             type = draft.type;

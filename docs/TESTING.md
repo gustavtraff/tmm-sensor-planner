@@ -138,3 +138,14 @@ UUID, visible metadata and local image canaries, plus the synthetic moved positi
 a stock recipient pick-list is inspected and cancelled. This is bounded SDK-lab
 CoT evidence, not a test of HTTP uploads, Data Sync, arbitrary providers, standard
 signing, all exports or normal connected phone networks. The offline guard remains.
+
+## Saved-metadata sharing SDK lab (#14)
+
+[METADATA_SHARE_LAB.md](METADATA_SHARE_LAB.md) records the exact experimental wire
+contract and bounded two-client evidence. `sh scripts/test.sh` additionally runs
+ShareLabFieldsTest for all four types/five statuses, exact coordinates, optional
+values, UTF-8/Base64 preservation and malformed/future/extra-field rejection.
+These tests leave snapshot-v1 unchanged and confer no transport/import rights.
+Actual SDK-host tests separately verify confirmation, cancellation, freshness,
+disconnection, restart and real recipient marker re-export. Production A06/A07,
+standard signing, phones and companion compatibility remain open.

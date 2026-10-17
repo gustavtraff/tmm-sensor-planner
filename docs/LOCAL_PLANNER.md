@@ -3,7 +3,8 @@
 The toolbar now opens a local draft list instead of the disposable single-point
 map experiment. This is an **offline test prototype**, not a field release. Use
 synthetic data only. No domain record is published, exported or added as a normal
-ATAK Marker/MapItem. The separate fixed-fixture CoT lab tool is unchanged.
+ATAK Marker/MapItem. A separate [manual metadata-sharing lab](METADATA_SHARE_LAB.md) now adds explicit
+single-recipient sharing from saved review; ordinary local operations do not send.
 
 ## Behavior
 

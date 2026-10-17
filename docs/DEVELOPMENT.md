@@ -155,12 +155,14 @@ unloaded. Do not use that result to infer behavior on the standard phone build.
 ## Local planner prototype
 
 The main tool now opens local draft forms/review and a private layer, version
-`0.1.0-local-planner.1` / versionCode 5. Only synthetic offline tests on Android 8+
+`0.1.0-metadata-share-lab.1` / versionCode 7. Only synthetic offline tests on Android 8+
 are supported by this prototype. Core sources compile directly into the app source
 set without another dependency. `app/lint.xml` scopes NewApi suppression to the
 SDK-independent core; all app callers are guarded/annotated for API 26. Keep that
 boundary when adding callers. The former one-point map tool was removed; its older
-APK evidence remains historical. The CoT lab tool remains fixed-fixture only.
+APK evidence remains historical. The CoT lab tool retains its fixed fixtures and
+adds an actual received-metadata inspector for the separately guarded
+[saved-metadata sharing lab](METADATA_SHARE_LAB.md).
 
 ## Separate SDK verification command
 
@@ -174,5 +176,5 @@ SDK status and remaining environment/owner decisions.
 
 Run `./gradlew -p images --no-daemon testDebugUnitTest lintDebug` with JDK 17 and
 the documented Android SDK to verify #13's standalone library. It has its own Gradle
-settings and needs no ATAK SDK or emulator; the plugin does not yet depend on it.
-See [LOCAL_IMAGES.md](LOCAL_IMAGES.md) before integrating it into the planner.
+settings and needs no ATAK SDK or emulator. The plugin now uses this library;
+see [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for its integrated scope.

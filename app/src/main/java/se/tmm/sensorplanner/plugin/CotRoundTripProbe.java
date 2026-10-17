@@ -7,6 +7,7 @@ import android.provider.Settings;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.atakmap.android.chat.ChatManagerMapComponent;
 import com.atakmap.android.contact.Contact;
 import com.atakmap.android.contact.Contacts;
 import com.atakmap.android.contact.IndividualContact;
@@ -31,6 +32,7 @@ import gov.tak.api.ui.IHostUIService;
 /** Synthetic loopback-only transport experiment. It never publishes a real draft. */
 final class CotRoundTripProbe implements CommsLogger {
     private static final String LAB = "127.0.0.1:8089:ssl";
+    private final Runnable showMetadata;
     private final Context context;
     private final MapView map;
     private final IHostUIService ui;
@@ -42,7 +44,8 @@ final class CotRoundTripProbe implements CommsLogger {
     private volatile String problem = "Ingen avvisning";
     private final CotProbeDetailHandler detailHandler = new CotProbeDetailHandler();
 
-    CotRoundTripProbe(MapView map, IHostUIService ui) {
+    CotRoundTripProbe(MapView map, IHostUIService ui, Runnable showMetadata) {
+        this.showMetadata = showMetadata;
         context = map.getContext();
         this.map = map;
         this.ui = ui;
@@ -54,11 +57,12 @@ final class CotRoundTripProbe implements CommsLogger {
     void show() {
         if (closed) return;
         String[] actions = {"Nytt Mini-prov", "Nytt Scout-prov", "Nytt PIR-prov",
-                "Nytt Gateway-prov", "Visa mottaget prov", "Återsänd mottaget prov", "Visa labbdiagnostik"};
+                "Nytt Gateway-prov", "Visa mottaget prov", "Återsänd mottaget prov", "Visa labbdiagnostik", "Visa mottagen enhetsmetadata"};
         replace(new AlertDialog.Builder(context)
                 .setTitle("CoT-labb · mottagna: " + receivedCount)
                 .setItems(actions, (ignored, index) -> {
-                    if (index == 6) message("Labbdiagnostik", "Trafik: " + checks.get(0)
+                    if (index == 7) showMetadata.run();
+                    else if (index == 6) message("Labbdiagnostik", "Trafik: " + checks.get(0)
                             + "\nTesttagg: " + checks.get(1) + "\nKanal: " + checks.get(2)
                             + "\nLabbvillkor: " + checks.get(3) + "\nValiderade: " + checks.get(4)
                             + "\nSenaste kontroll: " + problem);
@@ -92,7 +96,7 @@ final class CotRoundTripProbe implements CommsLogger {
         List<Contact> choices = new ArrayList<>();
         for (Contact contact : Contacts.getInstance().getAllContacts()) {
             if (contact instanceof IndividualContact && contact.getUID() != null
-                    && !contact.getUID().isEmpty()
+                    && !contact.getUID().isEmpty() && !ChatManagerMapComponent.isSpecialGroup(contact.getUID())
                     && (self == null || !contact.getUID().equals(self.getUID()))) {
                 choices.add(contact);
             }
@@ -123,7 +127,7 @@ final class CotRoundTripProbe implements CommsLogger {
     private void send(CotEvent event, String uid) {
         if (closed) return;
         Contact current = Contacts.getInstance().getContactByUuid(uid);
-        if (!labConnected() || uid == null || uid.isEmpty() || !(current instanceof IndividualContact)) {
+        if (!labConnected() || uid == null || uid.isEmpty() || ChatManagerMapComponent.isSpecialGroup(uid) || !(current instanceof IndividualContact)) {
             ui.showToast("Inte skickat: anslutning eller mottagare saknas");
             return;
         }

@@ -35,6 +35,7 @@ final class LocalPlanner {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final DraftAttachments attachments;
     private final LocalImageUi imagesUi;
+    private final LocalShareUi sharing;
     private LocalDraftLayer layer;
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
@@ -62,11 +63,12 @@ final class LocalPlanner {
             }
             @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
         });
+        sharing = new LocalShareUi(context, ui, store, worker, () -> !closed && OfflineMode.isOffline(context));
         layer = new LocalDraftLayer(map, this::selected);
     }
 
     private void selected(UUID uid) {
-        if (!closed && !loading && !imagesUi.isBusy() && (dialog == null || !dialog.isShowing()) && OfflineMode.isOffline(context)) {
+        if (!closed && !loading && !isBusy() && (dialog == null || !dialog.isShowing()) && OfflineMode.isOffline(context)) {
             for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) {
                 review(draft);
                 break;
@@ -75,7 +77,7 @@ final class LocalPlanner {
     }
 
     void show() {
-        if (!offline() || closed || loading || imagesUi.isBusy()) return;
+        if (!offline() || closed || loading || isBusy()) return;
         if (dialog != null && dialog.isShowing()) return;
         loading = true;
         dismiss();
@@ -110,7 +112,7 @@ final class LocalPlanner {
     }
 
     private void list() {
-        if (!offline() || closed || imagesUi.isBusy()) return;
+        if (!offline() || closed || isBusy()) return;
         String[] rows = new String[drafts.size()];
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
@@ -124,7 +126,7 @@ final class LocalPlanner {
 
     private void review(TmmDraft draft) {
         if (closed || !offline()) return;
-        StringBuilder text = new StringBuilder("Lokalt utkast – delas inte\nEndast syntetiska testdata i denna prototyp.\n\n");
+        StringBuilder text = new StringBuilder("Lokalt utkast – ingen automatisk delning\nEndast syntetiska testdata i denna prototyp.\n\n");
         text.append(title(draft)).append("\nÄgare: ").append(draft.owner)
                 .append("\nLatitud: ").append(draft.position.latitude)
                 .append("\nLongitud: ").append(draft.position.longitude)
@@ -160,6 +162,7 @@ final class LocalPlanner {
             content.addView(button("Visa bild", () -> imagesUi.view(draft)));
             content.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
         }
+        content.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
         content.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle(draft.displayId)
@@ -169,7 +172,7 @@ final class LocalPlanner {
     }
 
     private void form(TmmDraft original) {
-        if (closed || imagesUi.isBusy() || !offline()) return;
+        if (closed || isBusy() || !offline()) return;
         LinearLayout fields = column();
         fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
                 + "Positionen anges i decimalgrader; ny enhet använder kartans mittpunkt."));
@@ -263,7 +266,7 @@ final class LocalPlanner {
     }
 
     private void confirmDelete(TmmDraft draft) {
-        if (closed || imagesUi.isBusy() || !offline()) return;
+        if (closed || isBusy() || !offline()) return;
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle("Ta bort lokalt utkast?")
                 .setMessage("Detta tar bara bort det lokala utkastet. Ingen server eller mottagare påverkas.")
@@ -368,7 +371,7 @@ final class LocalPlanner {
         Button button = new Button(context);
         button.setText(text);
         button.setMinHeight(dp(48));
-        button.setOnClickListener(view -> { if (!closed && !imagesUi.isBusy() && offline()) action.run(); });
+        button.setOnClickListener(view -> { if (!closed && !isBusy() && offline()) action.run(); });
         return button;
     }
 
@@ -417,9 +420,14 @@ final class LocalPlanner {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
 
+    private boolean isBusy() { return imagesUi.isBusy() || sharing.isBusy(); }
+
+    void cancelSharing() { sharing.stopSending(); }
+
     void close() {
         closed = true;
         dismiss();
+        sharing.close();
         imagesUi.close();
         worker.shutdown();
         if (layer != null) layer.close();

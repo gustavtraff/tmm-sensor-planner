@@ -47,8 +47,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 6
-        versionName '0.1.0-local-images.1'
+        versionCode 7
+        versionName '0.1.0-metadata-share-lab.1'
     }
 
     compileOptions {
