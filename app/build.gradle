@@ -1,10 +1,38 @@
 buildscript {
+    ext.ATAK_VERSION = '5.6.0'
+    ext.PLUGIN_VERSION = '0.1.0'
+
     def sdkDirectory = System.getenv('TMM_ATAK_SDK_DIR')
-    if (!sdkDirectory || !new File(sdkDirectory, 'atak-gradle-takdev.jar').isFile()) {
-        throw new GradleException('Set TMM_ATAK_SDK_DIR to the inspected ATAK-CIV 5.6.0 SDK directory.')
+    def repositoryUrl = project.findProperty('takrepo.url')
+    def forceRepository = project.findProperty('takrepo.force') == 'true'
+    ext.isDevKitEnabled = { repositoryUrl != null || forceRepository || !sdkDirectory }
+    ext.takrepoUrl = repositoryUrl ?: 'https://artifacts.tak.gov/artifactory/maven'
+    ext.takrepoUser = project.findProperty('takrepo.user') ?: ''
+    ext.takrepoPassword = project.findProperty('takrepo.password') ?: ''
+
+    repositories {
+        google()
+        mavenCentral()
+        if (isDevKitEnabled()) {
+            maven {
+                url = takrepoUrl
+                credentials {
+                    username = takrepoUser
+                    password = takrepoPassword
+                }
+            }
+        }
     }
     dependencies {
-        classpath files(new File(sdkDirectory, 'atak-gradle-takdev.jar'))
+        if (isDevKitEnabled()) {
+            // The supplied pipeline requirements mandate 2.x; the local SDK uses 3.6.0.
+            classpath 'com.atakmap.gradle:atak-gradle-takdev:2.+'
+        } else {
+            if (!new File(sdkDirectory, 'atak-gradle-takdev.jar').isFile()) {
+                throw new GradleException('TMM_ATAK_SDK_DIR must identify the inspected ATAK-CIV 5.6.0 SDK.')
+            }
+            classpath files(new File(sdkDirectory, 'atak-gradle-takdev.jar'))
+        }
     }
 }
 
@@ -12,13 +40,9 @@ plugins {
     id 'com.android.application'
 }
 
-ext.set('sdk.path', System.getenv('TMM_ATAK_SDK_DIR'))
-ext.ATAK_VERSION = '5.6.0'
-ext.PLUGIN_VERSION = '0.1.0'
-ext.isDevKitEnabled = { false }
-ext.takrepoUrl = 'https://localhost/'
-ext.takrepoUser = ''
-ext.takrepoPassword = ''
+if (!isDevKitEnabled()) {
+    ext.set('sdk.path', System.getenv('TMM_ATAK_SDK_DIR'))
+}
 apply plugin: 'atak-takdev-plugin'
 
 repositories {
@@ -64,7 +88,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            matchingFallbacks = ['sdk']
+        }
         release {
+            matchingFallbacks = ['odk']
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'src/main/proguard-rules.pro'
         }

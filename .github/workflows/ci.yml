@@ -18,6 +18,8 @@ jobs:
           sh scripts/test.sh
       - name: Check local auth helper without network
         run: python3 scripts/test-github-auth.py
+      - name: Check signing-source archive boundaries without network
+        run: python3 scripts/test-signing-source.py
       - name: Generate and verify synthetic attachment fixture
         run: python3 scripts/create-attachment-fixture.py "$RUNNER_TEMP/TMM-IMAGE-PROBE.zip"
   images:
