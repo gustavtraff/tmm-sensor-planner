@@ -25,8 +25,8 @@ buildscript {
     }
     dependencies {
         if (isDevKitEnabled()) {
-            // The supplied pipeline requirements mandate 2.x; the local SDK uses 3.6.0.
-            classpath 'com.atakmap.gradle:atak-gradle-takdev:2.+'
+            // Match the inspected API 5.6 SDK and official AGP 8.13 / Gradle 8.14 example.
+            classpath 'com.atakmap.gradle:atak-gradle-takdev:3.+'
         } else {
             if (!new File(sdkDirectory, 'atak-gradle-takdev.jar').isFile()) {
                 throw new GradleException('TMM_ATAK_SDK_DIR must identify the inspected ATAK-CIV 5.6.0 SDK.')
