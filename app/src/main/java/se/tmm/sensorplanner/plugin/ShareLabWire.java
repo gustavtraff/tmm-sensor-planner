@@ -30,9 +30,10 @@ final class ShareLabWire {
             fields.setAttribute(field.getKey(), field.getValue());
         }
         detail.addChild(fields); event.setDetail(detail);
-        ShareReview.Metadata roundTrip = read(CotEvent.parse(event.toString()));
+        CotEvent encoded = CotEvent.parse(event.toString());
+        ShareReview.Metadata roundTrip = read(encoded);
         if (!same(metadata, roundTrip)) throw new IllegalArgumentException("Lab encoding failed validation");
-        return event;
+        return encoded;
     }
 
     static ShareReview.Metadata read(CotEvent event) {
