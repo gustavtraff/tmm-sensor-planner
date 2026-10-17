@@ -147,6 +147,7 @@ source data edits made deliberately by the negative-test harness.
 | Final-build stale review | Harness changed the actual saved PIR after review. Final confirmation showed `Inte skickat`; server count remained four and receiver had no new validated event. |
 | Final-build disconnected route | Relay stopped after review; confirmation showed `Inte skickat`, with server count still four. |
 | Final-build process restart before confirmation | ATAK was force-stopped with an unconfirmed review. Server count stayed four; recipient inspector still had no validated event. New review after reconnect sent normally. |
+| Final-build cancellation after receiver unload/reload | The inspector reset to no validated event; cancelled final review kept the server at eight and receiver unchanged. A fresh confirmation then added exactly one event, with one marker/export and one inspector arrival. |
 | All four types on final build | PIR, Scout, Gateway and Mini each reached B. Independent server records showed one new event per confirmation and exactly one `marti/dest` for the synthetic selected recipient. |
 | Actual recipient import/export | Inspector counted exactly one root marker for each UUID and re-exported through CotEventFactory. All 15 custom fields, UUID and position checks passed. Repeated UUID sends updated the same single marker. |
 | Precision and text | Exact synthetic position beyond seven decimals survived in custom fields; standard waypoint matched SDK rounding. XML-sensitive characters, Swedish text, CR/LF, tab and emoji survived. Optional deployment time and true-north bearing were preserved; types without bearing retained absence. |
@@ -154,10 +155,11 @@ source data edits made deliberately by the negative-test harness.
 
 The independent server query progressed from zero, to four initial confirmations,
 to five after final-build recovery, to eight after the other three final-build
-confirmations. Sender UI only claimed an unconfirmed dispatch, never acknowledgment.
+confirmations, and nine after the unload/reload positive control. Sender UI only claimed an unconfirmed dispatch, never acknowledgment.
 
 Automated checks actually run: `sh scripts/test.sh` (domain/forms/import-review/
-share-review/lab-fields/storage/v1/separate-process reopen); standalone image and
+share-review/lab-fields/storage/v1/separate-process reopen, plus the newly merged
+100-device scenario after integration with main); standalone image and
 DraftStore-coordination tests **34 passed** across API 26/35 plus image lint;
 `sh scripts/check-sdk.sh` (Android development build, lint and static APK/signature).
 These use the supplied SDK privately; public CI does not run SDK/client tests.
