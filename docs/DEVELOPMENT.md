@@ -110,9 +110,12 @@ python3 scripts/check-plugin-apk.py app/build/outputs/apk/civ/debug/app-civ-debu
 ```
 
 Alternatively, use ignored local.properties for Android's sdk.dir. TMM_ATAK_SDK_DIR
-is required for the external SDK plugin tool. No TAK repository account is needed
-for this local SDK build. The dummy localhost repository settings satisfy the
-SDK tool's local-mode contract; Maven dependencies come from Google/Maven Central.
+selects the external SDK plugin tool. No TAK repository account is needed for this
+local SDK build. Public Android dependencies come from Google/Maven Central.
+Without this environment variable, or with `takrepo.url` / `takrepo.force=true`,
+the build selects the separate TPC Maven route described in
+[SIGNING_SOURCE.md](SIGNING_SOURCE.md). Do not confuse local SDK success with
+service-build verification.
 
 The wrapper pins Gradle 8.14.3-bin with SHA-256
 `bd71102213493060956ec229d946beee57158dbd89d0e62b91bca0fa2c5f3531`.
@@ -178,3 +181,11 @@ Run `./gradlew -p images --no-daemon testDebugUnitTest lintDebug` with JDK 17 an
 the documented Android SDK to verify #13's standalone library. It has its own Gradle
 settings and needs no ATAK SDK or emulator. The plugin now uses this library;
 see [LOCAL_IMAGES.md](LOCAL_IMAGES.md) for its integrated scope.
+
+## Standard-client source preparation (#7)
+
+[Signing-source preparation](SIGNING_SOURCE.md) documents the committed-source
+archive command, private distribution boundary, Maven access restriction and
+2.x/3.x tooling discrepancy. The release rules now consume the mapping provided
+by the TAK build plugin and use a TMM-specific repackaging namespace. No service
+upload, standard-host acceptance or release approval is implied by a local build.

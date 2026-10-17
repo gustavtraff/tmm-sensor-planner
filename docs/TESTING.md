@@ -149,3 +149,13 @@ These tests leave snapshot-v1 unchanged and confer no transport/import rights.
 Actual SDK-host tests separately verify confirmation, cancellation, freshness,
 disconnection, restart and real recipient marker re-export. Production A06/A07,
 standard signing, phones and companion compatibility remain open.
+
+## Signing-source preparation (#7)
+
+`python3 scripts/test-signing-source.py` uses temporary synthetic Git repositories
+to test committed-build-input selection, one archive root, executable wrapper,
+uncommitted/unrelated file exclusion, output overwrite refusal, tracked private
+file rejection, symlink rejection and required-file presence. The core CI job runs
+these SDK-independent tests. Local debug/release build/lint results and the blocked
+Maven preflight are recorded in [signing evidence](SIGNING_AND_COEXISTENCE.md).
+None of these checks verifies a service build, standard-client trust or A08.

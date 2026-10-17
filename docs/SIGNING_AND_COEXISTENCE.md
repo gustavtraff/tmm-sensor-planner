@@ -164,6 +164,125 @@ No signing service was used and nothing was uploaded or published in this invest
 Do not replace the operational phone's host with the SDK app; they share an Android
 package name. Do not disable standard-app validation to obtain a passing result.
 
+## Unsigned release preparation — 2026-10-17
+
+Issue #7 continues from reviewed main commit
+`64fd923fa728c45eedf669f809dac9cac7441d53`. No application source, version,
+signing configuration or SDK target was changed for this check.
+
+The existing pinned toolchain and supplied 5.6.0.24 SDK completed
+`:app:assembleCivRelease :app:lintCivRelease` successfully, including R8.
+This is additional release-variant build evidence; earlier debug-host runtime
+results do not cover this optimized artifact.
+
+| Local output | Inspected value |
+|---|---|
+| Variant | `civRelease`, unsigned |
+| Package | `se.tmm.sensorplanner.plugin` |
+| Version | `0.1.0-metadata-share-lab.1`, versionCode 7 |
+| Host API declaration | `com.atakmap.app@5.6.0.CIV` |
+| Android min / target / compile SDK | 21 / 34 / 36; planner remains guarded to API 26+ |
+| Size | 80,985 bytes |
+| SHA-256 | `4449ccca169ad43fa0d96a3c68539ffd9fee761fd81314311926b9e5369c8cc3` |
+
+One-off local assertions passed for ZIP CRCs and unique entry names, compiled DEX,
+package identity, the discovery component and plugin XML interface/entry-class
+registration. Badging declares no requested permissions or debuggable application.
+No JAR or signing-key files covered by the existing APK check's suffix rules were
+packaged. These checks do not establish absence of every possible sensitive value.
+
+`apksigner verify --verbose` failed with `Missing META-INF/MANIFEST.MF`, as expected
+for this unsigned output. The existing `scripts/check-plugin-apk.py` requires a
+signed APK and was not reported as passing for it. This file is neither an
+installable test APK nor a reviewed signing submission or release candidate.
+It remains in ignored local build output; nothing was uploaded.
+
+Release configuration still needs standard-host validation. The supplied SDK's
+`mapping.txt` and generated host mapping were empty, and the generated R8
+configuration did not contain an `-applymapping` directive. The SDK HelloWorld
+sample has additional release mapping/optimization rules that this application
+does not use. This difference is a verification gap, not proof of a runtime bug
+or permission to copy sample signing credentials. Do not change rules speculatively:
+confirm the official signing/build requirements and test the resulting artifact
+against the intended standard host. Release persistence and metadata round trips
+must also be checked because debug-runtime evidence does not exercise R8 output.
+
+The available 5.8.0.5 directory is another SDK with a developer app. It does not
+replace the missing standard 5.6.0.12 installer or approve an API target change.
+The original 5.6 SDK archive/checksum and publisher provenance remain pending in
+Issue #2; the standard-client load/unload gate in Issue #3 remains pending too.
+The owner can log in to TAK.gov, but service access and its submission contract
+have not yet been recorded. No third-party signing submission is authorized by
+this preparation alone. Keep Issue #7 and A08 open.
+
+## Source pipeline requirements and private distribution — 2026-10-17
+
+The owner supplied the TAK.gov **Source Archive Requirements** text. It describes
+source ZIP submission, remote compilation and signing, not unsigned APK upload.
+The owner identified the page as [TAK.gov third-party builds](https://tak.gov/user_builds).
+Public web/HTTP checks could not retrieve its requirements (direct HTTP 421);
+additional submission-form conditions remain unverified. The unsigned local build above is preparatory evidence
+only; it does not demonstrate pipeline compatibility.
+
+Required work under Issue #7:
+
+- [ ] Approve the exact source archive for submission. The branch provides a
+  committed-source ZIP helper and offline boundary tests; inventory/content
+  review and human upload approval are still required.
+- [ ] Retain `assembleCivRelease` and the existing ATAK discovery activity.
+- [ ] Verify service SDK resolution end to end. The branch now selects latest
+  `atak-gradle-takdev` 2.x / TPC Maven when no local SDK is configured or Maven
+  is explicitly requested. The separate local route is preserved. Remote
+  resolution/build remains unverified; see the tooling discrepancy below.
+- [ ] Verify standard-host mapping at runtime. The branch now applies the TAK
+  plugin-provided mapping and a TMM-specific repackaging descriptor; local
+  compilation passes, but the developer SDK's empty mapping cannot verify the
+  standard host ABI.
+- [ ] Record whether the prescribed Maven preflight is accessible. The supplied
+  requirements restrict artifacts.tak.gov access to USG Federal/Military
+  personnel; ordinary TAK.gov login does not establish repository access.
+- [ ] Review additional upload-form conditions and obtain human approval of the
+  exact source archive before submitting it to the external service.
+- [ ] Inspect the returned artifact and test loading, restart, data preservation
+  and companion workflows in the dedicated standard-client environment.
+
+The new standard-host installer was inspected without installation:
+`com.atakmap.app.civ`, version `5.6.0.25 (238484ee)`, versionCode `1792077359`.
+Its MD5 `371f27d5fd5f58dc300f710ef86c2eba` matches the owner's TAK.gov screenshot;
+SHA-256 is `5bada2d865f937bbcb295bcf08760a8bd4765902c91dc5511738d480c0b6b8c6`.
+Android signature verification passed (v1/v2/v3), with metadata-entry warnings;
+no independently trusted publisher certificate was compared. This is a separate
+standard-client test target, not evidence for the reported phone build 5.6.0.12.
+
+The owner's intended audience is a private group of friends, not a public plugin
+catalogue. Signing and public publication are separate decisions: preparing or
+signing a plugin does not authorize public release or adding it to a shared feed.
+The documented third-party route uploads source to an external service even for
+private distribution. Each changed APK intended for ordinary ATAK needs a valid
+accepted signing/build result; the service is a build-time step, not a connection
+required each time the installed plugin runs. We have not verified an alternative
+private signing arrangement accepted by the stock client. Developer-host testing
+remains a separate route and does not prove ordinary-client acceptance.
+
+### Local preparation checks
+
+The branch adds [the signing-source procedure](SIGNING_SOURCE.md). Both local
+SDK variants assembled and linted successfully after the mapping/build-route
+changes. The rebuilt debug APK passed `scripts/check-plugin-apk.py` with the
+existing unsigned-metadata warnings. `sh scripts/test.sh` passed, as did four
+synthetic archive tests (committed input selection/executable wrapper/no overwrite,
+tracked private files, symlinks and missing required files). The archive tests
+also run in the public core CI job; this does not give CI access to the SDK.
+
+An explicitly forced Maven-only build without a local SDK was attempted offline.
+It selected `com.atakmap.gradle:atak-gradle-takdev:2.+` and failed because no version
+listing was cached. This is not an authenticated Maven preflight or proof of
+service compatibility. The supplied SDK requests 3.x and ships tooling 3.6.0,
+whereas the supplied service requirements mandate 2.x. Confirm current service
+requirements and compatibility with pinned Gradle/AGP before submitting source.
+No service credentials, signing keys or alternative validation bypass were used.
+Release-runtime, standard-host and phone verification remain open.
+
 ## Obtain remaining test packages
 
 Use [TAK.gov Products](https://tak.gov/products): ATAK-CIV for the standard host
