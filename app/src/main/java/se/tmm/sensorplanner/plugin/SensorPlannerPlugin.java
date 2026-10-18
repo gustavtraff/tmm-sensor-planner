@@ -22,7 +22,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     private final IHostUIService hostUi;
     private final ToolbarItem entry;
     private final ToolbarItem cotEntry;
-    private boolean started;
+    private volatile boolean started;
     private LocalPlanner planner;
     private CotRoundTripProbe cotProbe;
     private ShareLabReceiver shareReceiver;
@@ -42,19 +42,8 @@ public final class SensorPlannerPlugin implements IPlugin {
                     @Override
                     public void onClick(ToolbarItem item) {
                         hostUi.queueEvent(() -> {
-                            if (!started) return;
                             try {
-                                if (Build.VERSION.SDK_INT < 26) {
-                                    hostUi.showToast("Den lokala prototypen kräver Android 8 eller senare");
-                                    return;
-                                }
-                                if (!OfflineMode.isOffline(MapView.getMapView().getContext())) {
-                                    hostUi.showToast("Prototypen kräver flygplansläge och avstängt nätverk");
-                                    return;
-                                }
-                                if (planner == null) planner = new LocalPlanner(
-                                        Objects.requireNonNull(MapView.getMapView()), hostUi);
-                                planner.show();
+                                openPlanner(true);
                             } catch (Exception error) {
                                 hostUi.showToast("Den lokala prototypen kunde inte startas");
                             }
@@ -93,7 +82,29 @@ public final class SensorPlannerPlugin implements IPlugin {
             hostUi.addToolbarItem(entry);
             hostUi.addToolbarItem(cotEntry);
             started = true;
+            hostUi.queueEvent(() -> {
+                try { openPlanner(false); }
+                catch (Exception unavailable) {
+                    if (started) hostUi.showToast("Lokala markörer kunde inte återställas. Öppna TMM för att försöka igen.");
+                }
+            });
         }
+    }
+
+    private synchronized void openPlanner(boolean showList) throws Exception {
+        if (!started) return;
+        if (Build.VERSION.SDK_INT < 26) {
+            if (showList) hostUi.showToast("Den lokala prototypen kräver Android 8 eller senare");
+            return;
+        }
+        MapView map = Objects.requireNonNull(MapView.getMapView());
+        if (!OfflineMode.isOffline(map.getContext())) {
+            if (showList) hostUi.showToast("Prototypen kräver flygplansläge och avstängt nätverk");
+            return;
+        }
+        if (planner == null) planner = new LocalPlanner(map, hostUi);
+        if (showList) planner.show();
+        else planner.restore();
     }
 
     @Override
@@ -107,11 +118,13 @@ public final class SensorPlannerPlugin implements IPlugin {
                 cotProbe = null;
             }
             if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
-            if (planner != null) {
-                LocalPlanner stopping = planner;
-                planner = null;
-                stopping.cancelSharing();
-                hostUi.queueEvent(stopping::close);
+            synchronized (this) {
+                if (planner != null) {
+                    LocalPlanner stopping = planner;
+                    planner = null;
+                    stopping.cancelSharing();
+                    hostUi.queueEvent(stopping::close);
+                }
             }
         }
     }

@@ -42,6 +42,7 @@ final class LocalPlanner {
     private AlertDialog confirmation;
     private volatile boolean closed;
     private boolean loading;
+    private boolean showAfterLoad;
 
     LocalPlanner(MapView map, IHostUIService ui) throws Exception {
         this.map = map;
@@ -64,7 +65,6 @@ final class LocalPlanner {
             @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
         });
         sharing = new LocalShareUi(context, ui, store, worker, () -> !closed && OfflineMode.isOffline(context));
-        layer = new LocalDraftLayer(map, this::selected);
     }
 
     private void selected(UUID uid) {
@@ -76,33 +76,61 @@ final class LocalPlanner {
         }
     }
 
-    void show() {
-        if (!offline() || closed || loading || isBusy()) return;
-        if (dialog != null && dialog.isShowing()) return;
+    void restore() { load(false); }
+
+    void show() { load(true); }
+
+    private void load(boolean showList) {
+        if (closed) return;
+        if (!OfflineMode.isOffline(context)) {
+            if (showList) offline();
+            return;
+        }
+        if (loading) { showAfterLoad |= showList; return; }
+        if (isBusy() || (dialog != null && dialog.isShowing())) return;
         loading = true;
-        dismiss();
+        showAfterLoad = showList;
+        if (showList) dismiss();
         worker.execute(() -> {
             try {
                 List<TmmDraft> loaded = store.load();
                 ui.queueEvent(() -> {
                     if (closed) return;
                     loading = false;
+                    boolean openList = showAfterLoad;
+                    showAfterLoad = false;
+                    // The device may have left offline mode while the worker read storage.
+                    if (!OfflineMode.isOffline(context)) {
+                        clearLayer();
+                        if (openList) offline();
+                        return;
+                    }
                     refresh(loaded);
-                    list();
+                    if (openList) list();
                 });
             } catch (Exception failure) {
                 ui.queueEvent(() -> {
                     loading = false;
                     if (closed) return;
-                    drafts = Collections.emptyList();
-                    if (layer != null) layer.close();
-                    layer = null;
-                    alert("Lagringen kunde inte öppnas",
-                            "Befintliga data har inte återställts eller skrivits över. Försök öppna igen. "
-                            + "Om felet kvarstår behövs felsökning innan du fortsätter.");
+                    boolean openList = showAfterLoad;
+                    showAfterLoad = false;
+                    clearLayer();
+                    if (openList) {
+                        alert("Lagringen kunde inte öppnas",
+                                "Befintliga data har inte återställts eller skrivits över. Försök öppna igen. "
+                                + "Om felet kvarstår behövs felsökning innan du fortsätter.");
+                    } else {
+                        ui.showToast("Lokala markörer kunde inte återställas. Sparade data har inte ändrats. Öppna TMM för att försöka igen.");
+                    }
                 });
             }
         });
+    }
+
+    private void clearLayer() {
+        drafts = Collections.emptyList();
+        if (layer != null) layer.close();
+        layer = null;
     }
 
     private boolean offline() {
