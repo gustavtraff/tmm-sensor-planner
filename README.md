@@ -1,7 +1,7 @@
 # TMM Sensor Planner
 
 An ATAK-CIV plugin for planning and maintaining local TMM device drafts:
-**Mini, Scout, PIR and Gateway**. The current application is an **offline test
+**Mini, Scout, PIR and Gateway**. The current application is a **local test
 prototype**, not an approved field release. The active target is ATAK API 5.6.0;
 planning requires Android 8 / API 26 or later.
 
@@ -18,9 +18,10 @@ and limited to a 1,600-pixel longest side; original files remain untouched.
 | SDK development | Local 5.6.0.24 build/lint and bounded developer-host emulator results |
 | Signed standard client | VersionCode 7 passed standard ATAK-CIV 5.6.0.25 emulator load/unload/restart and one synthetic draft's preservation; see [verification](docs/STANDARD_CLIENT_VERIFICATION.md) |
 | Physical phone | Owner reports tools and local use; photo handling and delayed map restoration prompted [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49) and [#50](https://github.com/gustavtraff/tmm-sensor-planner/issues/50). The merged versionCode 8 photo correction still needs new signing/phone verification |
-| Connected use | Guarded synthetic CoT/metadata lab tools exist; full companion workflows, production sharing and field acceptance remain open |
+| Connected use | Explicit session-only [local trial](docs/CONNECTED_LOCAL_TRIAL.md): bounded two-client SDK privacy checks passed; new signed standard-client/phone acceptance remains open |
 
-Use synthetic data and keep networking disabled for the current private trial.
+Use synthetic data. Offline is the default; connected testing requires the separate
+isolated procedure and explicit session consent linked above.
 **TMM CoT-labb** and the metadata-sharing action are isolated-lab tools. Do not use
 them on an operational server/feed. Local installation does not publish the APK.
 No public APK release or automatic distribution channel is provided here.
