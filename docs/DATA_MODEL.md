@@ -57,7 +57,9 @@ and image-file processing remain #11–#13. The core store persists all current 
 handle; it does not persist or validate image bytes. Unknown schemas are not overwritten.
 
 The independent [local image library](LOCAL_IMAGES.md) prepares normalized PNG
-copies with opaque UUID-based handles for later #13 UI integration. Snapshot v1
+copies with opaque UUID-based handles. New copies use the explicitly disclosed
+1,600-pixel longest-side cap (#49); existing larger PNGs remain readable without
+rewriting them. Snapshot v1
 and existing handles are unchanged. Image save/detach ordering, ambiguous failures
 and old/missing handle behavior are specified there; no image bytes enter the
 snapshot or wire schema.
