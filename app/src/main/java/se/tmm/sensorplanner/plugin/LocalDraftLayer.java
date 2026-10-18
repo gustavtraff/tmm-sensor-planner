@@ -22,6 +22,8 @@ import com.atakmap.map.layer.feature.style.CompositeStyle;
 import com.atakmap.map.layer.feature.style.IconPointStyle;
 import com.atakmap.map.layer.feature.style.LabelPointStyle;
 import com.atakmap.map.layer.feature.style.Style;
+import com.atakmap.map.opengl.GLMapSurface;
+import com.atakmap.map.opengl.GLMapView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +39,7 @@ import se.tmm.sensorplanner.core.TmmDraft;
 final class LocalDraftLayer {
     private static final double EARTH_RADIUS_METERS = 6371008.8;
     private final MapView map;
+    private final GLMapView renderer;
     private final Consumer<UUID> select;
     private final MapEventDispatcher.MapEventDispatchListener clickListener = this::onMapClick;
     private final FeatureSetDatabase2 store;
@@ -48,6 +51,10 @@ final class LocalDraftLayer {
     LocalDraftLayer(MapView map, Consumer<UUID> select) throws DataStoreException {
         this.map = map;
         this.select = select;
+        // Keep the owning queue; ATAK clears its current surface before deferred cleanup.
+        GLMapSurface surface = map.getGLSurface();
+        renderer = surface == null ? null : surface.getGLMapView();
+        if (renderer == null) throw new IllegalStateException("Map renderer unavailable");
         store = new FeatureSetDatabase2(null);
         layer = new FeatureLayer3("TMM – lokala utkast", store);
         try {
@@ -239,6 +246,6 @@ final class LocalDraftLayer {
         displayed = Collections.emptyList();
         map.removeLayer(MapView.RenderStack.POINT_OVERLAYS, layer);
         // GLMultiLayer queues renderer release; the same GL queue then owns disposal.
-        map.getGLSurface().getGLMapView().queueEvent(store::dispose);
+        renderer.queueEvent(store::dispose);
     }
 }
