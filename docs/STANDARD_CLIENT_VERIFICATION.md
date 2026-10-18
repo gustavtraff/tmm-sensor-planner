@@ -1,6 +1,88 @@
 # Signed standard-client verification (#7)
 
-## Result and scope — 2026-10-18
+## Latest signed candidate — 2026-10-18
+
+The owner supplied a second successful service result for reviewed main `d09ac31`
+(PR #64). The following evidence applies to versionCode **10**,
+`0.1.0-image-copy-notice.1`; the versionCode 7 record below is historical.
+This candidate contains the image-size, startup-restoration and form-entry fixes,
+the connected local trial, and the image-copy resource correction.
+
+| Evidence | Observed value |
+|---|---|
+| Source commit | `d09ac31e9ff0cec0d0a8bb8b6034388a26c74a4e` |
+| Submitted ZIP | `TMM-Sensor-Planner-source-main-d09ac31.zip` |
+| ZIP SHA-256 | `fefa2957ac32a9837ff7d08094451ac9eadc621c365d72e1ed4fbf1387d9bb5d` |
+| Service result | Returned build log contains `BUILD SUCCESSFUL` |
+| APK SHA-256 | `584028794c55bd79fe917f3b942af2216e5b94d3e04be80fef50a76c47abd672` |
+| Package / version | `se.tmm.sensorplanner.plugin`, 10 / `0.1.0-image-copy-notice.1` |
+| Signing certificate SHA-256 | `f24a38057275fcecf67be975ab803d12f75dc23581bef69cba9eb03a15bb8c17` |
+| Static verification | APK checker and v1/v2/v3 signature verification passed; existing unsigned metadata-entry warnings remain |
+
+The basename still says `unsigned.apk`, but the APK is signed. Normal Android
+upgrade from the previous service-signed APK succeeded; ATAK reported `Loaded`
+without changing signature validation. The same isolated standard 5.6.0.25 / API 35
+arm64 guest described below was used, with no operational connections.
+
+### Upgrade and image checks
+
+- The previous synthetic one-record snapshot was byte-identical after upgrade.
+- Selected a generated JPEG through Android DocumentsUI: **3072 × 4096**,
+  **199,165 bytes**. These match the reported phone photo’s pixel dimensions,
+  not its content, byte size or content-provider behavior.
+- The actual preview displayed the complete Swedish notice including
+  `högst 1600 pixlar`; the host resource path no longer appeared (#62).
+- Cancel left snapshot bytes unchanged. Confirmed Save produced a **1200 × 1600**
+  PNG (**11,256 bytes**), with no EXIF/text chunks. Original JPEG bytes were
+  unchanged. The saved image reopened.
+- Cold host-process restart preserved the post-save snapshot byte for byte;
+  the same synthetic device and image reopened. Normal Unload removed both
+  TMM tools; reload restored exactly one of each.
+
+### Connected-session UI checks (egress blocked)
+
+Android reported an actual connected simulated Wi-Fi network with airplane mode off.
+Both guest IPv4/IPv6 OUTPUT chains retained an unconditional first-rule DROP;
+there were no ADB reverse tunnels or server profiles. This tested session policy,
+not server transport or absence of draft transmission on a working connection.
+
+- Cancel left the planner closed; explicit opt-in opened the `testläge` list.
+- Metadata sharing was absent from saved review and the CoT lab did not open.
+- Returning offline in that same session did not restore either lab action.
+- Normal Unload/reload and cold process restart each required fresh consent.
+- The post-save snapshot remained byte-identical after all session checks. The
+  captured crash buffer had no fatal exception. Airplane mode, disabled Wi-Fi/data,
+  unconditional IPv4/IPv6 egress blocks and no reverse tunnels were rechecked
+  before stopping the task guest; no server or companion workflow ran.
+
+The exact private phone photo/provider and phone build 5.6.0.12 remain untested.
+Standard-binary two-client privacy with positive controls, a server and decrypted
+observation remains the next network gate. No operational-network test is approved.
+
+### Returned scanner report triage
+
+The Fortify text summary says `Rendering 0 results`. This is a reported scanner
+result, not a complete independent security review. Dependency-Check reports
+15 scanned dependencies (13 unique), one vulnerable dependency and one finding:
+CVE-2025-54057, attributed to generated `feature-images.jar` as Apache SkyWalking.
+
+The reported generated JAR SHA-256 is
+`8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85`.
+It exactly matches a standard **22-byte empty ZIP**, independently generated
+using Python `zipfile`. The scanner inferred several unrelated Apache products
+from the same empty resource archive. The service SBOM contains 169 components,
+including AndroidX ExifInterface 1.4.2, and no SkyWalking component; no SkyWalking
+name occurs in the returned class mapping or APK DEX bytes. The source image
+module declares ExifInterface as its only runtime dependency.
+
+This is a false component identification of the empty generated resource JAR,
+not evidence that SkyWalking is bundled. Apache’s [10.3.0 release notes](https://github.com/apache/skywalking/releases/tag/v10.3.0)
+describe the actual CVE fix as URL validation for SkyWalking widgets. No dependency
+change or broad scanner suppression was added. This bounded triage does not
+certify the APK, its other dependencies or the complete returned report set as safe.
+Raw service files, scanner reports and guest evidence remain outside Git.
+
+## Earlier versionCode 7 result and scope — 2026-10-18
 
 The owner submitted the reviewed `2.+` source archive to TAK.gov and supplied
 its successful result. The returned TMM APK installs and actually loads in

@@ -3,13 +3,16 @@
 The [#62 image-copy notice check](LOCAL_IMAGES.md#image-copy-notice-resource-boundary-62--2026-10-18)
 verifies the actual SDK-host resource lookup, formatted size disclosure and local
 Cancel/Save behavior. Public image tests alone cannot catch a host/plugin resource
-ID collision. Standard-client verification requires the new signed candidate.
+ID collision. The returned versionCode 10 candidate now also passes the actual
+standard-host notice, preview Cancel/Save and image-reopen checks; see
+[the signed candidate record](STANDARD_CLIENT_VERIFICATION.md#latest-signed-candidate--2026-10-18).
 
 Issue #4's [connected local trial](CONNECTED_LOCAL_TRIAL.md) adds a session-policy
 test to the independent `images` test source set. It checks explicit opt-in,
 connectivity changes, disabled lab access, reset and a fresh session. It does not
-prove Android lifecycle behavior or absence of network transmission. New standard
-client evidence requires a service-signed build containing this change (#7).
+prove Android lifecycle behavior or absence of network transmission. The
+service-signed versionCode 10 now has bounded standard-client image/lifecycle and
+egress-blocked session-UI evidence (#7); its two-client privacy gate remains open.
 The linked record now includes a bounded two-client connected SDK trial with
 server/decrypted traffic scans and distinct before/after controls observed by the
 actual recipient. It records the exact combined APK hash and keeps production and

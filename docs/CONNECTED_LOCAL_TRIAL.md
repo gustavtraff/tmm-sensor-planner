@@ -114,13 +114,15 @@ and screenshots remain private; no signing submission or release was performed.
 
 ### Remaining gates
 
-The older service-signed versionCode 7 APK does not contain this change, the #49/#50
-fixes or #51. A newly reviewed source submission and returned signed artifact are
-required before testing this combined candidate in standard ATAK. Keep #4 and #7
+The service-signed versionCode 10 APK from reviewed main `d09ac31` contains this
+change, #49/#50, #51 and the #62 resource correction. Its bounded standard-client
+image/lifecycle and egress-blocked session-UI checks are recorded in [the candidate verification](STANDARD_CLIENT_VERIFICATION.md#latest-signed-candidate--2026-10-18).
+The older versionCode 7 APK does not contain those changes. Keep #4 and #7
 open for standard-binary two-client privacy, physical-client acceptance and the
 remaining companion workflows. No operational-network trial is approved.
 
 The SDK trial also exposed the pre-existing image-copy notice resolving through host
 resources instead of plugin resources; #62 tracks it. A generated image saved and
-reopened, but the size disclosure was wrong. Fix and verify that notice before the
-next phone image trial. No claim of full A05 or A08 acceptance follows from this run.
+reopened, but the size disclosure was wrong. PR #64 fixes the notice, now checked
+in both the SDK host and the returned versionCode 10 standard-host candidate before
+the next phone image trial. No claim of full A05 or A08 acceptance follows from this run.
