@@ -6,7 +6,10 @@ Status on 2026-10-12: the owner has provided a local SDK directory labeled
 and samples. Package metadata has been inspected and the local debug build/lint now pass.
 Update on 2026-10-13: developer-host loading passed in an isolated emulator; see
 [EMULATOR_TEST.md](EMULATOR_TEST.md). Standard-app signing, phone compatibility and
-integration behavior remain unverified. The original SDK archive hash is pending.
+integration behavior remained unverified at that stage. On 2026-10-18, the owner-supplied
+service-signed artifact passed bounded standard-host 5.6.0.25 checks; see
+[the result](STANDARD_CLIENT_VERIFICATION.md). Phone 5.6.0.12 and the original SDK
+archive hash remain pending.
 
 ## Obtain and identify the package
 

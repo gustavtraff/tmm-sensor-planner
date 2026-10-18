@@ -1,5 +1,12 @@
 # Signing and companion-plugin verification
 
+**Latest result — 2026-10-18:** The owner submitted the corrected `2.+` source
+archive successfully. The returned signed APK passed static checks and bounded
+standard ATAK-CIV 5.6.0.25 load/unload/restart and companion-panel tests.
+See [the current evidence and remaining gates](STANDARD_CLIENT_VERIFICATION.md).
+The dated investigation below is historical; phone/full A08 and a separate
+credentialed Maven preflight remain unverified.
+
 Tracking: [Issue #7](https://github.com/gustavtraff/tmm-sensor-planner/issues/7).
 Date: 2026-10-16. **A08 remains open.** This records partial evidence, not a
 standard-phone compatibility result or a release approval.

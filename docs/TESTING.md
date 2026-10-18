@@ -1,5 +1,11 @@
 # Tests and gates
 
+**Update — 2026-10-18:** The owner-supplied service-signed artifact passed static
+APK checks and standard ATAK-CIV 5.6.0.25 emulator load/unload/restart plus synthetic
+snapshot preservation. Companion loading and disconnected panels were examined;
+see [exact results and limits](STANDARD_CLIENT_VERIFICATION.md). Earlier SDK-host
+failures below are historical; full A08 and phone 5.6.0.12 remain open.
+
 For the private first loading test, follow [LOCAL_TEST.md](LOCAL_TEST.md). It distinguishes
 the developer host from the standard app and keeps the test disconnected from feeds.
 
@@ -52,7 +58,7 @@ work in #11–#13, not passing tests.
 | Production TMM image sharing / Data Sync | Deferred; no TMM image association, acknowledgment, EXIF/size policy or applicable Data Sync plugin API verified. A05 and production image A07 remain open |
 | HV Reports SDK-host loading attempt | Failed on 2026-10-16: provided 1.1.9 [5.5.0] installed but could not construct its plugin extension in SDK 5.6.0.24; same missing-class failure after unloading TMM. No reporting workflow passed. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md) |
 | Data Sync / TAK Voice package follow-up | APK/split signatures and installation passed on 2026-10-16; both SDK 5.6.0.24 load attempts failed with missing `gov.tak.api.plugin.a`, including after TMM unload. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md); no feed or voice workflow passed |
-| Standard signing / full A08 coexistence | Open: standard 5.6.0.12 installer, supported companion/host combination, appropriately signed TMM artifact and physical-client test still required |
+| Standard signing / full A08 coexistence | Signed service output and bounded standard 5.6.0.25 emulator checks now verified; physical 5.6.0.12, connected workflows and full A08 remain open; see STANDARD_CLIENT_VERIFICATION.md |
 
 Core CI is a public check. Android lint, APK and SDK builds will be added
 when a permitted build environment exists, as a separate required check. Scanning before
