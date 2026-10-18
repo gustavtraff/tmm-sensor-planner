@@ -65,7 +65,6 @@ final class LocalPlanner {
             @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
         });
         sharing = new LocalShareUi(context, ui, store, worker, () -> !closed && OfflineMode.isOffline(context));
-        layer = new LocalDraftLayer(map, this::selected);
     }
 
     private void selected(UUID uid) {
