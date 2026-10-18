@@ -4,6 +4,89 @@ Issue: [E0-08 / #9](https://github.com/gustavtraff/tmm-sensor-planner/issues/9).
 Evidence date: 2026-10-17. This document records observed settings and open human
 decisions; it does not authorize a merge, release or operational data sharing.
 
+## Current audit and owner-only review — 2026-10-18 (#55)
+
+The earlier 2026-10-17 investigation below is retained as historical evidence.
+Issue #9 is now closed; the unresolved decisions and new hardening scope are
+tracked in [#55](https://github.com/gustavtraff/tmm-sensor-planner/issues/55).
+This audit read live GitHub settings; this PR does **not** change those settings.
+
+| Item | Observed state | Recommendation / boundary |
+|---|---|---|
+| Access | Only `gustavtraff`, admin | Keep sole human write/admin authority; contributors use forks |
+| Main ruleset | Active; PR, resolved threads, strict `core`, linear history, no force push/deletion, no bypass actors | Retain; a 404 from classic branch protection does not mean the ruleset is absent |
+| Image CI | Runs and passed recent PRs; not a required rule | Make `images` required alongside `core`, bound to GitHub Actions |
+| Approvals | Zero required, no required code-owner approval | Retain temporarily for owner-authored PRs; self-approval is forbidden |
+| Merge options | Merge, rebase and squash enabled; branch auto-delete off | Permit squash only and enable deletion of merged short-lived branches |
+| Actions | Default token read-only; actions cannot approve PRs; all actions allowed, repository SHA-pinning enforcement off | Retain read-only/no bot approval; review allowed actions and repository-wide SHA enforcement. Current workflow actions are already SHA-pinned |
+| Secret scanning / push protection | Enabled | Retain; this does not prove all history/artifacts are clean |
+| Dependabot security updates | Disabled | Review enabling security-update PRs after confirming dependency coverage; no auto-merge |
+| Private vulnerability reporting | Disabled | Enable an owner-controlled private reporting route before advertising one |
+| License | Pending notice; no project license selected | Rights holder must decide contribution/distribution terms; external code acceptance remains gated |
+
+The new CODEOWNERS file routes all paths to `@gustavtraff`. People on a public
+repository can still comment/review; code ownership is not a ban on public
+feedback. Only the maintainer's human decision is authoritative under this policy.
+GitHub still sees automation using the owner's personal token **as the owner**;
+it cannot distinguish a human merge from an agent using that same token.
+The current no-auto-merge rule is procedural, not a separate credential boundary.
+
+Do not turn on one mandatory approval while the maintainer authors all PRs:
+GitHub prevents self-approval. If technically enforced owner approval is required,
+first establish a separate bot/App PR identity with narrowly reviewed permissions,
+then evaluate one code-owner approval by `gustavtraff` and stale-approval dismissal.
+Keep checks/no bypass; do not weaken protection to work around an identity problem.
+No bot identity or token/account changes are introduced here.
+[GitHub self-approval rules](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews)
+and [CODEOWNERS behavior](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
+explain the difference between review routing and enforcement.
+
+### CI coverage and next steps
+
+Public CI has useful independent `core` and `images` jobs. The latter runs native
+Android image/coordinator tests and lint without ATAK. The core job also covers
+storage compatibility, 100-device scenarios, safe auth-helper behavior, signing
+archive boundaries and the synthetic attachment fixture. This is an appropriate
+public baseline; it is **not sufficient release or ATAK compatibility evidence**.
+
+This PR retains both job names and existing checks/actions. It runs on PRs, pushes
+to main and manual dispatch, avoiding duplicate task-branch push/PR runs. Concurrency
+cancels superseded runs; core/images timeouts are 10/20 minutes. A weekly Dependabot
+configuration proposes GitHub Actions version/pin updates for human review; it does
+not automatically merge them or cover every Gradle/SDK dependency.
+
+Do not add fake/skipped SDK status checks. Full plugin builds/lint/static APK checks
+remain local on the exact tested commit until an approved isolated private-input
+runner/status publisher is established. Public fork code must never receive SDK,
+signing or account secrets. The current workflow uses `pull_request` with read-only
+permissions, not privileged fork-code execution via `pull_request_target`.
+Fork-workflow approval settings were not independently read in this audit; review
+them in Settings → Actions before accepting external contribution runs.
+[GitHub fork workflow guidance](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
+describes its token/secret boundaries.
+
+Next security automation work is to evaluate CodeQL/static analysis and Gradle
+vulnerability/dependency update coverage without exposing private SDK inputs.
+It is not implemented or claimed by adding Actions update PRs. Supply-chain/code
+scanning, independent SDK builds, signing reports, physical trials, network/privacy
+acceptance and rollback remain separate release evidence. No automatic signing,
+APK release upload or operational data distribution is added.
+
+### Documentation and remaining owner decisions
+
+README now distinguishes implemented features, bounded signed-client evidence,
+owner phone feedback and unsigned/new-version gates. CONTRIBUTING documents the
+fork/Issue/branch/PR/test/owner-review path and contribution-term gate. SECURITY
+reflects the actual lab transport/image policy and the missing private channel.
+The PR template asks for exact commit, CI/SDK/device evidence and data impact.
+
+The owner still needs to decide the project license/contribution terms, private
+security route, release/distribution ownership and whether to adopt a separate
+automation identity. This PR does not infer organizational roles or distribution
+rights from GitHub admin status. Human review is the final merge/release decision.
+
+## Historical evidence — 2026-10-17
+
 ## Public CI
 
 The GitHub Actions workflow `Core checks` runs on push and pull request with
@@ -83,8 +166,9 @@ not evidence of an organizational appointment or distribution authorization.
 One human may hold several roles. Record each appointment and decision with name,
 date and scope before closing #9. No data contracts change in this task.
 
-Issue #9 remains open until the separate SDK enforcement, approved license and
-distribution decisions and accountable owners are complete. The failure-enforcement
+At that time #9 retained the separate SDK enforcement, approved license and
+distribution decisions and accountable-owner gates. These unresolved decisions
+are now tracked in #55. The failure-enforcement
 experiment above is complete. The existing public repository does not establish that its source,
 history and artifacts have passed the information/licensing review required by
 the project plan. Review those separately before any further distribution.
