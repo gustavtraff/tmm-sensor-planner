@@ -1,10 +1,47 @@
 # CI and repository/release governance
 
 Issue: [E0-08 / #9](https://github.com/gustavtraff/tmm-sensor-planner/issues/9).
-Evidence date: 2026-10-17. This document records observed settings and open human
-decisions; it does not authorize a merge, release or operational data sharing.
+Latest settings verification: 2026-10-18; historical evidence starts on 2026-10-17.
+This document records observed settings and open human decisions; it does not authorize a merge, release or operational data sharing.
 
-## Current audit and owner-only review — 2026-10-18 (#55)
+## Verified settings after owner configuration — 2026-10-18 (#55)
+
+The owner completed the manual settings, then a read-only GitHub API check
+confirmed the following. This supersedes the initial audit below; no settings
+were changed by this verification task.
+
+| Area | Verified value |
+|---|---|
+| Main ruleset | Active, targets `refs/heads/main`; PR and resolved threads required |
+| Required CI | Both `core` and `images`, each bound to GitHub Actions; branch must be up to date |
+| History and bypass | Linear history, force pushes/deletion blocked; no bypass actors; current caller cannot bypass |
+| Reviews | Zero formal approvals; code-owner/last-push approval requirements off, preserving owner-authored PR flow |
+| Merge methods | Squash only, in both repository settings and main ruleset |
+| Automation | Auto-merge off; automatic deletion of merged task branches on |
+| Collaborators | Only `gustavtraff`, admin |
+| CODEOWNERS | All paths owned by `@gustavtraff`; GitHub reports no CODEOWNERS syntax errors |
+| Actions permissions | Selected actions only; `actions/checkout@*` and `android-actions/setup-android@*`; full-length SHA pinning required |
+| Workflow token | Default read-only; Actions cannot approve PRs |
+| External PR workflows | All external contributors require workflow-run approval |
+| Sensitive reporting | Private vulnerability reporting enabled |
+| Dependency security | Dependabot alerts enabled (HTTP 204 from the alerts-enabled endpoint); security updates enabled |
+| Secrets | Secret scanning and push protection enabled |
+
+The workflow/PR review boundary remains unchanged: granting a public workflow run
+is not approving a PR, merge, source upload or release. CODEOWNERS routes review;
+public users can still give feedback, and owner-token automation is still the same
+GitHub identity as the owner. Technical separation of human/automation approval,
+project license/contribution terms, Gradle dependency/code scanning coverage and
+an approved isolated SDK status publisher remain open in #55.
+
+Dependabot version checks are weekly for the `github-actions` ecosystem, with at
+most five open version-update PRs. Security updates are advisory-triggered rather
+than tied to that weekly schedule. This configuration does not establish full
+Gradle/transitive dependency coverage. The review procedure is in
+[CONTRIBUTING.md](../CONTRIBUTING.md#reviewing-dependabot-pull-requests).
+No new app, SDK, runtime or security-scan result is implied by this settings audit.
+
+## Initial audit before owner configuration — 2026-10-18 (#55)
 
 The earlier 2026-10-17 investigation below is retained as historical evidence.
 Issue #9 is now closed; the unresolved decisions and new hardening scope are

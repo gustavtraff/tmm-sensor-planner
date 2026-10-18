@@ -4,11 +4,14 @@
 
 Do not disclose vulnerabilities, secrets or operational information in public
 Issues, PRs, screenshots, Actions logs or attachments. Report to repository owner
-[@gustavtraff](https://github.com/gustavtraff) through an agreed private channel.
-GitHub private vulnerability reporting was **disabled** at the 2026-10-18 audit;
-a formal reporting channel is still pending. Do not assume a private-report button
-or support mailbox exists. A public request for a private contact must omit details.
-Enabling a private route is tracked in [#55](https://github.com/gustavtraff/tmm-sensor-planner/issues/55).
+[@gustavtraff](https://github.com/gustavtraff) through GitHub private vulnerability
+reporting: open [Security → Advisories](https://github.com/gustavtraff/tmm-sensor-planner/security/advisories)
+and choose **Report a vulnerability**. This route was confirmed enabled by API on
+2026-10-18 after the owner completed the repository settings. Maintainers may see
+an option to create a draft advisory instead. Include minimal synthetic technical
+examples; do not attach operational images, positions, credentials or SDK material.
+If the private form is unavailable, ask the owner for an agreed private channel
+without putting sensitive details in a public request.
 No response-time or supported-release commitment has been established.
 
 ## Data boundary

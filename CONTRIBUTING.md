@@ -48,11 +48,12 @@ Follow [TESTING.md](docs/TESTING.md) and update affected contracts/migration tes
 and contribution rules. It requests owner review for applicable PRs. It does not
 prevent public review comments or make owner approval mandatory by itself.
 
-Current main protection requires a PR, strict `core` status, resolved conversations,
-linear history, and blocked force pushes/deletion, with no bypass actors. Only the
-owner currently has repository write/admin rights. Requiring `images`, limiting
-merges to squash and automatic branch deletion are proposed setting changes in
-[the current governance audit](docs/REPOSITORY_GOVERNANCE.md).
+Verified on 2026-10-18: main protection requires a PR, strict `core` **and** `images`
+checks from GitHub Actions, resolved conversations, linear history and blocked
+force pushes/deletion, with no bypass actors. Only the owner has write/admin
+rights. Squash is the only merge method; auto-merge is off and merged task branches
+are deleted automatically. [The settings evidence](docs/REPOSITORY_GOVERNANCE.md)
+records the API verification, Actions restrictions and remaining decisions.
 
 Keep zero formal approvals while the owner also authors PRs (including PRs opened
 with the owner's token): GitHub prevents self-approval. Human review and a deliberate
@@ -61,6 +62,34 @@ approval is needed, first use a separate bot/App identity for contributor PRs,
 then review required code-owner approval and stale-approval dismissal without
 creating a bypass. Do not add another human reviewer automatically: the owner
 has explicitly requested sole authoritative review.
+
+## Reviewing Dependabot pull requests
+
+Dependabot checks GitHub Actions versions weekly and may open up to five update
+PRs. Known-vulnerability security updates are triggered separately by advisories.
+It proposes changes; it does not approve or merge them. The Actions configuration
+does not establish full Gradle/SDK vulnerability coverage.
+
+For each update:
+
+1. Confirm the PR author is `dependabot[bot]` and read the version/release notes.
+2. Inspect **Files changed**. Check the action's official upstream release and
+   full SHA, supported runner/runtime and changed defaults or inputs. A major
+   version jump needs compatibility review even when CI is green.
+3. Ensure the change preserves the workflow's intended permissions, credential
+   handling, inputs and private-SDK boundary; account for intentional changes
+   before accepting them.
+4. If the branch is behind main, use the Dependabot command `@dependabot rebase`
+   in the PR and wait for fresh `core` and `images` results. Do not weaken rules.
+5. Review **Checks** and relevant logs. Green checks cover the exercised CI,
+   not every possible security issue or ATAK runtime behavior.
+6. The owner makes the final decision and uses **Squash and merge**. Merge one
+   update at a time, then refresh/retest the other PR against the changed main.
+
+PRs authored by Dependabot can receive the owner's formal review because the bot
+is a different author. The existing owner-token identity limitation still applies
+to PRs authored by the owner/Codex. Never approve blindly based only on the bot's
+name or compatibility score.
 
 ## Parallel agents and worktrees
 
