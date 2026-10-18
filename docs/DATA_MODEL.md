@@ -1,5 +1,9 @@
 # Data model
 
+The [connected local trial](CONNECTED_LOCAL_TRIAL.md) changes session access only.
+It adds no persisted consent, transport fields or migration; snapshot v1 and opaque
+local image handles are unchanged. Connected trial drafts remain local drafts.
+
 The core's initial model is a local draft (schemaVersion 1), with versioned local snapshot
 storage; no production CoT standard yet. The full proposed record is in project plan §5.
 

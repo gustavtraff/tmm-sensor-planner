@@ -1,5 +1,11 @@
 # Tests and gates
 
+Issue #4's [connected local trial](CONNECTED_LOCAL_TRIAL.md) adds a session-policy
+test to the independent `images` test source set. It checks explicit opt-in,
+connectivity changes, disabled lab access, reset and a fresh session. It does not
+prove Android lifecycle behavior or absence of network transmission. New standard
+client evidence requires a service-signed build containing this change (#7).
+
 **Update — 2026-10-18:** The owner-supplied service-signed artifact passed static
 APK checks and standard ATAK-CIV 5.6.0.25 emulator load/unload/restart plus synthetic
 snapshot preservation. Companion loading and disconnected panels were examined;
