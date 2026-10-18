@@ -1,40 +1,66 @@
 # Contributing
 
-Follow Issue → branch → PR → review → squash merge. Use feature/<issue>-description,
-fix/<issue>-description, or docs/<issue>-description. For initial setup, use local
-backlog IDs until GitHub Issues exist. Include requirement IDs, test evidence,
-and data impact in the PR. Protect main once CI checks exist and have been verified.
+The maintainer and sole authoritative human reviewer/merge decision maker is
+[@gustavtraff](https://github.com/gustavtraff). Other users may propose changes
+and provide feedback; only the maintainer accepts a change, merges it or approves
+a release. Agent review comments are supporting evidence, not human approval.
 
-All documentation, code comments, commit messages, and GitHub content must be in
-English, including Issues, PRs, reviews, comments, labels, and milestones.
-Plugin UI text may be Swedish.
+## Before contributing
 
-Keep the Java core free of Android/ATAK dependencies and compatible with Java 8
-until the 5.6.0 SDK determines the toolchain. Run sh scripts/test.sh.
-Use only synthetic data. The license and contribution terms are not yet decided;
-obtain that decision before accepting external contributions or distributing the project.
+The project-code license and contribution terms are still undecided in [LICENSE](LICENSE).
+Agree those terms with the maintainer **before submitting code for acceptance**;
+public visibility is not an approved contribution or distribution policy. Synthetic
+bug reports and product feedback are welcome. Do not send private SDK material,
+real positions/photos, server details, credentials or certificates.
 
-## Recommended main protection
+Use [SECURITY.md](SECURITY.md) for sensitive findings. Do not place them in public
+Issues, PRs, workflow logs or attachments. All documentation, code comments,
+commit messages and GitHub content must be in English. Plugin UI text may be Swedish.
 
-Protect `main` with a required pull request, the GitHub Actions `core` check,
-up-to-date branches, resolved conversations, and blocked force pushes and deletion.
-Apply the rules to administrators as well. Use squash merge.
+## Contribution workflow
 
-The repository currently has one collaborator, who also authors the PRs.
-Require zero formal approvals until another human reviewer has write access;
-GitHub does not allow authors to approve their own PRs. Human review and a deliberate
-merge decision still apply. Once a second reviewer is available, require one approval
-and dismiss approvals when new commits are pushed. An agent review comment is not
-an independent human approval.
+Once contribution terms are agreed:
 
-These are recommendations, not a claim that protection has been enabled.
+1. Open or agree an Issue with a small scope and acceptance criteria.
+2. External contributors fork the repository; no repository write access is needed.
+3. Branch from current `main`: `feature/<issue>-description`,
+   `fix/<issue>-description`, `docs/<issue>-description` or `chore/<issue>-description`.
+4. Keep the Java core independent of Android/ATAK and compiled for Java 8;
+   use the pinned JDK 17/toolchain in [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+5. Run `sh scripts/test.sh`. For image changes also run
+   `./gradlew -p images --no-daemon testDebugUnitTest lintDebug` with the documented
+   Android environment. Android/ATAK changes additionally need separate local SDK
+   build/lint/APK evidence for the exact PR commit; public CI does not provide it.
+6. Open a PR using the template. State the problem, Issue/requirement IDs, test
+   evidence, data/schema impact and remaining device/SDK limitations. Use synthetic
+   fixtures. Keep APKs, SDKs, keys and raw sensitive evidence outside Git.
+7. Resolve feedback and rerun affected checks after changes or an updated base.
+   Both `core` and `images` should pass. The maintainer makes the final review and
+   squash-merge decision; automated or agent reviews do not authorize a merge.
 
-Verified on 2026-10-12 after PR #16 was merged: an active ruleset on `main` requires
-a pull request, resolved conversations, the GitHub Actions `core` check and an
-up-to-date branch. It also blocks deletion and force pushes and requires linear
-history. Required approvals are zero. No bypass actor is shown in the applicable
-ruleset. The failing-PR enforcement test was verified on 2026-10-17 in PR #31;
-see [the evidence and remaining #9 gates](docs/REPOSITORY_GOVERNANCE.md).
+Do not add automatic sharing, relax the offline guard, alter a data contract or
+claim an ATAK API without the approvals/evidence required by the project plan.
+Follow [TESTING.md](docs/TESTING.md) and update affected contracts/migration tests.
+
+## Review routing and main protection
+
+[CODEOWNERS](.github/CODEOWNERS) names `@gustavtraff` for every path, including CI
+and contribution rules. It requests owner review for applicable PRs. It does not
+prevent public review comments or make owner approval mandatory by itself.
+
+Current main protection requires a PR, strict `core` status, resolved conversations,
+linear history, and blocked force pushes/deletion, with no bypass actors. Only the
+owner currently has repository write/admin rights. Requiring `images`, limiting
+merges to squash and automatic branch deletion are proposed setting changes in
+[the current governance audit](docs/REPOSITORY_GOVERNANCE.md).
+
+Keep zero formal approvals while the owner also authors PRs (including PRs opened
+with the owner's token): GitHub prevents self-approval. Human review and a deliberate
+merge remain required by project policy. If technical enforcement of the owner's
+approval is needed, first use a separate bot/App identity for contributor PRs,
+then review required code-owner approval and stale-approval dismissal without
+creating a bypass. Do not add another human reviewer automatically: the owner
+has explicitly requested sole authoritative review.
 
 ## Parallel agents and worktrees
 
