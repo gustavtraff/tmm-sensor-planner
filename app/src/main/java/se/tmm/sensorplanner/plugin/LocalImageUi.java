@@ -38,6 +38,7 @@ final class LocalImageUi {
     }
 
     private final Context context;
+    private final String imageCopyNotice;
     private final ExecutorService worker;
     private final LocalImages images;
     private final DraftAttachments attachments;
@@ -50,9 +51,10 @@ final class LocalImageUi {
     private AlertDialog dialog;
     private LocalImages.Pending pending;
 
-    LocalImageUi(Context context, ExecutorService worker, LocalImages images,
+    LocalImageUi(Context context, String imageCopyNotice, ExecutorService worker, LocalImages images,
                  DraftAttachments attachments, Listener listener) {
         this.context = context;
+        this.imageCopyNotice = imageCopyNotice;
         this.worker = worker;
         this.images = images;
         this.attachments = attachments;
@@ -165,7 +167,7 @@ final class LocalImageUi {
         content.setOrientation(LinearLayout.VERTICAL);
         if (replace) {
             TextView notice = new TextView(context);
-            notice.setText(context.getString(R.string.local_image_copy_notice, LocalImages.MAX_COPY_EDGE));
+            notice.setText(imageCopyNotice);
             int padding = Math.round(16 * context.getResources().getDisplayMetrics().density);
             notice.setPadding(padding, padding, padding, padding);
             content.addView(notice);

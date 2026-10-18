@@ -3,6 +3,7 @@
 Issue: [#13](https://github.com/gustavtraff/tmm-sensor-planner/issues/13), F09/A05.
 Integration: [#35](https://github.com/gustavtraff/tmm-sensor-planner/issues/35).
 Phone-photo correction: [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49).
+Host resource correction: [#62](https://github.com/gustavtraff/tmm-sensor-planner/issues/62).
 The offline planner uses this library for one image per saved device. Host-side
 library/metadata tests do not need an emulator or private ATAK SDK.
 
@@ -231,3 +232,45 @@ owner-tested versionCode 7. Actual ATAK picker/preview layout and the owner's
 original camera/provider need retesting after a reviewed source submission and
 returned signed output. No new emulator or physical-phone runtime test, service
 upload, feed publication or release is claimed by these local checks.
+
+## Image-copy notice resource boundary (#62) — 2026-10-18
+
+The connected SDK trial exposed a resource collision: the copy-size disclosure
+displayed `res/animator/fragment_fade_enter.xml`. `LocalImageUi` was looking up a
+plugin string ID through the host map context. The plugin entry point now resolves
+and formats the notice through its existing `PluginContextProvider` context, using
+`LocalImages.MAX_COPY_EDGE`, and passes the finished text to the local image UI.
+Dialogs, views, content access and the activity-result picker retain the host
+context. No additional SDK API, image limit, normalization rule, data contract,
+permission or transport is introduced.
+
+The candidate is versionCode 10 / `0.1.0-image-copy-notice.1`, based on main `6cf1e48`.
+Android Debug APK SHA-256:
+`66f8b22059aceb7da9360e6734961b00587383ad468c4bbd021121a2b7c1547b`.
+
+Checks on this candidate:
+
+- SDK 5.6.0.24 debug/release assembly, app lint with zero errors, all three app unit
+  tests and the debug APK contract/signature/permission/packaging checker passed.
+- All 40 independent image/coordinator/session tests and image lint passed.
+- Actual AOSP API 35 arm64 / ATAK-CIV developer 5.6.0.24 showed the complete Swedish
+  notice with the formatted **1600** limit and original-file assurance through the
+  real local Downloads picker. The incorrect resource path and format placeholder
+  were absent.
+- At 1920×1080 / 160 dpi, Cancel preserved the snapshot bytes and old owned image;
+  only the pending copy was removed. At 1280×720 / 320 dpi, the complete notice and
+  both controls remained readable; confirmed Save committed a new local image,
+  removed the unreferenced old copy and preserved the generated source bytes.
+- The saved image reopened after a cold host restart with unchanged snapshot
+  bytes. Read-only viewing did not display the replacement/save disclosure. The
+  guest crash buffer contained no AndroidRuntime fatal exception.
+
+Only the existing synthetic guest and a generated PNG were used: airplane mode,
+Wi-Fi/data off, IPv4/IPv6 OUTPUT drop and no ADB reverse tunnel or running test
+server. An initial small-picker tap fell in the clipped part of a file tile and
+selected nothing; it was corrected to the visible tile before the passing check.
+Raw XML/screenshots, snapshots and APK remain private. This does not verify the
+owner's original photograph/provider or the newly service-signed standard host.
+Keep #62's standard-client check and #49/#7 phone acceptance pending until a new
+reviewed signed artifact is available.
+The task guest was stopped after verification.
