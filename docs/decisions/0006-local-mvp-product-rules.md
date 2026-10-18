@@ -162,3 +162,12 @@ Keep existing owned PNGs readable without rewriting them. No new handle format,
 snapshot/wire schema, transport or image-sharing behavior is introduced. Use
 specific safe preparation errors and preserve existing metadata commit ordering.
 See [LOCAL_IMAGES.md](../LOCAL_IMAGES.md) for reproduction and validation scope.
+
+## Form entry follow-up (#51) — 2026-10-18
+
+The owner requested keyboard completion without focus jumps and simpler deployment
+time entry. [FORM_ENTRY.md](../FORM_ENTRY.md) defines explicit local date/time
+selectors, initialized to now only when opening an empty value, cancellation and
+clear behavior, minute precision for new selections and exact preservation of
+existing Instants. No deployment timestamp is derived from status or merely saving
+a draft. UTC storage and snapshot v1 remain unchanged.
