@@ -65,5 +65,72 @@ Actual-client procedure, using only synthetic records:
 
 ## Verification record — 2026-10-18
 
-Implementation and SDK-emulator verification in progress. Physical-phone and
-service-signed standard-client verification remain separate acceptance checks.
+The core regression suite passed with Temurin 17.0.20.1+1. The SDK check passed
+against the supplied ATAK-CIV 5.6.0.24 SDK: debug build, Android lint, all three
+app unit tests and static APK signature/discovery/permission/packaging checks.
+The app tests run locally with the private SDK, separately from public CI.
+
+The runtime candidate was built from `0b45f46`, based on main `d18c963`:
+
+- Android Debug APK, versionCode 8 / `0.1.0-camera-image-fix.1` (existing development
+  version retained; this is not a newly signed release).
+- APK SHA-256: `92c0eb1ce20313dbd82a77ec63f54695d031c761bcc2c0b2af1a8ce99a306552`.
+- ATAK SDK developer host 5.6.0.24 (`7f2055b0`), AOSP API 35 arm64 emulator.
+- Dedicated disposable clone, 720 × 1280 / 1280 × 720 px at 320 dpi
+  (360 × 640 / 640 × 360 dp). Host Orientation control selected each orientation.
+- Airplane mode, Wi-Fi/data/location disabled; IPv4/IPv6 output-drop firewall,
+  no ADB reverse tunnel or connected feed/server. Only synthetic records near
+  the origin; raw evidence remains in ignored private storage.
+
+Actual tests passed:
+
+- Real Android LatinIME Done on ID, owner, multiline comment and decimal input
+  in both orientations: keyboard window hidden, same focused field and entered
+  text retained, no save/Next action. XML bounds and screenshots showed complete
+  active labels above the visible keyboard, including a five-line comment in its
+  internally scrolling three-line input area. No fullscreen extract editor.
+- Hardware Enter inserted four comment newlines; hardware Tab deliberately moved
+  from latitude to longitude. Single-line hardware Enter kept longitude focus.
+- New Planned save/reopen without selection retained null deployment time. Empty
+  selectors started at the current local date and minute in Europe/Stockholm.
+  Cancel at either picker stage followed by save retained null.
+- Native spinner selection of 2026-10-18 00:30 +02:00 persisted exactly
+  `2026-10-17T22:30:00Z`, checked through the real DraftStore, not display text alone.
+- Reopening an existing value initialized the pickers to 00:30. Both picker
+  cancellations and an ordinary save retained its Instant. Clear followed by
+  whole-form Cancel retained the saved value; explicit Clear/save persisted null.
+
+The first landscape test exposed Android's default multiline soft Enter action;
+that was corrected by clearing NO_ENTER_ACTION in the input connection and
+retested on the final candidate. Early UI-harness coordinate/IME-visibility
+assertions were corrected to use the actual alpha/numeric keyboard Done locations
+and actual IME window visibility. Those aborted attempts are not passing tests.
+The initial larger SwiftShader guest became slow alongside other local work; the
+owned clone was restarted with 1,536 MiB, one vCPU and host graphics for final tests.
+No other client's resources or application settings were changed.
+
+Additional native-calendar and stored-value checks passed on the same APK:
+
+- Seeded a valid v1 record with `2026-10-17T22:30:17.123456789Z` through the real
+  core store. After reopening, cancelling both picker stages and saving normally,
+  DraftStore returned the exact same seconds and nanoseconds.
+- Native month/day/year controls selected 2027-01-01 00:30 +01:00; storage returned
+  `2026-12-31T23:30:00Z`, proving UTC year rollover and minute precision for an
+  explicitly confirmed replacement.
+- Native selection of 2026-03-29 02:30 in Europe/Stockholm showed **Tiden finns inte**.
+  After closing the message and saving, the previous Instant remained unchanged.
+- Native selection of 2026-10-25 02:30 displayed +02:00 and persisted
+  `2026-10-25T00:30:00Z`, the documented first occurrence.
+- No AndroidRuntime fatal appeared in the captured guest log.
+
+Native wheel tests waited for spinner animations and compared day values
+numerically, including padded `01`/`02`. Deployment-value assertions scrolled the
+short landscape form to that field. Earlier unpaced/visibility assertions were
+aborted test-harness attempts, not passing evidence.
+
+Physical-phone, service-signed standard-client, TalkBack/external accessibility
+service and OEM keyboard verification have not been performed for this APK.
+The tested artifact uses the Android Debug signature; no service-signed build
+of this change has been verified.
+No signing upload, release or trust-setting bypass was performed. These remain
+actual-client acceptance limits; passing core/app tests does not close them.
