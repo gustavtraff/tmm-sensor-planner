@@ -41,7 +41,10 @@ remaining code/test work. The core now implements validated edits and candidate
 filtering and a versioned Java-core snapshot store. A guarded offline adapter now
 connects forms, review, Android storage and a private feature layer on API 26+.
 Saved-device review integrates local image selection, normalized preview and
-view/replace/remove actions; see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). Production
+view/replace/remove actions; see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). The #49
+phone-photo fix proposes explicitly reviewed local copies capped at 1,600 pixels
+on the longest side; ADR 0006 records this human-review amendment, with source
+limits and immutable originals preserved. Production
 connected privacy, physical image/provider acceptance and sharing remain pending.
 See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md).
 

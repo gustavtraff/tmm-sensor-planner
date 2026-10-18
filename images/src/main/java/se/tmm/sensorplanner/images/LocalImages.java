@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,6 +25,7 @@ import java.util.UUID;
 /** Local-only, API 26+ image copies. Call off the UI thread with a private no-backup directory. */
 @TargetApi(26)
 public final class LocalImages {
+    public static final int MAX_COPY_EDGE = 1600;
     private final Path directory;
 
     public LocalImages(Path directory) {
@@ -35,9 +38,13 @@ public final class LocalImages {
         try {
             normalized = normalize(readBounded(source));
         } catch (OutOfMemoryError e) {
-            throw new IOException("Not enough memory to prepare this image");
+            throw new ImagePreparationException(ImagePreparationException.Reason.LOW_MEMORY);
         }
-        Files.createDirectories(directory);
+        try {
+            Files.createDirectories(directory);
+        } catch (IOException failure) {
+            throw new ImagePreparationException(ImagePreparationException.Reason.SAVE_FAILED);
+        }
         String reference = UUID.randomUUID() + ".png";
         Path destination = resolve(reference);
         boolean created = false;
@@ -49,7 +56,7 @@ public final class LocalImages {
             output.force(true);
         } catch (IOException e) {
             if (created) Files.deleteIfExists(destination);
-            throw new IOException("Could not save the image copy");
+            throw new ImagePreparationException(ImagePreparationException.Reason.SAVE_FAILED);
         }
         return new Pending(reference);
     }
@@ -122,7 +129,9 @@ public final class LocalImages {
         int count;
         while ((count = input.read(chunk, 0, Math.min(chunk.length,
                 ImageFormat.MAX_BYTES + 1 - bytes.size()))) != -1) {
-            if (bytes.size() + count > ImageFormat.MAX_BYTES) throw ImageFormat.invalid();
+            if (bytes.size() + count > ImageFormat.MAX_BYTES) {
+                throw new ImagePreparationException(ImagePreparationException.Reason.INPUT_TOO_LARGE);
+            }
             bytes.write(chunk, 0, count);
         }
         return bytes.toByteArray();
@@ -141,38 +150,59 @@ public final class LocalImages {
                 .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
         if (orientation < 0 || orientation > 8) throw ImageFormat.invalid();
         Bitmap decoded = null;
-        Bitmap oriented = null;
         Bitmap clean = null;
         try {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inScaled = false;
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            options.inSampleSize = 1;
+            int longest = Math.max(bounds.outWidth, bounds.outHeight);
+            // Decode near the copy size, then draw orientation/scaling into one clean bitmap.
+            while (longest / (options.inSampleSize * 2) >= MAX_COPY_EDGE) options.inSampleSize *= 2;
             decoded = BitmapFactory.decodeByteArray(source, 0, source.length, options);
-            if (decoded == null || decoded.getWidth() != bounds.outWidth || decoded.getHeight() != bounds.outHeight) {
+            if (decoded == null || decoded.getWidth() <= 0 || decoded.getHeight() <= 0
+                    || decoded.getWidth() > (bounds.outWidth + options.inSampleSize - 1) / options.inSampleSize
+                    || decoded.getHeight() > (bounds.outHeight + options.inSampleSize - 1) / options.inSampleSize) {
                 throw ImageFormat.invalid();
             }
-            oriented = Bitmap.createBitmap(decoded, 0, 0, decoded.getWidth(), decoded.getHeight(),
-                    orientation(orientation), false);
-            clean = Bitmap.createBitmap(oriented.getWidth(), oriented.getHeight(), Bitmap.Config.ARGB_8888);
-            new Canvas(clean).drawBitmap(oriented, 0, 0, null);
+            Matrix transform = orientation(orientation);
+            RectF area = new RectF(0, 0, decoded.getWidth(), decoded.getHeight());
+            transform.mapRect(area);
+            float scale = Math.min(1f, MAX_COPY_EDGE / Math.max(area.width(), area.height()));
+            int width = Math.max(1, Math.round(area.width() * scale));
+            int height = Math.max(1, Math.round(area.height() * scale));
+            clean = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            transform.postTranslate(-area.left, -area.top);
+            transform.postScale(width / area.width(), height / area.height());
+            new Canvas(clean).drawBitmap(decoded, transform, new Paint(Paint.FILTER_BITMAP_FLAG));
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            boolean[] outputTooLarge = {false};
             OutputStream bounded = new OutputStream() {
                 @Override public void write(int value) throws IOException {
-                    if (bytes.size() == ImageFormat.MAX_BYTES) throw ImageFormat.invalid();
+                    if (bytes.size() == ImageFormat.MAX_BYTES) {
+                        outputTooLarge[0] = true;
+                        throw new ImagePreparationException(ImagePreparationException.Reason.OUTPUT_TOO_LARGE);
+                    }
                     bytes.write(value);
                 }
                 @Override public void write(byte[] chunk, int offset, int length) throws IOException {
-                    if (length > ImageFormat.MAX_BYTES - bytes.size()) throw ImageFormat.invalid();
+                    if (length > ImageFormat.MAX_BYTES - bytes.size()) {
+                        outputTooLarge[0] = true;
+                        throw new ImagePreparationException(ImagePreparationException.Reason.OUTPUT_TOO_LARGE);
+                    }
                     bytes.write(chunk, offset, length);
                 }
             };
-            if (!clean.compress(Bitmap.CompressFormat.PNG, 100, bounded)) throw ImageFormat.invalid();
+            if (!clean.compress(Bitmap.CompressFormat.PNG, 100, bounded)) {
+                // Some Android codecs return false instead of propagating the stream exception.
+                if (outputTooLarge[0]) throw new ImagePreparationException(ImagePreparationException.Reason.OUTPUT_TOO_LARGE);
+                throw ImageFormat.invalid();
+            }
             byte[] result = bytes.toByteArray();
             ImageFormat.checkOwnedPng(result);
             return result;
         } finally {
             if (clean != null) clean.recycle();
-            if (oriented != null && oriented != decoded) oriented.recycle();
             if (decoded != null) decoded.recycle();
         }
     }

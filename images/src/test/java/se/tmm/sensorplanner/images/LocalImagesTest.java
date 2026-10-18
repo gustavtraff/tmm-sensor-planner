@@ -205,15 +205,86 @@ public class LocalImagesTest {
         assertTrue(imagesDirectory.toFile().list() == null || ownedCount(imagesDirectory) == 0);
     }
 
-    @Test public void normalizedOutputLimitRejectsAnOtherwiseSmallEnoughJpeg() throws Exception {
-        int[] noisy = new int[2048 * 2048];
-        Random random = new Random(13);
+    @Test public void cameraSizedJpegPreparesABoundedCopyAndPreservesTheOriginal() throws Exception {
+        int[] noisy = new int[3072 * 4096];
+        Random random = new Random(49);
         for (int i = 0; i < noisy.length; i++) noisy[i] = 0xff000000 | random.nextInt(0x1000000);
-        byte[] jpeg = encode(noisy, 2048, 2048, Bitmap.CompressFormat.JPEG);
+        Bitmap camera = Bitmap.createBitmap(noisy, 3072, 4096, Bitmap.Config.ARGB_8888);
+        ByteArrayOutputStream encoded = new ByteArrayOutputStream();
+        assertTrue(camera.compress(Bitmap.CompressFormat.JPEG, 40, encoded));
+        camera.recycle();
+        byte[] jpeg = encoded.toByteArray();
+        assertTrue(jpeg.length > 3 * 1024 * 1024);
         assertTrue(jpeg.length <= ImageFormat.MAX_BYTES);
+        Path source = temporary.newFile("synthetic-camera.jpg").toPath();
+        Files.write(source, jpeg);
+        ExifInterface exif = new ExifInterface(source.toFile());
+        exif.setAttribute(ExifInterface.TAG_ORIENTATION, "6");
+        exif.setAttribute(ExifInterface.TAG_MAKE, "SYNTHETIC-CAMERA");
+        exif.setLatLong(0, 0);
+        exif.saveAttributes();
+        byte[] original = Files.readAllBytes(source);
+        Bitmap fullSize = decode(original);
+        ByteArrayOutputStream fullPng = new ByteArrayOutputStream();
+        assertTrue(fullSize.compress(Bitmap.CompressFormat.PNG, 100, fullPng));
+        fullSize.recycle();
+        assertTrue("Full-resolution PNG exceeds the old output cap", fullPng.size() > ImageFormat.MAX_BYTES);
         LocalImages images = store();
-        Assert.assertThrows(IOException.class, () -> images.prepare(new ByteArrayInputStream(jpeg)));
-        assertFalse(Files.exists(imagesDirectory));
+        String[] saved = {null};
+        try (InputStream input = Files.newInputStream(source); LocalImages.Pending pending = images.prepare(input)) {
+            byte[] output = pending.preview();
+            assertTrue(output.length <= ImageFormat.MAX_BYTES);
+            Bitmap result = decode(output);
+            assertEquals(1600, result.getWidth());
+            assertEquals(1200, result.getHeight());
+            result.recycle();
+            ExifInterface clean = new ExifInterface(new ByteArrayInputStream(output));
+            assertNull(clean.getAttribute(ExifInterface.TAG_MAKE));
+            assertNull(clean.getLatLong());
+            pending.commit(ref -> saved[0] = ref);
+        }
+        assertArrayEquals(original, Files.readAllBytes(source));
+        assertNotNull(new LocalImages(imagesDirectory).read(saved[0]));
+    }
+
+    @Test public void newCopiesAreBoundedButExistingFullResolutionPngsAreNotRewritten() throws Exception {
+        LocalImages images = store();
+        for (int edge : new int[]{1599, 1600, 1601}) {
+            byte[] source = encode(new int[edge * 2], edge, 2, Bitmap.CompressFormat.PNG);
+            try (LocalImages.Pending pending = images.prepare(new ByteArrayInputStream(source))) {
+                Bitmap copy = decode(pending.preview());
+                assertEquals(Math.min(edge, 1600), copy.getWidth());
+                assertEquals(2, copy.getHeight());
+                assertEquals(0, copy.getPixel(0, 0));
+                copy.recycle();
+            }
+        }
+        String legacy = UUID.randomUUID() + ".png";
+        byte[] original = encode(new int[2048 * 2], 2048, 2, Bitmap.CompressFormat.PNG);
+        Files.write(imagesDirectory.resolve(legacy), original);
+        assertArrayEquals(original, new LocalImages(imagesDirectory).read(legacy));
+        assertArrayEquals(original, Files.readAllBytes(imagesDirectory.resolve(legacy)));
+    }
+
+    @Test public void inputPixelFormatAndStorageFailuresHaveDistinctSafeReasons() throws Exception {
+        LocalImages images = store();
+        ImagePreparationException invalid = Assert.assertThrows(ImagePreparationException.class,
+                () -> images.prepare(new ByteArrayInputStream(new byte[0])));
+        assertEquals(ImagePreparationException.Reason.INVALID_IMAGE, invalid.reason);
+        ImagePreparationException pixel = Assert.assertThrows(ImagePreparationException.class,
+                () -> ImageFormat.dimensions(3072, 7000));
+        assertEquals(ImagePreparationException.Reason.PIXEL_LIMIT, pixel.reason);
+        InputStream tooLarge = new InputStream() {
+            int count;
+            @Override public int read() { return count++ <= ImageFormat.MAX_BYTES ? 0 : -1; }
+        };
+        ImagePreparationException bytes = Assert.assertThrows(ImagePreparationException.class,
+                () -> images.prepare(tooLarge));
+        assertEquals(ImagePreparationException.Reason.INPUT_TOO_LARGE, bytes.reason);
+        Path file = temporary.newFile("not-an-image-directory").toPath();
+        ImagePreparationException storage = Assert.assertThrows(ImagePreparationException.class,
+                () -> new LocalImages(file).prepare(input()));
+        assertEquals(ImagePreparationException.Reason.SAVE_FAILED, storage.reason);
     }
 
     @Test public void pathTraversalSymlinksMissingAndDamagedOwnedFilesAreErrors() throws Exception {

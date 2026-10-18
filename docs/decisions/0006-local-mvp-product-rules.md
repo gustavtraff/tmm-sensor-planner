@@ -87,7 +87,9 @@ without replacing an existing image. Do not trust extensions or a supplied MIME 
 Decode and save a new plugin-owned image from pixels only, without EXIF, GPS,
 embedded text or other source metadata. Never copy the original file into draft
 storage. Enforce the same byte/pixel limits on the normalized result. Do not silently
-downscale; show an error when the image cannot be saved within the limits.
+downscale; the initial implementation rejected images that could not fit. The
+explicitly disclosed resize-copy amendment below supersedes this rejection default
+for new attachments after human review of #49.
 Apply source orientation to pixels before discarding its metadata; verify with
 synthetic rotated images. This does not remove information visibly drawn in an image.
 
@@ -140,3 +142,23 @@ green Deployed/Active, gray Retrieved/Cancelled. This supersedes the initial
 letter-disc artwork choice above. [DEVICE_SYMBOLS.md](../DEVICE_SYMBOLS.md) records
 source/PNG assets, acceptance evidence and remaining physical-client checks. No
 alarm/health status or domain/snapshot/wire field is added.
+
+## Phone-photo copy amendment (#49) — 2026-10-18
+
+Status: implemented for PR review; acceptance is by human merge, not a claim of
+separate owner approval of a particular pixel value. The owner requested working
+ordinary phone-photo attachments after a valid-size camera JPG failed.
+
+Retain static JPEG/PNG input, 10 MiB / 20,000,000 source pixels, EXIF orientation,
+metadata removal and immutable originals. Prepare new PNG copies at a maximum
+1,600 pixels on the longest side, preserving aspect ratio and never upscaling.
+Sample the decode and draw orientation/resize into a fresh bounded bitmap to
+avoid full-resolution PNG expansion and multiple full-size allocations.
+The normalized preview must disclose the reduction before Save locally; Cancel
+leaves the previous attachment intact. This is explicit review of a reduced copy,
+not silent replacement of the original. The tradeoff is reduced local image detail.
+
+Keep existing owned PNGs readable without rewriting them. No new handle format,
+snapshot/wire schema, transport or image-sharing behavior is introduced. Use
+specific safe preparation errors and preserve existing metadata commit ordering.
+See [LOCAL_IMAGES.md](../LOCAL_IMAGES.md) for reproduction and validation scope.

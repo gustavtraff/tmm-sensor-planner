@@ -180,6 +180,15 @@ under the [saved service requirements](references/TAK_SOURCE_ARCHIVE_REQUIREMENT
 The [submitted-ZIP audit](SOURCE_REQUIREMENTS_AUDIT.md) distinguishes static
 conformance, actual task execution and the still-blocked authorized Maven preflight.
 
+## Phone-camera attachment correction (#49)
+
+[LOCAL_IMAGES.md](LOCAL_IMAGES.md#phone-photo-failure-and-correction-49--2026-10-18)
+records the synthetic camera-size failure reproduced against the old encoder,
+bounded sampled copies, metadata/source preservation and unchanged legacy PNG
+reads. Native tests also cover copy-size boundaries and safe, distinct preparation
+messages. This does not establish physical-phone/provider or standard-host
+acceptance of the new APK; versionCode 7 signing evidence does not cover version 8.
+
 ## Automatic saved-marker restoration (#50)
 
 [MARKER_RESTORE.md](MARKER_RESTORE.md) records the shared startup/toolbar load path,

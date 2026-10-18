@@ -13,7 +13,7 @@ final class ImageFormat {
     private static final byte[] PNG = {(byte) 137, 80, 78, 71, 13, 10, 26, 10};
 
     static void check(byte[] bytes) throws IOException {
-        if (bytes.length > MAX_BYTES) throw invalid();
+        if (bytes.length > MAX_BYTES) throw new ImagePreparationException(ImagePreparationException.Reason.INPUT_TOO_LARGE);
         if (isPng(bytes)) {
             png(bytes);
         } else if (bytes.length >= 4 && u(bytes[0]) == 255 && u(bytes[1]) == 216) {
@@ -33,7 +33,10 @@ final class ImageFormat {
     }
 
     static void dimensions(int width, int height) throws IOException {
-        if (width <= 0 || height <= 0 || (long) width * height > MAX_PIXELS) throw invalid();
+        if (width <= 0 || height <= 0) throw invalid();
+        if ((long) width * height > MAX_PIXELS) {
+            throw new ImagePreparationException(ImagePreparationException.Reason.PIXEL_LIMIT);
+        }
     }
 
     private static void png(byte[] bytes) throws IOException {
@@ -120,6 +123,6 @@ final class ImageFormat {
     private static int u(byte value) { return value & 255; }
 
     static IOException invalid() {
-        return new IOException("Image is unsupported, damaged, animated or exceeds the image limits");
+        return new ImagePreparationException(ImagePreparationException.Reason.INVALID_IMAGE);
     }
 }
