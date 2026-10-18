@@ -6,6 +6,8 @@ import android.content.Context;
 import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 
 import com.atakmap.android.maps.MapView;
@@ -211,10 +213,12 @@ final class LocalPlanner {
         Spinner status = spinner(fields, "Status", STATUSES);
         status.setSelection(original == null ? 0 : original.status.ordinal());
         EditText owner = field(fields, inputs, DraftForm.Field.OWNER, "Ägare (grupp/roll)", original == null ? "" : original.owner, false);
-        EditText deployed = field(fields, inputs, DraftForm.Field.DEPLOYED_AT,
-                "Utplacerad UTC (valfri), t.ex. 2026-10-17T12:30:00Z", original == null || original.deployedAt == null ? "" : original.deployedAt.toString(), false);
+        DeploymentTimeInput deployed = new DeploymentTimeInput(context, original == null ? null : original.deployedAt);
+        fields.addView(deployed);
         EditText comment = field(fields, inputs, DraftForm.Field.COMMENT, "Kommentar (max 2000)", original == null ? "" : original.comment, false);
         comment.setSingleLine(false);
+        comment.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
         comment.setMinLines(2);
         GeoPoint center = map.getPoint().get();
         EditText latitude = field(fields, inputs, DraftForm.Field.LATITUDE, "Latitud (−90 till 90)", DraftForm.decimalText(original == null ? center.getLatitude() : original.position.latitude), true);
@@ -236,6 +240,7 @@ final class LocalPlanner {
                 .setView(scroll(fields)).setPositiveButton("Spara lokalt", null)
                 .setNegativeButton("Avbryt", (ignored, which) -> list()).create();
         dialog = editor;
+        editor.setOnDismissListener(ignored -> deployed.close());
         editor.setCanceledOnTouchOutside(false);
         editor.show();
         editor.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
@@ -243,7 +248,7 @@ final class LocalPlanner {
             for (EditText input : inputs.values()) input.setError(null);
             formError.setText("");
             DraftForm.Result result = DraftForm.validate(original, value(id), TYPES[type.getSelectedItemPosition()],
-                    DeviceStatus.values()[status.getSelectedItemPosition()], value(owner), value(deployed), value(comment),
+                    DeviceStatus.values()[status.getSelectedItemPosition()], value(owner), deployed.utcText(), value(comment),
                     value(latitude), value(longitude), value(bearing), Instant.now());
             if (!result.isValid()) {
                 EditText firstError = null;
@@ -361,7 +366,20 @@ final class LocalPlanner {
                            DraftForm.Field key, String title, String initial, boolean decimal) {
         TextView label = label(title);
         parent.addView(label);
-        EditText input = new EditText(context);
+        EditText input = new EditText(context) {
+            @Override public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo info) {
+                android.view.inputmethod.InputConnection connection = super.onCreateInputConnection(info);
+                // Multiline comments still use Done on the soft keyboard; hardware Enter inserts a newline.
+                info.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+                return connection;
+            }
+
+            @Override public void getFocusedRect(android.graphics.Rect rect) {
+                super.getFocusedRect(rect);
+                // Include the adjacent label when the dialog scrolls for focus or a resized keyboard.
+                rect.top -= label.getHeight();
+            }
+        };
         input.setId(View.generateViewId());
         label.setLabelFor(input.getId());
         input.setContentDescription(title);
@@ -375,7 +393,17 @@ final class LocalPlanner {
             input.setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
         }
         input.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
-        input.setImeOptions(android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        input.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        input.setOnEditorActionListener((view, action, event) -> {
+            boolean enter = key != DraftForm.Field.COMMENT && event != null
+                    && event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER;
+            if (action != EditorInfo.IME_ACTION_DONE && !enter) return false;
+            if (enter && event.getAction() != android.view.KeyEvent.ACTION_UP) return true;
+            InputMethodManager keyboard = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (keyboard != null) keyboard.hideSoftInputFromWindow(input.getWindowToken(), 0);
+            return true;
+        });
         input.setText(initial);
         fields.put(key, input);
         parent.addView(input);
@@ -430,7 +458,7 @@ final class LocalPlanner {
             case INVALID_NUMBER: return "Ange decimalgrader med punkt eller komma";
             case OUT_OF_RANGE: return "Värdet ligger utanför intervallet i fältets rubrik";
             case BEARING_UNSUPPORTED: return "Endast PIR och Scout har bäring. Rensa fältet om du byter typ.";
-            case INVALID_TIMESTAMP: return "Ange UTC, t.ex. 2026-10-17T12:30:00Z, eller lämna tomt";
+            case INVALID_TIMESTAMP: return "Välj ett giltigt datum och klockslag, eller rensa utplaceringstiden";
             case COMMENT_TOO_LONG: return "Kommentaren är för lång (max 2000)";
             case CLOCK_BEFORE_UPDATE: return "Klockan är före senaste ändringen. Kontrollera enhetens tid.";
             case REVISION_EXHAUSTED: return "Revisionen kan inte ökas. Utkastet har inte ändrats.";

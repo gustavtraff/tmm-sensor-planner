@@ -196,3 +196,12 @@ worker/UI and stop boundaries, offline checks and deterministic SDK fault-inject
 procedure. Verify restoration before any TMM list/review/centering action; source
 persistence alone does not prove that a map layer was restored. Changed-code SDK
 evidence and service-signed standard-client/phone acceptance are separate gates.
+
+## Form completion and deployment selectors (#51)
+
+[FORM_ENTRY.md](FORM_ENTRY.md) specifies Done/focus behavior, optional local-time
+selection, explicit clear, cancellation, exact preservation of existing Instants
+and daylight-saving handling. The private SDK check now includes app unit tests
+for UTC date/year rollover, overlap and gap conversion. These app tests require
+the local SDK; public core/images CI does not run them or establish actual
+keyboard, small-screen, standard-client or phone acceptance.

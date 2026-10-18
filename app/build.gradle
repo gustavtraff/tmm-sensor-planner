@@ -104,4 +104,5 @@ android.sourceSets.main.java.srcDir '../core/src/main/java'
 
 dependencies {
     implementation project(':images')
+    testImplementation 'junit:junit:4.13.2'
 }

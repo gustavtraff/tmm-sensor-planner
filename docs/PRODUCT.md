@@ -35,3 +35,14 @@ review and local map selection on API 26+, including normalized local images.
 The [manual metadata-sharing lab](METADATA_SHARE_LAB.md) adds explicitly reviewed
 saved metadata to one isolated SDK-lab recipient; images are excluded. Production
 sharing and physical-phone restart/field acceptance remain open.
+
+## Form entry (#51)
+
+Keyboard Done completes editing without advancing focus or saving. Deployment time
+is optional and manually selected with local date/time controls; choosing a status
+or saving a Planned draft never supplies a timestamp. An empty selector starts at
+now when opened, while existing values are preserved until explicitly replaced or
+cleared. Both selector confirmations are required; cancellation changes nothing.
+The timezone and selected UTC offset are displayed. Storage remains a UTC Instant
+with no schema change. [FORM_ENTRY.md](FORM_ENTRY.md) records minute precision for
+new selections, daylight-saving handling and actual-client verification limits.

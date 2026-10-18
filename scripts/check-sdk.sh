@@ -7,5 +7,5 @@ set -eu
 : "${TMM_ATAK_SDK_DIR:?Set TMM_ATAK_SDK_DIR to the inspected external ATAK SDK}"
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$repo_dir"
-./gradlew --no-daemon :app:assembleCivDebug :app:lintCivDebug
+./gradlew --no-daemon :app:assembleCivDebug :app:lintCivDebug :app:testCivDebugUnitTest
 python3 scripts/check-plugin-apk.py app/build/outputs/apk/civ/debug/app-civ-debug.apk
