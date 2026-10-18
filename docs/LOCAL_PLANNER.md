@@ -37,7 +37,9 @@ An uncertain save keeps entered text and disables repeat saving until the user r
 The map uses one plugin-owned in-memory database/FeatureLayer3 per planner lifetime.
 Updates replace feature sets under the SDK bulk modification lock; unload queues
 database disposal after GL renderer release, so its query worker cannot access a
-closed database. The first emulator run exposed a crash from replacing/discarding
+closed database. The layer retains its original render queue for late host shutdown,
+rather than dereferencing a GL surface that ATAK has already removed; see
+[the shutdown reproduction and correction](MARKER_RESTORE.md#shutdown-correction-and-final-combined-artifact). The first emulator run exposed a crash from replacing/discarding
 the database on each refresh; that approach was removed before review readiness. The owner-approved [device pictograms](DEVICE_SYMBOLS.md) replace the provisional
 M/S/P/G disc artwork in four 64 px PNG point icons, so type shape remains visible
 even when the SDK declutters labels. The vector masters follow the private reference
