@@ -50,7 +50,10 @@ A PIR/Scout arrow is a fixed **100 m direction cue**, not sensor range. Tapping 
 point wins if labels overlap. The list remains an alternative for overlapping points.
 **Visa på kartan** centers the saved point. A successful load rebuilds the layer; unload
 removes the layer/listener and dialogs. A rendering failure removes the stale view,
-retains saved data and reports an error. After ATAK restart, open the toolbar to reload.
+retains saved data and reports an error. On permitted API-26+ offline plugin startup,
+the [saved-marker restoration path](MARKER_RESTORE.md) now reads and renders saved
+drafts automatically without opening TMM or centering the map. The toolbar still
+provides explicit list/reload controls.
 
 ## Runtime, storage and privacy boundaries
 
@@ -105,8 +108,10 @@ host over a phone's standard ATAK app or put the APK on any feed.
    Compare coordinate direction, not a magnetic-north display assumption.
 4. Review and tap points, move via form coordinates, check recalculated neighbors and
    gateway list. Try a duplicate label, cancel its warning, then explicitly save it.
-5. Force-stop/relaunch ATAK offline. Reopen the toolbar, verify all saved fields/UUIDs,
-   revision and rendered positions. Unload/reload plugin, verify layer/listener cleanup.
+5. Force-stop/relaunch ATAK offline. Before opening TMM, verify restored markers
+   in the existing viewport and absence of planner dialogs. Then reopen the toolbar
+   to verify saved fields/UUIDs/revision. Unload/reload without opening TMM and verify
+   layer/listener cleanup/restoration; follow MARKER_RESTORE.md for failure cases.
 6. Retain a synthetic v1 snapshot and install a subsequent build with `adb install -r`;
    verify it reopens unchanged. Separately corrupt a copy/change schema version, verify
    visible load failure without rewriting it, and restore the valid test copy afterward.

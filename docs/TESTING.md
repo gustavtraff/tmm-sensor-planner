@@ -179,3 +179,11 @@ The source-archive tests additionally reject wrong/missing takdev Maven versions
 under the [saved service requirements](references/TAK_SOURCE_ARCHIVE_REQUIREMENTS.md).
 The [submitted-ZIP audit](SOURCE_REQUIREMENTS_AUDIT.md) distinguishes static
 conformance, actual task execution and the still-blocked authorized Maven preflight.
+
+## Automatic saved-marker restoration (#50)
+
+[MARKER_RESTORE.md](MARKER_RESTORE.md) records the shared startup/toolbar load path,
+worker/UI and stop boundaries, offline checks and deterministic SDK fault-injection
+procedure. Verify restoration before any TMM list/review/centering action; source
+persistence alone does not prove that a map layer was restored. Changed-code SDK
+evidence and service-signed standard-client/phone acceptance are separate gates.
