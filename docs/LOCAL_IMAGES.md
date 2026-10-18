@@ -7,6 +7,12 @@ Host resource correction: [#62](https://github.com/gustavtraff/tmm-sensor-planne
 The offline planner uses this library for one image per saved device. Host-side
 library/metadata tests do not need an emulator or private ATAK SDK.
 
+The returned service-signed versionCode 10 now passes bounded standard ATAK-CIV
+5.6.0.25 preview Cancel/Save, the corrected Swedish size notice and image reopening
+after restart, using a generated 3072 × 4096 JPEG. See [the exact candidate and
+limits](STANDARD_CLIENT_VERIFICATION.md#latest-signed-candidate--2026-10-18);
+the owner’s original phone photo/provider remains an acceptance check.
+
 ## Build and test
 
 The standalone `images` Android library uses the repository's pinned Gradle 8.14.3,
