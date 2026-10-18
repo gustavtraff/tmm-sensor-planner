@@ -188,3 +188,11 @@ bounded sampled copies, metadata/source preservation and unchanged legacy PNG
 reads. Native tests also cover copy-size boundaries and safe, distinct preparation
 messages. This does not establish physical-phone/provider or standard-host
 acceptance of the new APK; versionCode 7 signing evidence does not cover version 8.
+
+## Automatic saved-marker restoration (#50)
+
+[MARKER_RESTORE.md](MARKER_RESTORE.md) records the shared startup/toolbar load path,
+worker/UI and stop boundaries, offline checks and deterministic SDK fault-injection
+procedure. Verify restoration before any TMM list/review/centering action; source
+persistence alone does not prove that a map layer was restored. Changed-code SDK
+evidence and service-signed standard-client/phone acceptance are separate gates.
