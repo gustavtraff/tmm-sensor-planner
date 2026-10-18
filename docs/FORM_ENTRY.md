@@ -11,7 +11,8 @@ landscape fullscreen extract editor. Done hides the keyboard, keeps focus and
 entered text, and neither saves nor navigates to another field. Hardware Enter in
 single-line fields also completes editing; multiline comments retain hardware
 Enter for newlines. Touch, hardware Tab and accessibility navigation are available.
-The field's focused rectangle includes its preceding label so dialog scrolling
+Comments use a two-to-three-line input area with internal scrolling for longer
+text. The field's focused rectangle includes its preceding label so dialog scrolling
 and keyboard resizing keep the active label in view.
 
 Deployment time has **Välj datum och tid** and **Rensa utplaceringstid** controls.

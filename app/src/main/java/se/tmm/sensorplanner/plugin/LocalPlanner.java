@@ -220,6 +220,7 @@ final class LocalPlanner {
         comment.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
                 | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
         comment.setMinLines(2);
+        comment.setMaxLines(3);
         GeoPoint center = map.getPoint().get();
         EditText latitude = field(fields, inputs, DraftForm.Field.LATITUDE, "Latitud (−90 till 90)", DraftForm.decimalText(original == null ? center.getLatitude() : original.position.latitude), true);
         EditText longitude = field(fields, inputs, DraftForm.Field.LONGITUDE, "Longitud (−180 till 180)", DraftForm.decimalText(original == null ? center.getLongitude() : original.position.longitude), true);
@@ -377,7 +378,7 @@ final class LocalPlanner {
             @Override public void getFocusedRect(android.graphics.Rect rect) {
                 super.getFocusedRect(rect);
                 // Include the adjacent label when the dialog scrolls for focus or a resized keyboard.
-                rect.top -= label.getHeight();
+                rect.top = -label.getHeight();
             }
         };
         input.setId(View.generateViewId());
