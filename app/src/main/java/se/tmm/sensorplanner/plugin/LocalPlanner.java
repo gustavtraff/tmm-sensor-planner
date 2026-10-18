@@ -49,7 +49,8 @@ final class LocalPlanner {
     private boolean loading;
     private boolean showAfterLoad;
 
-    LocalPlanner(MapView map, IHostUIService ui, BooleanSupplier localAllowed, BooleanSupplier labAllowed) throws Exception {
+    LocalPlanner(MapView map, IHostUIService ui, BooleanSupplier localAllowed, BooleanSupplier labAllowed,
+                 String imageCopyNotice) throws Exception {
         this.localAllowed = localAllowed;
         this.labAllowed = labAllowed;
         this.map = map;
@@ -61,7 +62,7 @@ final class LocalPlanner {
         LocalImages images = new LocalImages(new java.io.File(context.getNoBackupFilesDir(),
                 "se.tmm.sensorplanner/local-images-v1").toPath());
         attachments = new DraftAttachments(store, images);
-        imagesUi = new LocalImageUi(context, worker, images, attachments, new LocalImageUi.Listener() {
+        imagesUi = new LocalImageUi(context, imageCopyNotice, worker, images, attachments, new LocalImageUi.Listener() {
             @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
             @Override public void committed(DraftAttachments.Result result, UUID uid) {
                 if (closed) return;

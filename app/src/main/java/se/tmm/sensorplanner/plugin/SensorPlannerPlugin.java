@@ -11,6 +11,7 @@ import com.atakmap.android.maps.MapView;
 import java.util.Objects;
 
 import se.tmm.sensorplanner.plugin.local.LocalTrialSession;
+import se.tmm.sensorplanner.images.LocalImages;
 
 import gov.tak.api.commons.graphics.Bitmap;
 import gov.tak.api.plugin.IPlugin;
@@ -25,6 +26,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     private final IHostUIService hostUi;
     private final ToolbarItem entry;
     private final ToolbarItem cotEntry;
+    private final String imageCopyNotice;
     private volatile boolean started;
     private final LocalTrialSession localSession = new LocalTrialSession();
     private volatile AlertDialog trialConsent;
@@ -37,6 +39,7 @@ public final class SensorPlannerPlugin implements IPlugin {
         PluginContextProvider provider = Objects.requireNonNull(
                 services.getService(PluginContextProvider.class), "PluginContextProvider unavailable");
         Context context = Objects.requireNonNull(provider.getPluginContext(), "Plugin context unavailable");
+        imageCopyNotice = context.getString(R.string.local_image_copy_notice, LocalImages.MAX_COPY_EDGE);
         hostUi = Objects.requireNonNull(services.getService(IHostUIService.class), "Host UI unavailable");
         Bitmap icon = Objects.requireNonNull(MarshalManager.marshal(
                 context.getDrawable(R.drawable.planner_icon), Drawable.class, Bitmap.class),
@@ -129,7 +132,7 @@ public final class SensorPlannerPlugin implements IPlugin {
             }
             return;
         }
-        if (planner == null) planner = new LocalPlanner(map, hostUi, this::localAllowed, this::labAllowed);
+        if (planner == null) planner = new LocalPlanner(map, hostUi, this::localAllowed, this::labAllowed, imageCopyNotice);
         if (showList) planner.show();
         else planner.restore();
     }

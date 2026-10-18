@@ -1,5 +1,10 @@
 # Tests and gates
 
+The [#62 image-copy notice check](LOCAL_IMAGES.md#image-copy-notice-resource-boundary-62--2026-10-18)
+verifies the actual SDK-host resource lookup, formatted size disclosure and local
+Cancel/Save behavior. Public image tests alone cannot catch a host/plugin resource
+ID collision. Standard-client verification requires the new signed candidate.
+
 Issue #4's [connected local trial](CONNECTED_LOCAL_TRIAL.md) adds a session-policy
 test to the independent `images` test source set. It checks explicit opt-in,
 connectivity changes, disabled lab access, reset and a fresh session. It does not
