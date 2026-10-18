@@ -2,6 +2,7 @@
 
 Issue: [#13](https://github.com/gustavtraff/tmm-sensor-planner/issues/13), F09/A05.
 Integration: [#35](https://github.com/gustavtraff/tmm-sensor-planner/issues/35).
+Phone-photo correction: [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49).
 The offline planner uses this library for one image per saved device. Host-side
 library/metadata tests do not need an emulator or private ATAK SDK.
 
@@ -34,20 +35,27 @@ The accepted [ADR 0006](decisions/0006-local-mvp-product-rules.md) remains autho
 
 - Static JPEG/PNG detected from bytes, not a filename or supplied MIME type.
 - Input at most 10,485,760 bytes, read with a bounded stream before decoding.
-- Positive dimensions and at most 20,000,000 pixels checked before bitmap allocation;
-  multiplication uses a long. No silent downscaling.
+- Positive source dimensions and at most 20,000,000 pixels checked before bitmap
+  allocation; multiplication uses a long. New local copies are at most **1,600
+  pixels on their longest side**, preserving aspect ratio with integer rounding.
+  Smaller inputs are not enlarged. The save preview explicitly explains this
+  reduction and offers Save locally or Cancel; the original stays untouched.
 - Structural PNG chunk/CRC checks reject truncation, trailing content and APNG.
   JPEG framing checks reject truncation, concatenated pictures and MPO.
   Android decoding must then succeed. These checks do not guarantee detection of
   every damaged JPEG entropy bit that a platform decoder can tolerate.
 - EXIF rotations and reflections are applied to pixels, including all eight
-  orientations. Pixels are drawn to a fresh ARGB bitmap and encoded as a static PNG,
+  orientations. Large sources are sampled during decoding rather than first
+  allocating full-resolution bitmaps. Orientation and scaling are drawn together
+  into one fresh bounded ARGB bitmap and encoded as a static PNG,
   without copying original EXIF/GPS, text, thumbnails or embedded metadata.
   Source color profiles are not preserved. Normalization is not forensic erasure
   and does not remove sensitive information visibly drawn in an image.
-- The normalized output must satisfy the same byte/pixel limits. A JPEG that fits
-  the input limit may expand to a PNG that is rejected. Low memory is an explicit
-  preparation failure; the pixel ceiling does not promise every phone can allocate it.
+- The normalized output still has a 10 MiB byte limit. The bounded local dimensions
+  prevent the previous full-resolution JPEG-to-PNG expansion failure in the
+  reproduced camera-size fixture. Low memory remains an explicit failure; no
+  every-device memory guarantee is made. Old full-resolution owned PNGs remain
+  readable under the original 10 MiB / 20-million-pixel limits and are not rewritten.
 - Source streams/files are never modified. The caller owns and closes the source
   stream. The original is never written into the image directory.
 
@@ -101,15 +109,16 @@ wire reference, attachment transport, CoT field or sharing implementation here.
 Save a device first, then use **Lägg till bild** in its detail view. The system
 local-document picker requests JPEG/PNG; byte validation remains authoritative.
 Cancel leaves the saved device unchanged. The worker copies and normalizes the
-selected document, and the preview displays only that normalized copy. **Spara bilden lokalt**
+selected document, and the scrollable preview displays only that normalized copy
+with the 1,600-pixel reduction notice. **Spara bilden lokalt**
 explicitly attaches it. **Ersätt bild**, **Visa bild** and confirmed **Ta bort bild**
 operate on the same saved record. Deleting a draft commits metadata before safe
 image cleanup. Viewing a missing/unsupported reference reports an error and retains
 metadata. An uncertain save asks for a fresh reload rather than blind retry.
 
 Preview decoding runs on the worker with a sampled display bitmap (approximately
-1,024 pixels on its longest side). The stored normalized file retains its validated
-resolution. Picker/read/normalization operations use the same serialized worker as
+1,024 pixels on its longest side). New stored copies have the 1,600-pixel longest-side cap; legacy files retain their
+existing validated resolution. Picker/read/normalization operations use the same serialized worker as
 metadata; a slow document provider may delay later operations. No persistent URI
 grant or original URI is stored. Close unregisters the result callback and discards
 uncommitted pending copies. No broad photo/storage permission is requested.
@@ -171,3 +180,54 @@ host, low-memory/provider hangs, unload with a picker outstanding, standard
 Cancellation/cleanup I/O failures and process death can leave unreferenced copies.
 Private test APK SHA-256:
 `80c138bf304f2a445f4e733944baffa71bfdea522d27ecd44e1c20fcb246b65b`.
+
+## Phone-photo failure and correction (#49) — 2026-10-18
+
+The owner reported that an approximately 4.4 MB, 3072×4096 camera JPG failed with
+the generic preparation/limits message, while a 2400×1080 screenshot succeeded.
+The JPG's 12,582,912 source pixels and reported bytes are below both input caps.
+No original phone photograph was obtained; its exact failure cause remains
+unverified. A synthetic detailed JPEG at the same dimensions (JPEG quality 40,
+seeded noise, EXIF orientation 6) reproduces the previous failure during PNG
+compression. A separate unbounded PNG encode of the same decoded fixture is
+asserted to exceed 10 MiB. The regression failed against the old implementation
+before the fix.
+
+New copies are explicitly reviewed at a maximum 1,600-pixel longest side. This
+replaces the former reject-instead-of-resize default through human review of #49;
+it does not change the owner-confirmed 10 MiB input cap or metadata-removal rule.
+The compromise is reduced detail in the local copy; the source photo stays intact.
+There is no full-resolution attachment option in this fix and no image sharing.
+
+Preparation errors now distinguish oversized original bytes, excessive source
+pixels, unsupported/undecodable still images, low memory, oversized normalized
+output and copy-write failure. Unclassified provider/read failures recommend a
+local file without displaying raw exception text or a URI. Existing attachments
+are preserved. Failed/ambiguous metadata saves still use the existing separate
+reload-before-retry message and retention policy.
+
+Tests additionally cover the camera-size copy's dimensions/EXIF removal/reopen,
+source immutability, 1,599/1,600/1,601-pixel and transparency boundaries, unchanged
+legacy PNG bytes, safe failure categories and translated messages. The snapshot
+v1/UUID-PNG handle contract is unchanged; this is not a storage migration.
+Phone/provider and standard-host revalidation require the newly signed version;
+the already signed versionCode 7 APK is unchanged by this branch.
+
+### Local verification of the #49 branch
+
+- Standalone `testDebugUnitTest lintDebug`: passed, **39 tests**, no failures or
+  skips (24 native image cases across API 26/35, 14 attachment-coordinator cases
+  across API 26/35, one safe-message test); image lint has zero errors and one
+  `UseRequiresApi` warning.
+- `sh scripts/test.sh`: passed, including the existing snapshot-v1 fixture,
+  separate-process reopen and the synthetic 100-device scenario.
+- SDK 5.6.0.24 debug/release assembly and both app lint variants: passed using
+  the pinned toolchain. Debug APK signature/discovery/permission/packaging checks
+  passed with the existing unsigned metadata-entry warnings. Local debug signing
+  and unsigned release output are not a new service-signed phone artifact.
+
+VersionCode 8 / `0.1.0-camera-image-fix.1` distinguishes this correction from the
+owner-tested versionCode 7. Actual ATAK picker/preview layout and the owner's
+original camera/provider need retesting after a reviewed source submission and
+returned signed output. No new emulator or physical-phone runtime test, service
+upload, feed publication or release is claimed by these local checks.

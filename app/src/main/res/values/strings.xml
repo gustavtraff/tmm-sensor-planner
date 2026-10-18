@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">TMM Sensor Planner</string>
     <string name="app_desc">Lokal offline-prototyp för TMM-utkast och isolerat CoT-labb med syntetiska data.</string>
+    <string name="local_image_copy_notice">Granska bildkopian före sparning. Stora bilder skalas ned till högst %1$d pixlar på längsta sidan. Originalfilen ändras inte.</string>
 </resources>

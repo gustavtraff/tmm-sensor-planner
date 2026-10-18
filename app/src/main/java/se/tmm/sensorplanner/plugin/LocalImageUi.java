@@ -12,6 +12,10 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.ScrollView;
+import se.tmm.sensorplanner.plugin.images.ImagePreparationMessages;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.ActivityResultRegistryOwner;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -130,7 +134,8 @@ final class LocalImageUi {
             } catch (Exception | OutOfMemoryError failure) {
                 if (bitmap != null) bitmap.recycle();
                 closePending(prepared);
-                main.post(() -> fail("Bilden kunde inte förberedas. Använd JPEG/PNG, högst 10 MiB och 20 miljoner pixlar. Befintlig bild behålls."));
+                String message = ImagePreparationMessages.forFailure(failure);
+                main.post(() -> fail(message));
             }
         });
     }
@@ -156,9 +161,21 @@ final class LocalImageUi {
         image.setAdjustViewBounds(true);
         image.setMaxHeight(context.getResources().getDisplayMetrics().heightPixels / 2);
         image.setImageBitmap(bitmap);
+        LinearLayout content = new LinearLayout(context);
+        content.setOrientation(LinearLayout.VERTICAL);
+        if (replace) {
+            TextView notice = new TextView(context);
+            notice.setText(context.getString(R.string.local_image_copy_notice, LocalImages.MAX_COPY_EDGE));
+            int padding = Math.round(16 * context.getResources().getDisplayMetrics().density);
+            notice.setPadding(padding, padding, padding, padding);
+            content.addView(notice);
+        }
+        content.addView(image);
+        ScrollView scroll = new ScrollView(context);
+        scroll.addView(content);
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setTitle(replace ? "Granska lokal bild – delas inte" : "Lokal bild – delas inte")
-                .setView(image).setNegativeButton(replace ? "Avbryt" : "Stäng", null);
+                .setView(scroll).setNegativeButton(replace ? "Avbryt" : "Stäng", null);
         if (replace) builder.setPositiveButton("Spara bilden lokalt", (ignored, which) -> {
             if (closed || !listener.available()) return;
             LocalImages.Pending selected;
