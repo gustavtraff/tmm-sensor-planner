@@ -26,9 +26,11 @@ This JDK is only the core's test environment, not a decision about the ATAK tool
 The script includes local snapshot tests and launches separate writer/reader JVMs;
 it needs a writable temporary directory and uses only synthetic data. No server is needed.
 See [LOCAL_STORAGE.md](LOCAL_STORAGE.md) for schema and failure behavior. The APK
-now calls it only through an API-26-guarded offline prototype; minSdk remains 21
+now calls it only through an API-26-guarded local prototype; minSdk remains 21
 and older clients show an unavailable message. See [LOCAL_PLANNER.md](LOCAL_PLANNER.md)
-for private storage, lifecycle and the remaining Android/phone gates.
+for private storage, lifecycle and the remaining Android/phone gates. The explicit
+[connected local trial](CONNECTED_LOCAL_TRIAL.md) has no new ATAK API or data
+contract; its session rules are tested with the independent images test project.
 
 ## Current ATAK target and SDK
 

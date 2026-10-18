@@ -46,6 +46,9 @@ phone-photo fix proposes explicitly reviewed local copies capped at 1,600 pixels
 on the longest side; ADR 0006 records this human-review amendment, with source
 limits and immutable originals preserved. Production
 connected privacy, physical image/provider acceptance and sharing remain pending.
+Issue #4 adds an explicitly selected, session-only connected local trial with TMM
+lab sharing disabled. This is a reviewable test candidate, not a production-network
+approval; see [ADR 0009](decisions/0009-connected-local-trial.md).
 See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md).
 
 ### Functional requirements

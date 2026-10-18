@@ -19,13 +19,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BooleanSupplier;
 
 import gov.tak.api.ui.IHostUIService;
 import se.tmm.sensorplanner.core.*;
 import se.tmm.sensorplanner.images.LocalImages;
 import se.tmm.sensorplanner.plugin.images.DraftAttachments;
 
-/** Offline local prototype; kept behind the entry point's API 26 runtime guard. */
+/** Local prototype; API 26 and session access are enforced by the entry point. */
 @TargetApi(26)
 final class LocalPlanner {
     private static final DeviceType[] TYPES = {DeviceType.MINI, DeviceType.SCOUT, DeviceType.PIR, DeviceType.GATEWAY};
@@ -34,6 +35,8 @@ final class LocalPlanner {
     private final Context context;
     private final IHostUIService ui;
     private final DraftStore store;
+    private final BooleanSupplier localAllowed;
+    private final BooleanSupplier labAllowed;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final DraftAttachments attachments;
     private final LocalImageUi imagesUi;
@@ -46,7 +49,9 @@ final class LocalPlanner {
     private boolean loading;
     private boolean showAfterLoad;
 
-    LocalPlanner(MapView map, IHostUIService ui) throws Exception {
+    LocalPlanner(MapView map, IHostUIService ui, BooleanSupplier localAllowed, BooleanSupplier labAllowed) throws Exception {
+        this.localAllowed = localAllowed;
+        this.labAllowed = labAllowed;
         this.map = map;
         this.context = map.getContext();
         this.ui = ui;
@@ -57,7 +62,7 @@ final class LocalPlanner {
                 "se.tmm.sensorplanner/local-images-v1").toPath());
         attachments = new DraftAttachments(store, images);
         imagesUi = new LocalImageUi(context, worker, images, attachments, new LocalImageUi.Listener() {
-            @Override public boolean available() { return !closed && OfflineMode.isOffline(context); }
+            @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
             @Override public void committed(DraftAttachments.Result result, UUID uid) {
                 if (closed) return;
                 refresh(result.drafts);
@@ -66,11 +71,11 @@ final class LocalPlanner {
             }
             @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
         });
-        sharing = new LocalShareUi(context, ui, store, worker, () -> !closed && OfflineMode.isOffline(context));
+        sharing = new LocalShareUi(context, ui, store, worker, () -> !closed && labAllowed.getAsBoolean());
     }
 
     private void selected(UUID uid) {
-        if (!closed && !loading && !isBusy() && (dialog == null || !dialog.isShowing()) && OfflineMode.isOffline(context)) {
+        if (!closed && !loading && !isBusy() && (dialog == null || !dialog.isShowing()) && localAllowed.getAsBoolean()) {
             for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) {
                 review(draft);
                 break;
@@ -84,8 +89,8 @@ final class LocalPlanner {
 
     private void load(boolean showList) {
         if (closed) return;
-        if (!OfflineMode.isOffline(context)) {
-            if (showList) offline();
+        if (!localAllowed.getAsBoolean()) {
+            if (showList) localAccess();
             return;
         }
         if (loading) { showAfterLoad |= showList; return; }
@@ -101,10 +106,10 @@ final class LocalPlanner {
                     loading = false;
                     boolean openList = showAfterLoad;
                     showAfterLoad = false;
-                    // The device may have left offline mode while the worker read storage.
-                    if (!OfflineMode.isOffline(context)) {
+                    // Session access may have ended while the worker read storage.
+                    if (!localAllowed.getAsBoolean()) {
                         clearLayer();
-                        if (openList) offline();
+                        if (openList) localAccess();
                         return;
                     }
                     refresh(loaded);
@@ -135,18 +140,19 @@ final class LocalPlanner {
         layer = null;
     }
 
-    private boolean offline() {
-        if (OfflineMode.isOffline(context)) return true;
-        ui.showToast("Prototypen kräver flygplansläge och avstängt nätverk");
+    private boolean localAccess() {
+        if (localAllowed.getAsBoolean()) return true;
+        ui.showToast("Öppna TMM och välj lokalt test, eller använd offline-läge");
         return false;
     }
 
     private void list() {
-        if (!offline() || closed || isBusy()) return;
+        if (!localAccess() || closed || isBusy()) return;
         String[] rows = new String[drafts.size()];
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
-        dialog = new AlertDialog.Builder(context).setTitle("TMM – lokala utkast (" + rows.length + ")")
+        dialog = new AlertDialog.Builder(context).setTitle("TMM – lokala utkast (" + rows.length + ")"
+                        + (labAllowed.getAsBoolean() ? "" : " · testläge"))
                 .setItems(rows, (ignored, index) -> review(drafts.get(index)))
                 .setPositiveButton("Skapa enhet", (ignored, which) -> form(null))
                 .setNeutralButton("Läs om", (ignored, which) -> { dismiss(); show(); })
@@ -155,7 +161,7 @@ final class LocalPlanner {
     }
 
     private void review(TmmDraft draft) {
-        if (closed || !offline()) return;
+        if (closed || !localAccess()) return;
         StringBuilder text = new StringBuilder("Lokalt utkast – ingen automatisk delning\nEndast syntetiska testdata i denna prototyp.\n\n");
         text.append(title(draft)).append("\nÄgare: ").append(draft.owner)
                 .append("\nLatitud: ").append(draft.position.latitude)
@@ -192,7 +198,7 @@ final class LocalPlanner {
             content.addView(button("Visa bild", () -> imagesUi.view(draft)));
             content.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
         }
-        content.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
+        if (labAllowed.getAsBoolean()) content.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
         content.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle(draft.displayId)
@@ -202,7 +208,7 @@ final class LocalPlanner {
     }
 
     private void form(TmmDraft original) {
-        if (closed || isBusy() || !offline()) return;
+        if (closed || isBusy() || !localAccess()) return;
         LinearLayout fields = column();
         fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
                 + "Positionen anges i decimalgrader; ny enhet använder kartans mittpunkt."));
@@ -245,7 +251,7 @@ final class LocalPlanner {
         editor.setCanceledOnTouchOutside(false);
         editor.show();
         editor.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
-            if (closed || !offline()) return;
+            if (closed || !localAccess()) return;
             for (EditText input : inputs.values()) input.setError(null);
             formError.setText("");
             DraftForm.Result result = DraftForm.validate(original, value(id), TYPES[type.getSelectedItemPosition()],
@@ -275,7 +281,7 @@ final class LocalPlanner {
     }
 
     private void save(TmmDraft draft, AlertDialog editor, LinearLayout fields, TextView error) {
-        if (closed || !editor.isShowing() || !offline()) return;
+        if (closed || !editor.isShowing() || !localAccess()) return;
         busy(editor, fields, true);
         worker.execute(() -> {
             try {
@@ -300,13 +306,13 @@ final class LocalPlanner {
     }
 
     private void confirmDelete(TmmDraft draft) {
-        if (closed || isBusy() || !offline()) return;
+        if (closed || isBusy() || !localAccess()) return;
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle("Ta bort lokalt utkast?")
                 .setMessage("Detta tar bara bort det lokala utkastet. Ingen server eller mottagare påverkas.")
                 .setNegativeButton("Avbryt", (ignored, which) -> review(draft))
                 .setPositiveButton("Ta bort", (ignored, which) -> {
-                    if (closed || !offline()) return;
+                    if (closed || !localAccess()) return;
                     worker.execute(() -> {
                         try {
                             DraftAttachments.Result result = attachments.delete(draft);
@@ -428,7 +434,7 @@ final class LocalPlanner {
         Button button = new Button(context);
         button.setText(text);
         button.setMinHeight(dp(48));
-        button.setOnClickListener(view -> { if (!closed && !isBusy() && offline()) action.run(); });
+        button.setOnClickListener(view -> { if (!closed && !isBusy() && localAccess()) action.run(); });
         return button;
     }
 
@@ -480,6 +486,8 @@ final class LocalPlanner {
     private boolean isBusy() { return imagesUi.isBusy() || sharing.isBusy(); }
 
     void cancelSharing() { sharing.stopSending(); }
+
+    void disableSharing() { sharing.close(); }
 
     void close() {
         closed = true;

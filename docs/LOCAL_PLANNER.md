@@ -1,10 +1,13 @@
-# Offline local planner prototype (Issue #12)
+# Local planner prototype (Issues #12 / #4)
 
 The toolbar now opens a local draft list instead of the disposable single-point
-map experiment. This is an **offline test prototype**, not a field release. Use
+map experiment. This is a **local test prototype**, not a field release. Use
 synthetic data only. No domain record is published, exported or added as a normal
 ATAK Marker/MapItem. A separate [manual metadata-sharing lab](METADATA_SHARE_LAB.md) now adds explicit
 single-recipient sharing from saved review; ordinary local operations do not send.
+Offline remains the default. The explicit, session-only
+[connected local trial](CONNECTED_LOCAL_TRIAL.md) permits synthetic-data planning
+after consent while disabling TMM lab sharing for that session; see ADR 0009.
 
 ## Behavior
 
@@ -72,11 +75,12 @@ provides explicit list/reload controls.
   `app/lint.xml` excludes NewApi only for the SDK-independent core source directory;
   core consumers are isolated in API-26-annotated classes behind that runtime guard.
   NewApi remains enabled for all app sources; future callers must keep this boundary.
-- The same fail-closed offline restriction as the earlier map probe is checked before
-  opening the tool and each form/save/delete action: airplane mode, Wi-Fi off, no
-  active connected/connecting network, known host network-state permission. This is
-  a prototype restriction, not observed production network privacy. Re-check the mode
-  when returning to controls; no automatic publication exists when connectivity changes.
+- Session access is checked before local actions. Without connected-trial consent,
+  the fail-closed offline restriction remains: airplane mode, Wi-Fi off, no active
+  connected/connecting network and known host network-state permission. Explicit
+  connected consent permits local actions until Unload/process restart and keeps
+  both lab transports disabled even if connectivity changes again. This is a trial
+  restriction, not approval of production network privacy.
 - The plugin executes as ATAK's UID. Its namespaced storage directory is under the
   **host context's no-backup files directory**, not the separately installed plugin's
   inaccessible app directory, shared storage or a feed. Android no-backup storage is

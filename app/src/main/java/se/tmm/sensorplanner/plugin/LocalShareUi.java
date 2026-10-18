@@ -39,7 +39,7 @@ final class LocalShareUi {
     boolean isBusy() { return busy; }
 
     void show(TmmDraft draft) {
-        if (closed || busy) return;
+        if (closed || busy || !available.getAsBoolean()) return;
         if (!ShareLabRoute.connected(context)) {
             ui.showToast("Inte skickat: kräver isolerat loopback-labb, flygplansläge och en ansluten labbserver");
             return;
