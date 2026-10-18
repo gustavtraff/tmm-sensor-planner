@@ -1,5 +1,12 @@
 # Third-party source archive requirements audit (#7)
 
+**Latest result — 2026-10-18:** The owner submitted the corrected `2.+` source
+archive successfully. The returned signed APK passed static checks and bounded
+standard ATAK-CIV 5.6.0.25 load/unload/restart and companion-panel tests.
+See [the current evidence and remaining gates](STANDARD_CLIENT_VERIFICATION.md).
+The dated investigation below is historical; phone/full A08 and a separate
+credentialed Maven preflight remain unverified.
+
 Date: 2026-10-18. Baseline: the owner's repeated
 [full requirements snapshot](references/TAK_SOURCE_ARCHIVE_REQUIREMENTS.md).
 Before this audit, the project retained summaries and links, not the complete

@@ -6,7 +6,9 @@ TAK.gov's **Source Archive Requirements** on 2026-10-17, repeated on 2026-10-18,
 [the third-party build page](https://tak.gov/user_builds). The owner supplied the
 page URL afterward. Our public web/HTTP checks could not retrieve its requirements
 (the direct HTTP request returned 421), so the pasted text is the requirements
-evidence; current form conditions remain unverified. Nothing has been submitted.
+evidence; current form conditions remain unverified. The owner has since submitted
+the corrected 2.x archive successfully; see
+[the signed standard-client result](STANDARD_CLIENT_VERIFICATION.md).
 
 The complete owner-supplied text is now saved in
 [the requirements snapshot](references/TAK_SOURCE_ARCHIVE_REQUIREMENTS.md).
