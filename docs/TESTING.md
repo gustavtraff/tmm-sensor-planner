@@ -1,5 +1,9 @@
 # Tests and gates
 
+The [#66 image viewer](IMAGE_VIEWER.md) adds native gesture/render/decode tests.
+They do not prove actual ATAK dialog lifecycle, phone gestures or higher-detail
+storage; those are separate acceptance gates.
+
 The [#49 primary-still JPEG regression](LOCAL_IMAGES.md#camera-jpeg-primary-still-compatibility-49--2026-10-20)
 checks camera auxiliary data, primary-image limits, safe normalization and malformed
 framing. The OnePlus photo/provider and a newly signed standard-client candidate
