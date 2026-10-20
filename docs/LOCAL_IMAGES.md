@@ -40,7 +40,7 @@ is not automatically added to main's required status rules by this PR.
 
 The accepted [ADR 0006](decisions/0006-local-mvp-product-rules.md) remains authoritative:
 
-- Static JPEG/PNG detected from bytes, not a filename or supplied MIME type.
+- Primary JPEG still/PNG detected from bytes, not a filename or supplied MIME type.
 - Input at most 10,485,760 bytes, read with a bounded stream before decoding.
 - Positive source dimensions and at most 20,000,000 pixels checked before bitmap
   allocation; multiplication uses a long. New local copies are at most **1,600
@@ -48,8 +48,10 @@ The accepted [ADR 0006](decisions/0006-local-mvp-product-rules.md) remains autho
   Smaller inputs are not enlarged. The save preview explicitly explains this
   reduction and offers Save locally or Cancel; the original stays untouched.
 - Structural PNG chunk/CRC checks reject truncation, trailing content and APNG.
-  JPEG framing checks reject truncation, concatenated pictures and MPO.
-  Android decoding must then succeed. These checks do not guarantee detection of
+  JPEG framing checks validate the first image through its end marker. MPF metadata
+  and trailing auxiliary data are allowed, but EXIF/bitmap decoding receives only
+  the validated primary range. Extra images, gain maps, video and trailing bytes
+  are discarded. Android decoding must then succeed. These checks do not guarantee detection of
   every damaged JPEG entropy bit that a platform decoder can tolerate.
 - EXIF rotations and reflections are applied to pixels, including all eight
   orientations. Large sources are sampled during decoding rather than first
@@ -280,3 +282,77 @@ owner's original photograph/provider or the newly service-signed standard host.
 Keep #62's standard-client check and #49/#7 phone acceptance pending until a new
 reviewed signed artifact is available.
 The task guest was stopped after verification.
+
+## Camera JPEG primary-still compatibility (#49) — 2026-10-20
+
+The owner retested signed versionCode 10 on a OnePlus Nord 2T 5G / Android 14,
+using the available Files picker. Screenshots worked, but existing and newly taken
+ordinary camera photos failed with the unsupported-still-image message. The camera’s
+high-resolution option was off. Actual encoding/container remains unknown; no
+original phone image was obtained. This is not a confirmed diagnosis of that file.
+
+The old JPEG validator unconditionally rejected MPF and required its end marker to
+be the final byte of the entire input. Android’s official [Ultra HDR format](https://developer.android.com/media/platform/hdr-image-format)
+uses a primary JPEG plus an appended gain map and MPF metadata; [Motion Photo](https://developer.android.com/media/platform/motion-photo-format)
+can append video to a still. A synthetic MPF-indexed two-JPEG fixture reproduces
+`INVALID_IMAGE` against the old code before the change. This demonstrates a real
+compatibility defect, not proof that this phone emitted either format.
+
+VersionCode 11 / `0.1.0-camera-primary-still.1` validates JPEG framing through the
+primary end marker, then passes only that range to EXIF reading and both bitmap
+decodes. It does not follow MPF offsets or parse/decode/copy auxiliary pictures,
+HDR recovery data, video/audio or trailing content. Concatenated JPEGs likewise
+produce only the first still, shown for explicit confirmation. The preview now
+discloses this primary-still-only policy as well as resizing. This replaces the
+blanket MPF/trailing-JPEG rejection; it does not add HDR rendering, motion playback,
+MPO browsing or HEIF/HEIC support. PNG/APNG checks are unchanged.
+
+The complete source (including discarded bytes) must still fit **10 MiB**; primary
+pixels remain limited to 20,000,000, and normalized PNGs to 1600 pixels / 10 MiB.
+Original files, stored handles, snapshot v1 and safe metadata commit/Cancel ordering
+are unchanged. Higher-detail viewing and zoom remain separate in #66.
+
+The regression covers MPF plus a second JPEG, a tagged arbitrary trailer, a second
+concatenated JPEG and zero padding. It compares normalized pixels/bytes to the
+ordinary primary, reopens saved output and verifies immutable source bytes. It also
+checks the whole-input cap even when excess bytes are discarded. Truncated primary
+framing followed by another valid JPEG and invalid segment lengths remain rejected.
+The fixture is generated, not a full Ultra HDR encoder/conformance suite. Phone
+acceptance needs the next service-signed APK; keep #49 open until that retest passes.
+
+### Verification of versionCode 11
+
+- Regression failed with `INVALID_IMAGE` against the unchanged validator, before
+  applying the primary-range fix. The final independent image/coordinator/session
+  suite passed **42 tests**, no failures/skips, on API 26/35 native graphics;
+  image lint passed. MPF before and after EXIF/header metadata are both covered.
+- `sh scripts/test.sh` passed, including snapshot-v1/separate-process reopen and
+  the synthetic 100-device scenario. SDK 5.6.0.24 debug/release assembly, app lint,
+  all three app unit tests and the debug APK checker passed. Existing unsigned
+  metadata-entry signature warnings remain.
+- Actual AOSP API 35 arm64 / ATAK-CIV **5.6.0.24 developer host** accepted a generated
+  3072 × 4096, **402,456-byte** JPEG containing MPF, a secondary JPEG and trailing
+  synthetic data. The full Swedish primary-still/1600-pixel notice was visible.
+  EXIF orientation 6 rendered red above blue and saved as a **1600 × 1200 PNG**.
+- MPF after EXIF was also accepted. Cancelling replacement preserved the committed
+  snapshot and old PNG byte for byte and removed only the pending copy. Both
+  generated source files remained unchanged. After a cold process restart the saved
+  image reopened and snapshot/image bytes were identical; no EXIF/text chunks were
+  retained. The captured crash buffer had no fatal exception. Airplane mode, disabled
+  Wi-Fi, first-rule IPv4/IPv6 OUTPUT drops and no reverse tunnels were verified
+  before stopping the fresh synthetic guest. No server profile was configured. The fixture matches the phone's pixel dimensions, not its
+  content, compressed size, provider or complete container implementation.
+
+An early test fixture accidentally contained two conflicting EXIF packets from the
+synthetic encoder/insertion step. It was rejected; that is not a passing camera test
+or proof of a new phone defect. The corrected fixture has exactly one primary EXIF
+packet. Orientation validation was not weakened. Temporary synthetic diagnostics
+were removed before the final build; its DEX contains no diagnostic tag. Initial
+harness reads before async save completion were also discarded in favor of completed
+UI/storage observations. Raw screenshots, inputs and logs remain private.
+
+Tested Android Debug APK SHA-256:
+`6b90553582fdc87818289c5ccdf18d631bf79f0bd5d41cb5fea17f108e538650`.
+This SDK result is distinct from a service-signed standard-host/physical-phone
+result. No new signing upload, release, operational connection or image sharing
+was performed. The OnePlus camera/provider gate remains open in #49/#7.

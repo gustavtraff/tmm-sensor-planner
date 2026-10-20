@@ -171,3 +171,15 @@ selectors, initialized to now only when opening an empty value, cancellation and
 clear behavior, minute precision for new selections and exact preservation of
 existing Instants. No deployment timestamp is derived from status or merely saving
 a draft. UTC storage and snapshot v1 remain unchanged.
+
+## Camera JPEG primary-still amendment (#49) — 2026-10-20
+
+Status: proposed through this PR for human review. Allow bounded JPEG inputs with
+auxiliary camera data, but save only the validated primary still. Discard extra
+pictures, HDR recovery data, video/audio and trailing bytes; explicitly disclose
+primary-still-only saving in the confirmation preview. This supersedes the earlier
+blanket MPF/trailing-JPEG rejection, not the requirement for one normalized still.
+PNG/APNG rules, original immutability, EXIF orientation/removal, complete-source
+10 MiB cap, pixel/output limits and safe commit ordering stay unchanged. No handle,
+snapshot or wire migration is introduced. See [the image investigation](../LOCAL_IMAGES.md#camera-jpeg-primary-still-compatibility-49--2026-10-20).
+The specific OnePlus photo/provider still needs physical acceptance after signing.

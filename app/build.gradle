@@ -71,8 +71,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 10
-        versionName '0.1.0-image-copy-notice.1'
+        versionCode 11
+        versionName '0.1.0-camera-primary-still.1'
     }
 
     compileOptions {

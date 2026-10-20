@@ -12,12 +12,14 @@ final class ImageFormat {
     static final long MAX_PIXELS = 20_000_000L;
     private static final byte[] PNG = {(byte) 137, 80, 78, 71, 13, 10, 26, 10};
 
-    static void check(byte[] bytes) throws IOException {
+    /** Returns the validated primary image length; JPEG auxiliary content is never decoded. */
+    static int primaryLength(byte[] bytes) throws IOException {
         if (bytes.length > MAX_BYTES) throw new ImagePreparationException(ImagePreparationException.Reason.INPUT_TOO_LARGE);
         if (isPng(bytes)) {
             png(bytes);
+            return bytes.length;
         } else if (bytes.length >= 4 && u(bytes[0]) == 255 && u(bytes[1]) == 216) {
-            jpeg(bytes);
+            return jpeg(bytes);
         } else {
             throw invalid();
         }
@@ -75,7 +77,7 @@ final class ImageFormat {
         throw invalid();
     }
 
-    private static void jpeg(byte[] bytes) throws IOException {
+    private static int jpeg(byte[] bytes) throws IOException {
         int offset = 2;
         boolean frame = false;
         boolean scan = false;
@@ -85,17 +87,13 @@ final class ImageFormat {
             if (offset == bytes.length) throw invalid();
             int marker = u(bytes[offset++]);
             if (marker == 217) {
-                if (!frame || !scan || offset != bytes.length) throw invalid();
-                return;
+                if (!frame || !scan) throw invalid();
+                return offset;
             }
             if (marker == 0 || marker == 216 || marker == 1 || (marker >= 208 && marker <= 215)
                     || offset > bytes.length - 2) throw invalid();
             int length = u(bytes[offset]) * 256 + u(bytes[offset + 1]);
             if (length < 2 || length > bytes.length - offset) throw invalid();
-            if (marker == 226 && length >= 6 && bytes[offset + 2] == 'M'
-                    && bytes[offset + 3] == 'P' && bytes[offset + 4] == 'F' && bytes[offset + 5] == 0) {
-                throw invalid(); // MPO carries multiple pictures rather than one static image.
-            }
             if (marker == 192 || marker == 193 || marker == 194) {
                 if (frame || length < 8) throw invalid();
                 dimensions(u(bytes[offset + 5]) * 256 + u(bytes[offset + 6]),

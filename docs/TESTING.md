@@ -1,5 +1,10 @@
 # Tests and gates
 
+The [#49 primary-still JPEG regression](LOCAL_IMAGES.md#camera-jpeg-primary-still-compatibility-49--2026-10-20)
+checks camera auxiliary data, primary-image limits, safe normalization and malformed
+framing. The OnePlus photo/provider and a newly signed standard-client candidate
+remain distinct acceptance gates.
+
 The [#62 image-copy notice check](LOCAL_IMAGES.md#image-copy-notice-resource-boundary-62--2026-10-18)
 verifies the actual SDK-host resource lookup, formatted size disclosure and local
 Cancel/Save behavior. Public image tests alone cannot catch a host/plugin resource
