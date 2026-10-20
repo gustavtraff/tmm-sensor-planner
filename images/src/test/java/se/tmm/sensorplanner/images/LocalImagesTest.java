@@ -193,7 +193,10 @@ public class LocalImagesTest {
         invalid.add(overflow);
         byte[] jpeg = encode(new int[]{0xff000000}, 1, 1, Bitmap.CompressFormat.JPEG);
         invalid.add(Arrays.copyOf(jpeg, jpeg.length - 2));
-        invalid.add(concat(jpeg, jpeg));
+        invalid.add(concat(Arrays.copyOf(jpeg, jpeg.length - 2), jpeg));
+        byte[] badLength = jpeg.clone();
+        badLength[4] = (byte) 0xff; badLength[5] = (byte) 0xff;
+        invalid.add(badLength);
         for (byte[] bytes : invalid) {
             Assert.assertThrows(IOException.class, () -> images.prepare(new ByteArrayInputStream(bytes)));
         }
@@ -203,6 +206,70 @@ public class LocalImagesTest {
         };
         Assert.assertThrows(IOException.class, () -> images.prepare(tooLarge));
         assertTrue(imagesDirectory.toFile().list() == null || ownedCount(imagesDirectory) == 0);
+    }
+
+    @Test public void cameraJpegUsesOnlyThePrimaryStillAndDiscardsAuxiliaryContent() throws Exception {
+        Path primaryFile = temporary.newFile("primary-camera.jpg").toPath();
+        Files.write(primaryFile, encode(new int[]{0xffff0000, 0xff0000ff}, 2, 1, Bitmap.CompressFormat.JPEG));
+        ExifInterface exif = new ExifInterface(primaryFile.toFile());
+        exif.setAttribute(ExifInterface.TAG_ORIENTATION, "6");
+        exif.setAttribute(ExifInterface.TAG_MAKE, "SYNTHETIC-PRIMARY-CAMERA");
+        exif.saveAttributes();
+        byte[] primary = Files.readAllBytes(primaryFile);
+        byte[] secondary = encode(new int[]{0xff00ff00}, 1, 1, Bitmap.CompressFormat.JPEG);
+        byte[] trailer = "SYNTHETIC-CAMERA-AUXILIARY-DATA".getBytes(StandardCharsets.US_ASCII);
+        LocalImages images = store();
+        byte[] expected;
+        try (LocalImages.Pending baseline = images.prepare(new ByteArrayInputStream(primary))) {
+            expected = baseline.preview();
+        }
+        for (byte[] source : new byte[][]{mpfJpeg(primary, secondary, false), mpfJpeg(primary, secondary, true), concat(primary, trailer),
+                concat(primary, secondary), concat(primary, new byte[16])}) {
+            Path file = temporary.newFile().toPath();
+            Files.write(file, source);
+            String[] saved = {null};
+            try (InputStream input = Files.newInputStream(file); LocalImages.Pending pending = images.prepare(input)) {
+                assertArrayEquals(expected, pending.preview());
+                pending.commit(ref -> saved[0] = ref);
+            }
+            assertArrayEquals(expected, new LocalImages(imagesDirectory).read(saved[0]));
+            assertArrayEquals(source, Files.readAllBytes(file));
+        }
+        byte[] oversized = Arrays.copyOf(primary, ImageFormat.MAX_BYTES + 1);
+        ImagePreparationException failure = Assert.assertThrows(ImagePreparationException.class,
+                () -> images.prepare(new ByteArrayInputStream(oversized)));
+        assertEquals(ImagePreparationException.Reason.INPUT_TOO_LARGE, failure.reason);
+    }
+
+    // Two generated JPEGs indexed by an MPF APP2 segment; not a real camera photograph.
+    private static byte[] mpfJpeg(byte[] primary, byte[] secondary, boolean afterMetadata) throws IOException {
+        int insertion = 2;
+        if (afterMetadata) {
+            while ((primary[insertion + 1] & 255) != 218) {
+                int length = ByteBuffer.wrap(primary, insertion + 2, 2).getShort() & 0xffff;
+                insertion += length + 2;
+            }
+        }
+        int segmentSize = 90;
+        ByteBuffer payload = ByteBuffer.allocate(segmentSize - 4);
+        payload.put(new byte[]{'M', 'P', 'F', 0});
+        payload.put(new byte[]{'M', 'M'}).putShort((short) 42).putInt(8);
+        payload.putShort((short) 3);
+        payload.putShort((short) 0xb000).putShort((short) 7).putInt(4).putInt(0x30313030);
+        payload.putShort((short) 0xb001).putShort((short) 4).putInt(1).putInt(2);
+        payload.putShort((short) 0xb002).putShort((short) 7).putInt(32).putInt(50);
+        payload.putInt(0);
+        payload.putInt(0x20030000).putInt(primary.length + segmentSize).putInt(0).putInt(0);
+        payload.putInt(0).putInt(secondary.length).putInt(primary.length + segmentSize - insertion - 8).putInt(0);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        output.write(primary, 0, insertion);
+        DataOutputStream segment = new DataOutputStream(output);
+        segment.writeShort(0xffe2);
+        segment.writeShort(segmentSize - 2);
+        segment.write(payload.array());
+        output.write(primary, insertion, primary.length - insertion);
+        output.write(secondary);
+        return output.toByteArray();
     }
 
     @Test public void cameraSizedJpegPreparesABoundedCopyAndPreservesTheOriginal() throws Exception {

@@ -84,3 +84,8 @@ The [manual sharing lab contract](METADATA_SHARE_LAB.md) uses a separate experim
 `tmmShareLab` tag with exact coordinates alongside the SDK-rounded waypoint. It
 excludes image handles and local revision counters and imports nothing into the
 local snapshot. This is not the accepted production CoT/synchronization schema.
+
+The #49 primary-still JPEG amendment changes input normalization only: auxiliary
+camera content is discarded before decoding the primary JPEG range. Snapshot v1,
+opaque image handles, PNG storage limits and the wire model are unchanged. Existing
+owned images are not rewritten; see [the image contract](LOCAL_IMAGES.md).

@@ -138,15 +138,15 @@ public final class LocalImages {
     }
 
     private static byte[] normalize(byte[] source) throws IOException {
-        ImageFormat.check(source);
+        int primaryLength = ImageFormat.primaryLength(source);
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(source, 0, source.length, bounds);
+        BitmapFactory.decodeByteArray(source, 0, primaryLength, bounds);
         ImageFormat.dimensions(bounds.outWidth, bounds.outHeight);
         if (!"image/jpeg".equals(bounds.outMimeType) && !"image/png".equals(bounds.outMimeType)) {
             throw ImageFormat.invalid();
         }
-        int orientation = new ExifInterface(new ByteArrayInputStream(source))
+        int orientation = new ExifInterface(new ByteArrayInputStream(source, 0, primaryLength))
                 .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
         if (orientation < 0 || orientation > 8) throw ImageFormat.invalid();
         Bitmap decoded = null;
@@ -159,7 +159,7 @@ public final class LocalImages {
             int longest = Math.max(bounds.outWidth, bounds.outHeight);
             // Decode near the copy size, then draw orientation/scaling into one clean bitmap.
             while (longest / (options.inSampleSize * 2) >= MAX_COPY_EDGE) options.inSampleSize *= 2;
-            decoded = BitmapFactory.decodeByteArray(source, 0, source.length, options);
+            decoded = BitmapFactory.decodeByteArray(source, 0, primaryLength, options);
             if (decoded == null || decoded.getWidth() <= 0 || decoded.getHeight() <= 0
                     || decoded.getWidth() > (bounds.outWidth + options.inSampleSize - 1) / options.inSampleSize
                     || decoded.getHeight() > (bounds.outHeight + options.inSampleSize - 1) / options.inSampleSize) {
