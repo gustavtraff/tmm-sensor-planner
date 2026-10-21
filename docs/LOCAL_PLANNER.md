@@ -12,14 +12,17 @@ after consent while disabling TMM lab sharing for that session; see ADR 0009.
 ## Behavior
 
 Open Tools → TMM Sensor Planner. Choose **Skapa enhet**, with the map centered on
-the desired test position. The form starts with that center in decimal degrees;
-latitude/longitude can also be entered manually. Select Mini, Scout, PIR or Gateway,
+the desired test position. The form starts with that center displayed in MGRS;
+enter a full one-meter grid reference manually or use **Välj plats på kartan**.
+Pan/zoom under the temporary sight, choose **Använd plats** to return to the
+unchanged form, then **Spara lokalt** to commit. Cancel/Back from the picker keeps
+the prior form position and unsaved fields. See [MAP_POSITION.md](MAP_POSITION.md). Select Mini, Scout, PIR or Gateway,
 enter the actual device label manually and a group/role owner. New drafts default
 to Planerad; all five statuses can be selected manually. No field is derived from
 status. Required fields and invalid coordinates have adjacent Swedish errors.
 
-Coordinates/bearing accept a dot or comma decimal separator, without grouping or
-exponent notation. The Android key listener preserves both separators independently
+MGRS uses WGS84 UTM zones with five easting and five northing digits. Bearing
+accepts a dot or comma decimal separator, without grouping or exponent notation. The Android key listener preserves both separators independently
 of host keyboard locale; prefilled small values use plain decimals, not exponents. Optional deployment time uses explicit date/time selectors in the device local
 timezone, with the zone and UTC offset visible; see [form entry](FORM_ENTRY.md).
 Opening a selector initializes an empty value to now without assigning it to the
@@ -35,7 +38,7 @@ UTF-16 code-unit limit. Duplicate visible IDs warn and offer **Spara ändå**, w
 merging UUIDs or changing labels. Edits preserve UUID, creation time and image handle.
 
 **Spara lokalt** commits on one background executor. Review shows the saved fields,
-local status, dates/revision, nearest eligible other device and a sorted gateway list.
+local status, MGRS position, dates/revision, nearest eligible other device and a sorted gateway list.
 Distances use the accepted core rules, rounded to whole meters, with no coverage claim.
 Saved-device review provides local image add/preview/view/replace/remove actions;
 see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). **Ta bort lokalt utkast** requires confirmation,

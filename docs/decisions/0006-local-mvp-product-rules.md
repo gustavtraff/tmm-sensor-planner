@@ -208,3 +208,21 @@ copies do not regain detail; reselect their originals to replace them. No backgr
 rewrite, sharing or transport is added. Older APKs with a 10 MiB owned-read limit
 may not display new copies above that size; downgrade compatibility is not promised.
 See [IMAGE_QUALITY.md](../IMAGE_QUALITY.md) for bounds and actual test evidence.
+
+
+## MGRS and graphical placement amendment (#52) — 2026-10-21
+
+Use WGS84 UTM-based MGRS in the local form and saved review. Initial manual input
+supports one-meter references (zone/band, square, five easting plus five northing
+digits), not decimal degree fields or UPS polar grids. This is a display/input
+precision, not a claim of positioning accuracy. Numeric canonical storage/wire
+values remain unchanged. Existing values outside 80°S–84°N remain intact on an
+unrelated edit, with an explicit unavailable-MGRS indication in review.
+
+Graphical selection uses a temporary screen sight: pan/zoom under it, explicitly
+accept or cancel, then Save locally separately. Keep the same editor instance and
+all unsaved fields while selecting. No normal ATAK Marker/MapItem, storage write,
+publishing or new sharing route is introduced. Untouched displayed MGRS retains
+exact original/map numeric coordinates instead of quantizing every unrelated save.
+Actual SDK conversion, cell/boundary handling and acceptance limits are documented
+in [MAP_POSITION.md](../MAP_POSITION.md).

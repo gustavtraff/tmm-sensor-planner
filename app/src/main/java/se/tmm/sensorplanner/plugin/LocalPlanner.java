@@ -45,6 +45,7 @@ final class LocalPlanner {
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
     private AlertDialog confirmation;
+    private MapPositionPicker positionPicker;
     private volatile boolean closed;
     private boolean loading;
     private boolean showAfterLoad;
@@ -167,8 +168,7 @@ final class LocalPlanner {
                 + "Serveranslutning innebär inte synkronisering eller bekräftad delning.\n"
                 + "Endast syntetiska testdata i denna prototyp.\n\n");
         text.append(title(draft)).append("\nÄgare: ").append(draft.owner)
-                .append("\nLatitud: ").append(draft.position.latitude)
-                .append("\nLongitud: ").append(draft.position.longitude)
+                .append("\nMGRS: ").append(positionText(draft.position))
                 .append("\nSkapad: ").append(localTime(draft.createdAt))
                 .append("\nÄndrad: ").append(localTime(draft.updatedAt))
                 .append("\nUtplacerad: ").append(draft.deployedAt == null ? "Ej angivet" : localTime(draft.deployedAt))
@@ -214,7 +214,7 @@ final class LocalPlanner {
         if (closed || isBusy() || !localAccess()) return;
         LinearLayout fields = column();
         fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
-                + "Positionen anges i decimalgrader; ny enhet använder kartans mittpunkt."));
+                + "Position anges i MGRS (5 + 5 siffror, 1 m ruta). Välj även plats på kartan."));
         Map<DraftForm.Field, EditText> inputs = new EnumMap<>(DraftForm.Field.class);
         EditText id = field(fields, inputs, DraftForm.Field.DISPLAY_ID, "Enhetens ID", original == null ? "" : original.displayId, false);
         Spinner type = spinner(fields, "Typ", new String[]{"Mini", "Scout", "PIR", "Gateway"});
@@ -231,8 +231,12 @@ final class LocalPlanner {
         comment.setMinLines(2);
         comment.setMaxLines(3);
         GeoPoint center = map.getPoint().get();
-        EditText latitude = field(fields, inputs, DraftForm.Field.LATITUDE, "Latitud (−90 till 90)", DraftForm.decimalText(original == null ? center.getLatitude() : original.position.latitude), true);
-        EditText longitude = field(fields, inputs, DraftForm.Field.LONGITUDE, "Longitud (−180 till 180)", DraftForm.decimalText(original == null ? center.getLongitude() : original.position.longitude), true);
+        MgrsPositionEdit position = new MgrsPositionEdit(original == null
+                ? new Position(center.getLatitude(), center.getLongitude()) : original.position, original != null);
+        EditText mgrs = field(fields, inputs, DraftForm.Field.LATITUDE,
+                "MGRS (zon, ruta, 5 + 5 siffror)", position.text(), false);
+        Button choosePosition = button("Välj plats på kartan", () -> { });
+        fields.addView(choosePosition);
         EditText bearing = field(fields, inputs, DraftForm.Field.BEARING, "Bäring från sann nord (valfri, 0 till <360°; endast PIR/Scout)", original == null || original.bearingDeg == null ? "" : DraftForm.decimalText(original.bearingDeg), true);
         View bearingLabel = fields.getChildAt(fields.indexOfChild(bearing) - 1);
         type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -253,13 +257,49 @@ final class LocalPlanner {
         editor.setOnDismissListener(ignored -> deployed.close());
         editor.setCanceledOnTouchOutside(false);
         editor.show();
+        choosePosition.setOnClickListener(ignored -> {
+            if (closed || isBusy() || !localAccess()) return;
+            InputMethodManager keyboard = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (keyboard != null) keyboard.hideSoftInputFromWindow(mgrs.getWindowToken(), 0);
+            try {
+                Position start = position.resolve(value(mgrs));
+                MgrsCoordinates.format(start);
+                map.getMapController().panZoomTo(new GeoPoint(start.latitude, start.longitude), 0.0001, false);
+            } catch (IllegalArgumentException invalidText) {
+                // The map can replace invalid coordinate text without discarding the other form fields.
+            }
+            editor.setCancelable(false);
+            editor.hide();
+            positionPicker = new MapPositionPicker(map, value(id).isEmpty() ? "ny enhet" : value(id), point -> {
+                if (closed || !localAccess()) return;
+                position.accept(point);
+                mgrs.setText(position.text());
+                mgrs.setError(null);
+            }, () -> {
+                positionPicker = null;
+                if (!closed) { editor.setCancelable(true); editor.show(); }
+            });
+            try { positionPicker.show(); }
+            catch (RuntimeException failure) {
+                positionPicker.close();
+                positionPicker = null;
+                if (!closed) { editor.setCancelable(true); editor.show(); mgrs.setError("Kartvalet kunde inte öppnas. Positionen är oförändrad."); }
+            }
+        });
         editor.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
             if (closed || !localAccess()) return;
             for (EditText input : inputs.values()) input.setError(null);
             formError.setText("");
+            Position selected;
+            try { selected = position.resolve(value(mgrs)); }
+            catch (IllegalArgumentException invalid) {
+                mgrs.setError("Ange giltig MGRS med zon, ruta och 5 + 5 siffror (80°S–84°N), eller välj plats på kartan.");
+                mgrs.requestFocus();
+                return;
+            }
             DraftForm.Result result = DraftForm.validate(original, value(id), TYPES[type.getSelectedItemPosition()],
                     DeviceStatus.values()[status.getSelectedItemPosition()], value(owner), deployed.utcText(), value(comment),
-                    value(latitude), value(longitude), value(bearing), Instant.now());
+                    DraftForm.decimalText(selected.latitude), DraftForm.decimalText(selected.longitude), value(bearing), Instant.now());
             if (!result.isValid()) {
                 EditText firstError = null;
                 for (Map.Entry<DraftForm.Field, DraftForm.Error> error : result.errors.entrySet()) {
@@ -476,6 +516,11 @@ final class LocalPlanner {
         }
     }
 
+    private static String positionText(Position position) {
+        try { return MgrsCoordinates.format(position); }
+        catch (IllegalArgumentException outsideUtm) { return "Utanför MGRS-området 80°S–84°N"; }
+    }
+
     private static String value(EditText input) { return input.getText().toString(); }
     private int dp(int value) { return Math.round(value * context.getResources().getDisplayMetrics().density); }
     private static String title(TmmDraft draft) { return draft.displayId + " · " + draft.type.displayName + " · " + STATUSES[draft.status.ordinal()]; }
@@ -486,7 +531,7 @@ final class LocalPlanner {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
 
-    private boolean isBusy() { return imagesUi.isBusy() || sharing.isBusy(); }
+    private boolean isBusy() { return positionPicker != null || imagesUi.isBusy() || sharing.isBusy(); }
 
     void cancelSharing() { sharing.stopSending(); }
 
@@ -494,6 +539,7 @@ final class LocalPlanner {
 
     void close() {
         closed = true;
+        if (positionPicker != null) { positionPicker.close(); positionPicker = null; }
         dismiss();
         sharing.close();
         imagesUi.close();

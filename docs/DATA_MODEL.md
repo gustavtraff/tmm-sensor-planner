@@ -55,6 +55,9 @@ Issue #8's [local MVP decision record](decisions/0006-local-mvp-product-rules.md
 covers status transitions, ID warnings, time behavior, candidate filtering and image
 limits. Confirmed owner choices and PR-review defaults are identified separately.
 The core now implements manual-ID validation, validated edits, form parsing and candidate filtering.
+The [#52 coordinate editor](MAP_POSITION.md) displays/accepts MGRS while retaining
+the canonical numeric position unchanged when the displayed reference is untouched.
+Map selection changes only the form until explicit Save; no schema/wire migration.
 The [offline planner](LOCAL_PLANNER.md) now connects duplicate warnings, validated
 forms and Android persistence on API 26+. Physical acceptance, connected privacy
 and image-file processing remain #11–#13. The core store persists all current fields, including an opaque image
