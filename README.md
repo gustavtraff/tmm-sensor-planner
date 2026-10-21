@@ -6,9 +6,9 @@ prototype**, not an approved field release. The active target is ATAK API 5.6.0;
 planning requires Android 8 / API 26 or later.
 
 Local features include manual device IDs, status/owner/position edits, bearing for
-PIR/Scout, map symbols, nearest-device/gateway distances, persistent drafts and one
+PIR/Scout (6400-mil UI), MGRS/map placement, map symbols, nearest-device/gateway distances, persistent drafts and one
 metadata-cleaned image per device. New image copies are reviewed before saving
-and limited to a 1,600-pixel longest side; original files remain untouched.
+and limited to a 1,920-pixel longest side; original files remain untouched.
 
 ## What has been verified
 
@@ -17,7 +17,7 @@ and limited to a 1,600-pixel longest side; original files remain untouched.
 | Public CI | Java core/storage, auth/archive/fixture checks and separate native Android image tests/lint; no private ATAK SDK |
 | SDK development | Local 5.6.0.24 build/lint and bounded developer-host emulator results |
 | Signed standard client | VersionCode 7 passed standard ATAK-CIV 5.6.0.25 emulator load/unload/restart and one synthetic draft's preservation; see [verification](docs/STANDARD_CLIENT_VERIFICATION.md) |
-| Physical phone | Owner reports tools and local use; photo handling and delayed map restoration prompted [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49) and [#50](https://github.com/gustavtraff/tmm-sensor-planner/issues/50). The merged versionCode 8 photo correction still needs new signing/phone verification |
+| Physical phone | Owner reports tools and local use; photo handling and delayed map restoration prompted [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49) and [#50](https://github.com/gustavtraff/tmm-sensor-planner/issues/50). The latest camera correction and UI improvements still need new signing/phone verification |
 | Connected use | Explicit session-only [local trial](docs/CONNECTED_LOCAL_TRIAL.md): bounded two-client SDK privacy checks passed; new signed standard-client/phone acceptance remains open |
 
 Use synthetic data. Offline is the default; connected testing requires the separate

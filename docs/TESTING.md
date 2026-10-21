@@ -1,5 +1,9 @@
 # Tests and gates
 
+The [#67 device review](DEVICE_DETAILS.md) adds 6400-mil conversion/preservation,
+actual cardinal-direction rendering and asynchronous thumbnail-lifetime tests.
+Canonical stored/wire degrees stay unchanged; physical/signed-host gates remain.
+
 The local-only `sh scripts/test-mgrs-sdk.sh` checks actual external SDK conversion
 classes and exact position-edit preservation. It is part of `scripts/check-sdk.sh`;
 public core/image CI cannot run it without the external SDK. See

@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.ScrollView;
 import se.tmm.sensorplanner.plugin.images.ImagePreparationMessages;
 import se.tmm.sensorplanner.plugin.images.LocalImageBitmaps;
+import se.tmm.sensorplanner.plugin.images.LocalImagePreview;
 import se.tmm.sensorplanner.images.ZoomImageView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.ActivityResultRegistryOwner;
@@ -150,6 +151,11 @@ final class LocalImageUi {
                 main.post(() -> fail(message));
             }
         });
+    }
+
+    LocalImagePreview preview(TmmDraft draft) {
+        return new LocalImagePreview(context, worker, () -> images.read(draft.imageRef),
+                () -> !closed && listener.available(), "Lokal bild för " + draft.displayId, () -> view(draft));
     }
 
     void view(TmmDraft draft) {

@@ -3,6 +3,11 @@ package se.tmm.sensorplanner.plugin;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.ClipboardManager;
+import android.content.ClipData;
+import android.graphics.Typeface;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +30,9 @@ import gov.tak.api.ui.IHostUIService;
 import se.tmm.sensorplanner.core.*;
 import se.tmm.sensorplanner.images.LocalImages;
 import se.tmm.sensorplanner.plugin.images.DraftAttachments;
+import se.tmm.sensorplanner.plugin.images.LocalImagePreview;
+import se.tmm.sensorplanner.plugin.local.BearingMilsEdit;
+import se.tmm.sensorplanner.plugin.local.BearingDirectionView;
 
 /** Local prototype; API 26 and session access are enforced by the entry point. */
 @TargetApi(26)
@@ -157,96 +165,156 @@ final class LocalPlanner {
                         + (labAllowed.getAsBoolean() ? "" : " · testläge"))
                 .setItems(rows, (ignored, index) -> review(drafts.get(index)))
                 .setPositiveButton("Skapa enhet", (ignored, which) -> form(null))
-                .setNeutralButton("Läs om", (ignored, which) -> { dismiss(); show(); })
+                .setNeutralButton("Uppdatera", (ignored, which) -> { dismiss(); show(); })
                 .setNegativeButton("Stäng", null).create();
         dialog.show();
     }
 
     private void review(TmmDraft draft) {
         if (closed || !localAccess()) return;
-        StringBuilder text = new StringBuilder("Lokal = utkast på denna enhet. Enhetens status är en separat uppgift.\n"
-                + "Serveranslutning innebär inte synkronisering eller bekräftad delning.\n"
-                + "Endast syntetiska testdata i denna prototyp.\n\n");
-        text.append(title(draft)).append("\nÄgare: ").append(draft.owner)
-                .append("\nMGRS: ").append(positionText(draft.position))
-                .append("\nSkapad: ").append(localTime(draft.createdAt))
-                .append("\nÄndrad: ").append(localTime(draft.updatedAt))
-                .append("\nUtplacerad: ").append(draft.deployedAt == null ? "Ej angivet" : localTime(draft.deployedAt))
-                .append("\nBäring från sann nord: ").append(draft.bearingDeg == null ? "Ej angivet" : draft.bearingDeg + "°")
-                .append("\nKommentar: ").append(draft.comment.isEmpty() ? "Ingen" : draft.comment)
-                .append("\nBild: ").append(draft.imageRef == null ? "Ingen" : "Sparad lokal kopia")
-                .append("\nRevision: ").append(draft.revision);
-        if (DraftForm.hasDuplicateId(draft.displayId, draft.uid, drafts)) {
-            text.append("\n\nVarning: samma synliga ID finns på en annan enhet.");
-        }
-        Optional<DistanceCalculator.Distance> nearest = DistanceCalculator.nearestOther(draft, drafts);
-        text.append("\n\nNärmaste annan TMM: ").append(nearest.isPresent() ? distance(nearest.get()) : "Ingen annan behörig enhet");
-        if (draft.type == DeviceType.GATEWAY) {
-            text.append("\nAndra gateways:");
-            List<DistanceCalculator.Distance> gateways = DistanceCalculator.otherGateways(draft, drafts);
-            if (gateways.isEmpty()) text.append(" Inga");
-            for (DistanceCalculator.Distance other : gateways) text.append("\n").append(distance(other));
-        }
-        text.append("\nKartpilen är 100 m lång och visar riktning från sann nord, inte sensorernas räckvidd.");
-        text.append("\nAvstånd avrundas till hela meter och visar inte radiotäckning.");
         LinearLayout content = column();
-        content.addView(label(text.toString()));
-        Button center = button("Visa på kartan", () -> {
+        TextView status = label(draft.type.displayName + " · Status: " + STATUSES[draft.status.ordinal()]);
+        status.setTextSize(18);
+        status.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        content.addView(status);
+        content.addView(label("Lokalt utkast · delas inte automatiskt"));
+        content.addView(label("Position · MGRS\n" + positionText(draft.position)));
+        Button copy = button("Kopiera MGRS", () -> {
+            try {
+                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard == null) throw new IllegalStateException();
+                clipboard.setPrimaryClip(ClipData.newPlainText("MGRS", MgrsCoordinates.format(draft.position)));
+                ui.showToast("MGRS kopierad");
+            } catch (RuntimeException failure) { ui.showToast("MGRS kunde inte kopieras"); }
+        });
+        copy.setEnabled(draft.position.latitude >= -80 && draft.position.latitude <= 84);
+        content.addView(copy);
+        content.addView(buttonRow(button("Visa på kartan", () -> {
             try { if (layer == null) throw new IllegalStateException(); layer.center(draft); dismiss(); }
             catch (RuntimeException failure) { ui.showToast("Kartan kunde inte centreras"); }
-        });
-        content.addView(center);
-        content.addView(button(draft.imageRef == null ? "Lägg till bild" : "Ersätt bild", () -> imagesUi.pick(draft)));
-        if (draft.imageRef != null) {
-            content.addView(button("Visa bild", () -> imagesUi.view(draft)));
-            content.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
+        }), button("Flytta på kartan", () -> form(draft, true))));
+        content.addView(label("Bild · " + (draft.imageRef == null ? "Ingen lokal bild" : "Sparad lokalt")));
+        LocalImagePreview preview = draft.imageRef == null ? null : imagesUi.preview(draft);
+        if (preview != null) {
+            content.addView(preview);
+            content.addView(buttonRow(button("Visa bild", () -> imagesUi.view(draft)),
+                    button("Ersätt bild", () -> imagesUi.pick(draft))));
+        } else content.addView(button("Lägg till bild", () -> imagesUi.pick(draft)));
+        if (draft.type.supportsBearing()) {
+            LinearLayout bearing = new LinearLayout(context);
+            bearing.addView(label("Bäring: " + (draft.bearingDeg == null ? "Ej angiven" :
+                    BearingMilsEdit.format(draft.bearingDeg) + " mils") + "\nSann nord · N uppåt"),
+                    new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            bearing.addView(new BearingDirectionView(context, draft.bearingDeg), new LinearLayout.LayoutParams(dp(80), dp(80)));
+            content.addView(bearing);
         }
-        if (labAllowed.getAsBoolean()) content.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
-        content.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
+        if (DraftForm.hasDuplicateId(draft.displayId, draft.uid, drafts)) {
+            content.addView(label("Varning: samma synliga ID finns på en annan enhet."));
+        }
+        content.addView(label("Ägare: " + draft.owner + "\nKommentar: " + (draft.comment.isEmpty() ? "Ingen" : draft.comment)
+                + "\nUtplacerad: " + (draft.deployedAt == null ? "Ej angivet" : localTime(draft.deployedAt))));
+        Optional<DistanceCalculator.Distance> nearest = DistanceCalculator.nearestOther(draft, drafts);
+        StringBuilder distances = new StringBuilder("Närmaste annan TMM: ")
+                .append(nearest.isPresent() ? distance(nearest.get()) : "Ingen annan behörig enhet");
+        if (draft.type == DeviceType.GATEWAY) {
+            distances.append("\nAndra gateways:");
+            List<DistanceCalculator.Distance> gateways = DistanceCalculator.otherGateways(draft, drafts);
+            if (gateways.isEmpty()) distances.append(" Inga");
+            for (DistanceCalculator.Distance other : gateways) distances.append("\n").append(distance(other));
+        }
+        content.addView(label(distances + "\nAvstånd är kartmått, inte radiotäckning."));
+        LinearLayout details = new LinearLayout(context);
+        details.setOrientation(LinearLayout.VERTICAL);
+        details.addView(label("Skapad: " + localTime(draft.createdAt) + "\nÄndrad: " + localTime(draft.updatedAt)
+                + "\nRevision: " + draft.revision + "\nLokal = utkast på denna enhet. Serveranslutning innebär inte synkronisering eller bekräftad delning."
+                + "\nEndast syntetiska testdata i denna prototyp.\nKartpilen är en 100 m riktningsmarkering från sann nord, inte sensorräckvidd."));
+        if (draft.imageRef != null) details.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
+        if (labAllowed.getAsBoolean()) details.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
+        details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
+        details.setVisibility(View.GONE);
+        Button expand = button("Fler uppgifter", () -> { });
+        expand.setOnClickListener(view -> {
+            boolean show = details.getVisibility() != View.VISIBLE;
+            details.setVisibility(show ? View.VISIBLE : View.GONE);
+            expand.setText(show ? "Färre uppgifter" : "Fler uppgifter");
+        });
+        content.addView(expand);
+        content.addView(details);
+        TextView heading = label(draft.displayId);
+        heading.setTextSize(20);
+        heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        heading.setPadding(dp(16), dp(12), dp(16), dp(4));
         dismiss();
-        dialog = new AlertDialog.Builder(context).setTitle(draft.displayId)
+        dialog = new AlertDialog.Builder(context).setCustomTitle(heading)
                 .setView(scroll(content)).setPositiveButton("Redigera", (ignored, which) -> form(draft))
                 .setNegativeButton("Till listan", (ignored, which) -> list()).create();
+        dialog.setOnDismissListener(ignored -> { if (preview != null) preview.close(); });
         dialog.show();
     }
 
-    private void form(TmmDraft original) {
+    private LinearLayout buttonRow(Button first, Button second) {
+        LinearLayout row = new LinearLayout(context);
+        for (Button button : new Button[]{first, second}) row.addView(button,
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        return row;
+    }
+
+    private void form(TmmDraft original) { form(original, false); }
+
+    private void form(TmmDraft original, boolean chooseOnOpen) {
         if (closed || isBusy() || !localAccess()) return;
         LinearLayout fields = column();
         fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
                 + "Position anges i MGRS (5 + 5 siffror, 1 m ruta). Välj även plats på kartan."));
         Map<DraftForm.Field, EditText> inputs = new EnumMap<>(DraftForm.Field.class);
-        EditText id = field(fields, inputs, DraftForm.Field.DISPLAY_ID, "Enhetens ID", original == null ? "" : original.displayId, false);
+        EditText id = field(fields, inputs, DraftForm.Field.DISPLAY_ID, "Enhetens ID", original == null ? "" : original.displayId);
         Spinner type = spinner(fields, "Typ", new String[]{"Mini", "Scout", "PIR", "Gateway"});
         if (original != null) type.setSelection(Arrays.asList(TYPES).indexOf(original.type));
         Spinner status = spinner(fields, "Status", STATUSES);
         status.setSelection(original == null ? 0 : original.status.ordinal());
-        EditText owner = field(fields, inputs, DraftForm.Field.OWNER, "Ägare (grupp/roll)", original == null ? "" : original.owner, false);
-        DeploymentTimeInput deployed = new DeploymentTimeInput(context, original == null ? null : original.deployedAt);
-        fields.addView(deployed);
-        EditText comment = field(fields, inputs, DraftForm.Field.COMMENT, "Kommentar (max 2000)", original == null ? "" : original.comment, false);
-        comment.setSingleLine(false);
-        comment.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
-                | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
-        comment.setMinLines(2);
-        comment.setMaxLines(3);
         GeoPoint center = map.getPoint().get();
         MgrsPositionEdit position = new MgrsPositionEdit(original == null
                 ? new Position(center.getLatitude(), center.getLongitude()) : original.position, original != null);
         EditText mgrs = field(fields, inputs, DraftForm.Field.LATITUDE,
-                "MGRS (zon, ruta, 5 + 5 siffror)", position.text(), false);
+                "MGRS (zon, ruta, 5 + 5 siffror)", position.text());
         Button choosePosition = button("Välj plats på kartan", () -> { });
         fields.addView(choosePosition);
-        EditText bearing = field(fields, inputs, DraftForm.Field.BEARING, "Bäring från sann nord (valfri, 0 till <360°; endast PIR/Scout)", original == null || original.bearingDeg == null ? "" : DraftForm.decimalText(original.bearingDeg), true);
+        BearingMilsEdit bearingEdit = new BearingMilsEdit(original == null ? null : original.bearingDeg);
+        EditText bearing = field(fields, inputs, DraftForm.Field.BEARING, "Bäring", bearingEdit.text());
+        bearing.setRawInputType(InputType.TYPE_CLASS_NUMBER);
+        bearing.setHint("0–6400 mils");
         View bearingLabel = fields.getChildAt(fields.indexOfChild(bearing) - 1);
+        TextView bearingHint = label("Valfri · hela mils (6400 = 0) · från sann nord");
+        fields.addView(bearingHint);
+        BearingDirectionView direction = new BearingDirectionView(context, original == null ? null : original.bearingDeg);
+        fields.addView(direction, new LinearLayout.LayoutParams(dp(80), dp(80)));
+        bearing.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence text, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable text) {
+                try { direction.setBearing(bearingEdit.degrees(text.toString())); }
+                catch (IllegalArgumentException invalid) { direction.setBearing(null); }
+            }
+        });
         type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long rowId) {
                 boolean visible = TYPES[position].supportsBearing() || !value(bearing).trim().isEmpty();
                 bearing.setVisibility(visible ? View.VISIBLE : View.GONE);
                 bearingLabel.setVisibility(visible ? View.VISIBLE : View.GONE);
+                bearingHint.setVisibility(visible ? View.VISIBLE : View.GONE);
+                direction.setVisibility(visible ? View.VISIBLE : View.GONE);
             }
             @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
+        EditText owner = field(fields, inputs, DraftForm.Field.OWNER, "Ägare (grupp/roll)", original == null ? "" : original.owner);
+        DeploymentTimeInput deployed = new DeploymentTimeInput(context, original == null ? null : original.deployedAt);
+        fields.addView(deployed);
+        EditText comment = field(fields, inputs, DraftForm.Field.COMMENT, "Kommentar (max 2000)", original == null ? "" : original.comment);
+        comment.setSingleLine(false);
+        comment.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        comment.setMinLines(2);
+        comment.setMaxLines(3);
         TextView formError = label("");
         fields.addView(formError);
         dismiss();
@@ -297,9 +365,16 @@ final class LocalPlanner {
                 mgrs.requestFocus();
                 return;
             }
+            String bearingDegrees;
+            try { bearingDegrees = bearingEdit.degreesText(value(bearing)); }
+            catch (IllegalArgumentException invalid) {
+                bearing.setError("Ange ett heltal mellan 0 och 6400 mils, eller lämna tomt. 6400 betyder 0.");
+                bearing.requestFocus();
+                return;
+            }
             DraftForm.Result result = DraftForm.validate(original, value(id), TYPES[type.getSelectedItemPosition()],
                     DeviceStatus.values()[status.getSelectedItemPosition()], value(owner), deployed.utcText(), value(comment),
-                    DraftForm.decimalText(selected.latitude), DraftForm.decimalText(selected.longitude), value(bearing), Instant.now());
+                    DraftForm.decimalText(selected.latitude), DraftForm.decimalText(selected.longitude), bearingDegrees, Instant.now());
             if (!result.isValid()) {
                 EditText firstError = null;
                 for (Map.Entry<DraftForm.Field, DraftForm.Error> error : result.errors.entrySet()) {
@@ -321,6 +396,7 @@ final class LocalPlanner {
                 confirmation.show();
             } else save.run();
         });
+        if (chooseOnOpen) choosePosition.post(() -> choosePosition.performClick());
     }
 
     private void save(TmmDraft draft, AlertDialog editor, LinearLayout fields, TextView error) {
@@ -341,7 +417,7 @@ final class LocalPlanner {
                     if (closed) return;
                     busy(editor, fields, false);
                     showError(error, "Sparandet kunde inte bekräftas. Dina inmatade fält finns kvar. "
-                            + "Öppna listan med Läs om innan du försöker igen; lagringen kan ha ändrats.");
+                            + "Öppna listan och välj Uppdatera innan du försöker igen; lagringen kan ha ändrats.");
                     editor.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                 });
             }
@@ -364,7 +440,7 @@ final class LocalPlanner {
                                 if (result.cleanupFailed) ui.showToast("Utkastet är borttaget men bildkopian kunde inte tas bort");
                             } });
                         } catch (Exception failure) {
-                            ui.queueEvent(() -> { if (!closed) alert("Borttagningen kunde inte bekräftas", "Läs om listan innan du fortsätter."); });
+                            ui.queueEvent(() -> { if (!closed) alert("Borttagningen kunde inte bekräftas", "Välj Uppdatera i listan innan du fortsätter."); });
                         }
                     });
                 }).create();
@@ -413,7 +489,7 @@ final class LocalPlanner {
     }
 
     private EditText field(LinearLayout parent, Map<DraftForm.Field, EditText> fields,
-                           DraftForm.Field key, String title, String initial, boolean decimal) {
+                           DraftForm.Field key, String title, String initial) {
         TextView label = label(title);
         parent.addView(label);
         EditText input = new EditText(context) {
@@ -435,13 +511,7 @@ final class LocalPlanner {
         input.setContentDescription(title);
         input.setMinHeight(dp(48));
         input.setSingleLine(true);
-        input.setInputType(decimal ? InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED
-                : InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        if (decimal) {
-            // Preserve either decimal separator even when the host keyboard locale uses only one.
-            input.setKeyListener(android.text.method.DigitsKeyListener.getInstance("0123456789+-,."));
-            input.setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
-        }
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         input.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
         input.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
                 | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);

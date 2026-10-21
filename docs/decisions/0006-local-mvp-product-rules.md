@@ -226,3 +226,18 @@ publishing or new sharing route is introduced. Untouched displayed MGRS retains
 exact original/map numeric coordinates instead of quantizing every unrelated save.
 Actual SDK conversion, cell/boundary handling and acceptance limits are documented
 in [MAP_POSITION.md](../MAP_POSITION.md).
+
+
+## Review and 6400-mil display amendment (#67) — 2026-10-21
+
+Implement the owner's requested review priority: visible ID/type/status, MGRS and
+map actions, local image, PIR/Scout bearing, then other fields. Keep local draft
+state separate from lifecycle status. Group technical timestamps/revision and
+less frequent actions under Fler uppgifter; rename the list reload to Uppdatera.
+
+Use optional whole mils on a 6400 circle, clockwise from true north. Accept 6400
+as zero; keep domain/storage/wire/map geometry in degrees [0,360). Preserve exact
+old degree values on an unchanged rounded field, including unrelated edits. A
+read-only north-up cue is included; the optional draggable compass is deferred.
+No type/status, schema, sharing or image-quality change. See
+[DEVICE_DETAILS.md](../DEVICE_DETAILS.md) for precision, ownership and test gates.
