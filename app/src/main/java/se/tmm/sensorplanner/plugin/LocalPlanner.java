@@ -163,7 +163,9 @@ final class LocalPlanner {
 
     private void review(TmmDraft draft) {
         if (closed || !localAccess()) return;
-        StringBuilder text = new StringBuilder("Lokalt utkast – ingen automatisk delning\nEndast syntetiska testdata i denna prototyp.\n\n");
+        StringBuilder text = new StringBuilder("Lokal = utkast på denna enhet. Enhetens status är en separat uppgift.\n"
+                + "Serveranslutning innebär inte synkronisering eller bekräftad delning.\n"
+                + "Endast syntetiska testdata i denna prototyp.\n\n");
         text.append(title(draft)).append("\nÄgare: ").append(draft.owner)
                 .append("\nLatitud: ").append(draft.position.latitude)
                 .append("\nLongitud: ").append(draft.position.longitude)

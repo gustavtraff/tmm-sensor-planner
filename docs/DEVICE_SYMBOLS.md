@@ -28,7 +28,8 @@ The owner approved the following palette in the project conversation on 2026-10-
 | Retrieved / Cancelled | Gray (`#CCCCCC`) |
 
 No red/fault state is introduced. Status remains manually maintained and explicitly
-readable in labels/details. The preview contains enlarged and 32 px samples. Actual SDK rendering and remaining verification are recorded below; physical
+readable in the list, details and edit form. Under #53, map labels now show
+only the manual ID and `Lokal`, while these pictograms and tints remain unchanged. The preview contains enlarged and 32 px samples. Actual SDK rendering and remaining verification are recorded below; physical
 screen/accessibility checks remain under #12.
 
 No domain, snapshot or wire change is introduced. Source masters are the four SVGs
