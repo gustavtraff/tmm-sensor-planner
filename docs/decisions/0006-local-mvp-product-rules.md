@@ -86,7 +86,8 @@ without replacing an existing image. Do not trust extensions or a supplied MIME 
 
 Decode and save a new plugin-owned image from pixels only, without EXIF, GPS,
 embedded text or other source metadata. Never copy the original file into draft
-storage. Enforce the same byte/pixel limits on the normalized result. Do not silently
+storage. The original implementation enforced the same byte/pixel limits on the normalized result;
+the #66 amendment below separates source and owned-copy byte limits. Do not silently
 downscale; the initial implementation rejected images that could not fit. The
 explicitly disclosed resize-copy amendment below supersedes this rejection default
 for new attachments after human review of #49.
@@ -183,3 +184,27 @@ PNG/APNG rules, original immutability, EXIF orientation/removal, complete-source
 10 MiB cap, pixel/output limits and safe commit ordering stay unchanged. No handle,
 snapshot or wire migration is introduced. See [the image investigation](../LOCAL_IMAGES.md#camera-jpeg-primary-still-compatibility-49--2026-10-20).
 The specific OnePlus photo/provider still needs physical acceptance after signing.
+
+
+## Full HD detail amendment (#66) — 2026-10-21
+
+The owner explicitly requests at least Full HD detail where the source permits.
+This reviewable implementation supersedes the 1,600-edge policy with a **1,920-pixel
+longest edge**, aspect ratio retained, no upscaling/cropping. A 16:9 image becomes
+1920 × 1080; the reported 3072 × 4096 photo becomes 1440 × 1920.
+
+Keep the complete source limit at **10 MiB / 20,000,000 pixels**. Separate the owned
+PNG byte cap at **16 MiB**, including read/reopen validation. A 1920-square ARGB
+bitmap has 14,745,600 raw pixel bytes before PNG overhead; keeping a shared 10 MiB
+cap would unnecessarily reject sufficiently detailed copies. PNG preserves the
+resized pixels without introducing a new lossy compression setting or handle type.
+The display decoder remains independently bounded (preview 1024, inspection 2048).
+
+The earlier synthetic PNG-expansion regression did not prove 1600 necessary or
+diagnose the OnePlus camera failure. The separate primary-JPEG validator correction
+and physical camera acceptance stay in #49. Preserve EXIF orientation/removal,
+originals, old handles/images, snapshot v1 and commit/Cancel ordering. Old 1600-edge
+copies do not regain detail; reselect their originals to replace them. No background
+rewrite, sharing or transport is added. Older APKs with a 10 MiB owned-read limit
+may not display new copies above that size; downgrade compatibility is not promised.
+See [IMAGE_QUALITY.md](../IMAGE_QUALITY.md) for bounds and actual test evidence.

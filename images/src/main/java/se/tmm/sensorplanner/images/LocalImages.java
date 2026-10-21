@@ -25,7 +25,7 @@ import java.util.UUID;
 /** Local-only, API 26+ image copies. Call off the UI thread with a private no-backup directory. */
 @TargetApi(26)
 public final class LocalImages {
-    public static final int MAX_COPY_EDGE = 1600;
+    public static final int MAX_COPY_EDGE = 1920;
     private final Path directory;
 
     public LocalImages(Path directory) {
@@ -36,7 +36,7 @@ public final class LocalImages {
     public Pending prepare(InputStream source) throws IOException {
         byte[] normalized;
         try {
-            normalized = normalize(readBounded(source));
+            normalized = normalize(readBounded(source, ImageFormat.MAX_BYTES));
         } catch (OutOfMemoryError e) {
             throw new ImagePreparationException(ImagePreparationException.Reason.LOW_MEMORY);
         }
@@ -69,7 +69,7 @@ public final class LocalImages {
         }
         byte[] bytes;
         try (InputStream input = Files.newInputStream(file, LinkOption.NOFOLLOW_LINKS)) {
-            bytes = readBounded(input);
+            bytes = readBounded(input, ImageFormat.MAX_OWNED_BYTES);
         }
         ImageFormat.checkOwnedPng(bytes);
         return bytes;
@@ -123,13 +123,13 @@ public final class LocalImages {
         return directory.resolve(reference);
     }
 
-    private static byte[] readBounded(InputStream input) throws IOException {
+    private static byte[] readBounded(InputStream input, int limit) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         byte[] chunk = new byte[8192];
         int count;
         while ((count = input.read(chunk, 0, Math.min(chunk.length,
-                ImageFormat.MAX_BYTES + 1 - bytes.size()))) != -1) {
-            if (bytes.size() + count > ImageFormat.MAX_BYTES) {
+                limit + 1 - bytes.size()))) != -1) {
+            if (bytes.size() + count > limit) {
                 throw new ImagePreparationException(ImagePreparationException.Reason.INPUT_TOO_LARGE);
             }
             bytes.write(chunk, 0, count);
@@ -179,14 +179,14 @@ public final class LocalImages {
             boolean[] outputTooLarge = {false};
             OutputStream bounded = new OutputStream() {
                 @Override public void write(int value) throws IOException {
-                    if (bytes.size() == ImageFormat.MAX_BYTES) {
+                    if (bytes.size() == ImageFormat.MAX_OWNED_BYTES) {
                         outputTooLarge[0] = true;
                         throw new ImagePreparationException(ImagePreparationException.Reason.OUTPUT_TOO_LARGE);
                     }
                     bytes.write(value);
                 }
                 @Override public void write(byte[] chunk, int offset, int length) throws IOException {
-                    if (length > ImageFormat.MAX_BYTES - bytes.size()) {
+                    if (length > ImageFormat.MAX_OWNED_BYTES - bytes.size()) {
                         outputTooLarge[0] = true;
                         throw new ImagePreparationException(ImagePreparationException.Reason.OUTPUT_TOO_LARGE);
                     }
