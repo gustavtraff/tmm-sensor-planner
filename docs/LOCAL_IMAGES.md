@@ -13,6 +13,10 @@ after restart, using a generated 3072 × 4096 JPEG. See [the exact candidate and
 limits](STANDARD_CLIENT_VERIFICATION.md#latest-signed-candidate--2026-10-18);
 the owner’s original phone photo/provider remains an acceptance check.
 
+The [large image viewer](IMAGE_VIEWER.md) adds read-only zoom/pan and direct
+inspection of stored detail. Pending preview enlargement retains the explicit
+Save/Cancel boundary; the saved-copy limit remains unchanged.
+
 ## Build and test
 
 The standalone `images` Android library uses the repository's pinned Gradle 8.14.3,
@@ -121,7 +125,8 @@ Cancel leaves the saved device unchanged. The worker copies and normalizes the
 selected document, and the scrollable preview displays only that normalized copy
 with the 1,600-pixel reduction notice. **Spara bilden lokalt**
 explicitly attaches it. **Ersätt bild**, **Visa bild** and confirmed **Ta bort bild**
-operate on the same saved record. Deleting a draft commits metadata before safe
+operate on the same saved record. **Visa bild** now opens large inspection; tapping
+the pending preview or **Visa större bild** opens the same read-only viewer. Deleting a draft commits metadata before safe
 image cleanup. Viewing a missing/unsupported reference reports an error and retains
 metadata. An uncertain save asks for a fresh reload rather than blind retry.
 

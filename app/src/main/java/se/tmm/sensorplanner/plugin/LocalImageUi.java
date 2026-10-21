@@ -3,11 +3,17 @@ package se.tmm.sensorplanner.plugin;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.Toast;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,6 +22,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ScrollView;
 import se.tmm.sensorplanner.plugin.images.ImagePreparationMessages;
+import se.tmm.sensorplanner.plugin.images.LocalImageBitmaps;
+import se.tmm.sensorplanner.images.ZoomImageView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.ActivityResultRegistryOwner;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -49,6 +57,8 @@ final class LocalImageUi {
     private volatile boolean busy;
     private TmmDraft pickerTarget;
     private AlertDialog dialog;
+    private Dialog viewer;
+    private boolean viewerLoading;
     private LocalImages.Pending pending;
 
     LocalImageUi(Context context, String imageCopyNotice, ExecutorService worker, LocalImages images,
@@ -118,7 +128,7 @@ final class LocalImageUi {
                     if (input == null) throw new IOException();
                     prepared = images.prepare(input);
                 }
-                bitmap = thumbnail(prepared.preview());
+                bitmap = LocalImageBitmaps.preview(prepared.preview());
                 synchronized (this) {
                     if (closed) {
                         bitmap.recycle();
@@ -131,7 +141,7 @@ final class LocalImageUi {
                 main.post(() -> {
                     if (closed) { preview.recycle(); return; }
                     if (!listener.available()) { releasePending(); preview.recycle(); busy = false; return; }
-                    showPreview(draft, preview, true);
+                    showPreview(draft, preview);
                 });
             } catch (Exception | OutOfMemoryError failure) {
                 if (bitmap != null) bitmap.recycle();
@@ -146,10 +156,10 @@ final class LocalImageUi {
         if (!begin()) return;
         worker.execute(() -> {
             try {
-                Bitmap bitmap = thumbnail(images.read(draft.imageRef));
+                Bitmap bitmap = LocalImageBitmaps.inspection(images.read(draft.imageRef));
                 main.post(() -> {
                     if (closed || !listener.available()) { bitmap.recycle(); busy = false; return; }
-                    showPreview(draft, bitmap, false);
+                    showViewer(draft, bitmap, null);
                 });
             } catch (Exception | OutOfMemoryError failure) {
                 main.post(() -> fail("Den lokala bilden saknas eller kan inte visas. Enhetens uppgifter och bildreferens behålls."));
@@ -157,7 +167,7 @@ final class LocalImageUi {
         });
     }
 
-    private void showPreview(TmmDraft draft, Bitmap bitmap, boolean replace) {
+    private void showPreview(TmmDraft draft, Bitmap bitmap) {
         ImageView image = new ImageView(context);
         image.setContentDescription("Lokal bild för " + draft.displayId);
         image.setAdjustViewBounds(true);
@@ -165,20 +175,23 @@ final class LocalImageUi {
         image.setImageBitmap(bitmap);
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        if (replace) {
-            TextView notice = new TextView(context);
-            notice.setText(imageCopyNotice);
-            int padding = Math.round(16 * context.getResources().getDisplayMetrics().density);
-            notice.setPadding(padding, padding, padding, padding);
-            content.addView(notice);
-        }
+        TextView notice = new TextView(context);
+        notice.setText(imageCopyNotice);
+        int padding = Math.round(16 * context.getResources().getDisplayMetrics().density);
+        notice.setPadding(padding, padding, padding, padding);
+        content.addView(notice);
         content.addView(image);
+        image.setOnClickListener(ignored -> enlargePreview(draft));
+        Button enlarge = new Button(context);
+        enlarge.setText("Visa större bild");
+        enlarge.setOnClickListener(ignored -> enlargePreview(draft));
+        content.addView(enlarge);
         ScrollView scroll = new ScrollView(context);
         scroll.addView(content);
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                .setTitle(replace ? "Granska lokal bild – delas inte" : "Lokal bild – delas inte")
-                .setView(scroll).setNegativeButton(replace ? "Avbryt" : "Stäng", null);
-        if (replace) builder.setPositiveButton("Spara bilden lokalt", (ignored, which) -> {
+                .setTitle("Granska lokal bild – delas inte")
+                .setView(scroll).setNegativeButton("Avbryt", null);
+        builder.setPositiveButton("Spara bilden lokalt", (ignored, which) -> {
             if (closed || !listener.available()) return;
             LocalImages.Pending selected;
             synchronized (this) { selected = pending; pending = null; }
@@ -195,12 +208,14 @@ final class LocalImageUi {
         });
         dialog = builder.create();
         dialog.setOnDismissListener(ignored -> {
+            closeViewer();
+            viewerLoading = false;
             image.setImageDrawable(null);
             bitmap.recycle();
             boolean cancelled;
             synchronized (this) { cancelled = pending != null; }
             if (cancelled) releasePending();
-            if (!replace || cancelled) busy = false;
+            if (cancelled) busy = false;
             dialog = null;
         });
         dialog.show();
@@ -250,20 +265,83 @@ final class LocalImageUi {
         if (!closed) listener.failed(message);
     }
 
-    private static Bitmap thumbnail(byte[] normalized) throws IOException {
-        BitmapFactory.Options bounds = new BitmapFactory.Options();
-        bounds.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(normalized, 0, normalized.length, bounds);
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new IOException();
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inScaled = false;
-        options.inSampleSize = 1;
-        while ((Math.max(bounds.outWidth, bounds.outHeight) + options.inSampleSize - 1) / options.inSampleSize > 1024) {
-            options.inSampleSize *= 2;
+    private void enlargePreview(TmmDraft draft) {
+        if (closed || viewer != null || viewerLoading || !listener.available()) return;
+        AlertDialog owner = dialog;
+        LocalImages.Pending selected;
+        synchronized (this) { selected = pending; }
+        if (owner == null || selected == null) return;
+        viewerLoading = true;
+        worker.execute(() -> {
+            try {
+                Bitmap bitmap = LocalImageBitmaps.inspection(selected.preview());
+                main.post(() -> {
+                    if (closed || dialog != owner || !listener.available()) { bitmap.recycle(); return; }
+                    viewerLoading = false;
+                    showViewer(draft, bitmap, owner);
+                });
+            } catch (Exception | OutOfMemoryError failure) {
+                main.post(() -> {
+                    if (closed || dialog != owner) return;
+                    viewerLoading = false;
+                    Toast.makeText(context, "Bilden kunde inte öppnas större. Förhandsgranskningen finns kvar.", Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void showViewer(TmmDraft draft, Bitmap bitmap, AlertDialog owner) {
+        Dialog full = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
+        full.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        LinearLayout content = new LinearLayout(context);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setBackgroundColor(Color.BLACK);
+        content.setOnApplyWindowInsetsListener((view, insets) -> {
+            view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+            return insets;
+        });
+        TextView title = new TextView(context);
+        title.setText("Lokal bild – " + draft.displayId + "\nNyp eller dubbeltryck för zoom. Dra för att flytta bilden.");
+        title.setTextColor(Color.WHITE);
+        int padding = Math.round(12 * context.getResources().getDisplayMetrics().density);
+        title.setPadding(padding, padding, padding, padding);
+        content.addView(title);
+        ZoomImageView image = new ZoomImageView(context, bitmap);
+        image.setContentDescription("Lokal bild för " + draft.displayId);
+        content.addView(image, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        LinearLayout controls = new LinearLayout(context);
+        for (String label : new String[]{"Zooma in", "Zooma ut", "Anpassa", "Stäng"}) {
+            Button button = new Button(context);
+            button.setText(label);
+            button.setMinWidth(0);
+            button.setMinimumWidth(0);
+            button.setOnClickListener(ignored -> {
+                if (label.equals("Zooma in")) image.zoomBy(2);
+                else if (label.equals("Zooma ut")) image.zoomBy(0.5f);
+                else if (label.equals("Anpassa")) image.fit();
+                else full.dismiss();
+            });
+            controls.addView(button, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         }
-        Bitmap bitmap = BitmapFactory.decodeByteArray(normalized, 0, normalized.length, options);
-        if (bitmap == null) throw new IOException();
-        return bitmap;
+        content.addView(controls);
+        full.setContentView(content);
+        full.setOnDismissListener(ignored -> {
+            image.clearImage();
+            bitmap.recycle();
+            if (viewer == full) viewer = null;
+            if (owner == null) busy = false;
+        });
+        viewer = full;
+        full.show();
+        full.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        content.requestApplyInsets();
+    }
+
+    private void closeViewer() {
+        Dialog current = viewer;
+        viewer = null;
+        if (current != null) current.dismiss();
     }
 
     private void releasePending() {
@@ -280,6 +358,7 @@ final class LocalImageUi {
         synchronized (this) { closed = true; }
         pickerTarget = null;
         if (launcher != null) launcher.unregister();
+        closeViewer();
         if (dialog != null) dialog.dismiss();
         releasePending();
     }
