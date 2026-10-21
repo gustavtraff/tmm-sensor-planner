@@ -49,7 +49,7 @@ establish actual keyboard, picker or ATAK behavior.
 Actual-client procedure, using only synthetic records:
 
 1. On a small portrait and landscape client, create/edit a draft. Enter ID, owner,
-   multiline comment and decimal coordinates. Use the visible Done key: verify the
+   multiline comment, MGRS coordinates and optional decimal bearing. Use the visible Done key: verify the
    keyboard closes, focus/text remain, and no hidden field is selected. Reopen by
    touching another field; check its label while the keyboard is visible. Exercise
    hardware Tab/Enter and intentional field navigation.

@@ -1,5 +1,10 @@
 # Tests and gates
 
+The local-only `sh scripts/test-mgrs-sdk.sh` checks actual external SDK conversion
+classes and exact position-edit preservation. It is part of `scripts/check-sdk.sh`;
+public core/image CI cannot run it without the external SDK. See
+[MAP_POSITION.md](MAP_POSITION.md) for UI, precision and remaining client gates.
+
 The [#66 Full HD copy policy](IMAGE_QUALITY.md) tests aspect ratios, no upscaling,
 orientation/metadata/source preservation, old-copy reads and separate 10 MiB source
 versus 16 MiB owned limits. Physical camera and placement usability remain gates.

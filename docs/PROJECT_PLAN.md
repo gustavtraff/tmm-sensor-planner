@@ -49,6 +49,8 @@ connected privacy, physical image/provider acceptance and sharing remain pending
 Issue #4 adds an explicitly selected, session-only connected local trial with TMM
 lab sharing disabled. This is a reviewable test candidate, not a production-network
 approval; see [ADR 0009](decisions/0009-connected-local-trial.md).
+The #52 [MGRS/map position adapter](MAP_POSITION.md) uses verified SDK conversion
+and a temporary screen sight with explicit accept/cancel, preserving numeric storage.
 See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md).
 
 ### Functional requirements
