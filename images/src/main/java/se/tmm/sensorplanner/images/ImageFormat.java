@@ -9,6 +9,8 @@ import java.util.zip.CRC32;
 /** Structural checks before Android decoding; filenames and supplied MIME types are ignored. */
 final class ImageFormat {
     static final int MAX_BYTES = 10 * 1024 * 1024;
+    // Keep source acceptance separate from bounded, metadata-free PNG expansion.
+    static final int MAX_OWNED_BYTES = 16 * 1024 * 1024;
     static final long MAX_PIXELS = 20_000_000L;
     private static final byte[] PNG = {(byte) 137, 80, 78, 71, 13, 10, 26, 10};
 
@@ -26,7 +28,7 @@ final class ImageFormat {
     }
 
     static void checkOwnedPng(byte[] bytes) throws IOException {
-        if (bytes.length > MAX_BYTES || !isPng(bytes)) throw invalid();
+        if (bytes.length > MAX_OWNED_BYTES || !isPng(bytes)) throw invalid();
         png(bytes);
     }
 

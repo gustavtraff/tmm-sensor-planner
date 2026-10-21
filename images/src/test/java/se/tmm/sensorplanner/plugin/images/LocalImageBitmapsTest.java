@@ -16,15 +16,15 @@ import static org.junit.Assert.*;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class LocalImageBitmapsTest {
     @Test public void inspectionKeepsStoredDetailWhileLegacyDecodesRemainBounded() throws Exception {
-        for (int width : new int[]{1600, 4096}) {
+        for (int width : new int[]{1600, 1920, 4096}) {
             Bitmap original = Bitmap.createBitmap(width, 8, Bitmap.Config.ARGB_8888);
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             assertTrue(original.compress(Bitmap.CompressFormat.PNG, 100, bytes));
             original.recycle();
             Bitmap preview = LocalImageBitmaps.preview(bytes.toByteArray());
             Bitmap inspection = LocalImageBitmaps.inspection(bytes.toByteArray());
-            assertEquals(width == 1600 ? 800 : 1024, preview.getWidth());
-            assertEquals(width == 1600 ? 1600 : 2048, inspection.getWidth());
+            assertEquals(width == 4096 ? 1024 : width / 2, preview.getWidth());
+            assertEquals(Math.min(width, 2048), inspection.getWidth());
             assertTrue(inspection.getAllocationByteCount() <= 16 * 1024 * 1024);
             preview.recycle();
             inspection.recycle();

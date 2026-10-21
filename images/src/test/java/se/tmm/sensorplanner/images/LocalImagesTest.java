@@ -300,10 +300,10 @@ public class LocalImagesTest {
         String[] saved = {null};
         try (InputStream input = Files.newInputStream(source); LocalImages.Pending pending = images.prepare(input)) {
             byte[] output = pending.preview();
-            assertTrue(output.length <= ImageFormat.MAX_BYTES);
+            assertTrue(output.length <= ImageFormat.MAX_OWNED_BYTES);
             Bitmap result = decode(output);
-            assertEquals(1600, result.getWidth());
-            assertEquals(1200, result.getHeight());
+            assertEquals(1920, result.getWidth());
+            assertEquals(1440, result.getHeight());
             result.recycle();
             ExifInterface clean = new ExifInterface(new ByteArrayInputStream(output));
             assertNull(clean.getAttribute(ExifInterface.TAG_MAKE));
@@ -316,11 +316,11 @@ public class LocalImagesTest {
 
     @Test public void newCopiesAreBoundedButExistingFullResolutionPngsAreNotRewritten() throws Exception {
         LocalImages images = store();
-        for (int edge : new int[]{1599, 1600, 1601}) {
+        for (int edge : new int[]{1600, 1919, 1920, 1921}) {
             byte[] source = encode(new int[edge * 2], edge, 2, Bitmap.CompressFormat.PNG);
             try (LocalImages.Pending pending = images.prepare(new ByteArrayInputStream(source))) {
                 Bitmap copy = decode(pending.preview());
-                assertEquals(Math.min(edge, 1600), copy.getWidth());
+                assertEquals(Math.min(edge, 1920), copy.getWidth());
                 assertEquals(2, copy.getHeight());
                 assertEquals(0, copy.getPixel(0, 0));
                 copy.recycle();
@@ -331,6 +331,42 @@ public class LocalImagesTest {
         Files.write(imagesDirectory.resolve(legacy), original);
         assertArrayEquals(original, new LocalImages(imagesDirectory).read(legacy));
         assertArrayEquals(original, Files.readAllBytes(imagesDirectory.resolve(legacy)));
+    }
+
+    @Test public void fullHdKeepsAspectRatioAndDoesNotEnlargeSmallerSources() throws Exception {
+        LocalImages images = store();
+        for (int[] size : new int[][]{{3840, 2160}, {1920, 1080}, {1080, 1920}, {1280, 720}}) {
+            byte[] source = encode(new int[size[0] * size[1]], size[0], size[1], Bitmap.CompressFormat.PNG);
+            try (LocalImages.Pending pending = images.prepare(new ByteArrayInputStream(source))) {
+                Bitmap copy = decode(pending.preview());
+                float scale = Math.min(1f, 1920f / Math.max(size[0], size[1]));
+                assertEquals(Math.round(size[0] * scale), copy.getWidth());
+                assertEquals(Math.round(size[1] * scale), copy.getHeight());
+                copy.recycle();
+            }
+        }
+    }
+
+    @Test public void ownedPngExpansionDoesNotRaiseTheSourceLimitAndOversizeReadsAreBounded() throws Exception {
+        int[] pixels = new int[1920 * 1920];
+        Random random = new Random(66);
+        for (int i = 0; i < pixels.length; i++) pixels[i] = random.nextInt();
+        byte[] png = encode(pixels, 1920, 1920, Bitmap.CompressFormat.PNG);
+        assertTrue(png.length > ImageFormat.MAX_BYTES);
+        assertTrue(png.length < ImageFormat.MAX_OWNED_BYTES);
+        LocalImages images = store();
+        String reference = UUID.randomUUID() + ".png";
+        Files.createDirectories(imagesDirectory);
+        Files.write(imagesDirectory.resolve(reference), png);
+        assertArrayEquals(png, new LocalImages(imagesDirectory).read(reference));
+        ImagePreparationException source = Assert.assertThrows(ImagePreparationException.class,
+                () -> images.prepare(new ByteArrayInputStream(png)));
+        assertEquals(ImagePreparationException.Reason.INPUT_TOO_LARGE, source.reason);
+        byte[] oversized = Arrays.copyOf(png, ImageFormat.MAX_OWNED_BYTES + 1);
+        Files.write(imagesDirectory.resolve(reference), oversized);
+        Assert.assertThrows(IOException.class, () -> images.read(reference));
+        Assert.assertThrows(IOException.class, () -> ImageFormat.checkOwnedPng(oversized));
+        assertArrayEquals(oversized, Files.readAllBytes(imagesDirectory.resolve(reference)));
     }
 
     @Test public void inputPixelFormatAndStorageFailuresHaveDistinctSafeReasons() throws Exception {

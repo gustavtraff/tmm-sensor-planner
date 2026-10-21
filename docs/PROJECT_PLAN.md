@@ -41,10 +41,10 @@ remaining code/test work. The core now implements validated edits and candidate
 filtering and a versioned Java-core snapshot store. A guarded offline adapter now
 connects forms, review, Android storage and a private feature layer on API 26+.
 Saved-device review integrates local image selection, normalized preview and
-view/replace/remove actions; see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). The #49
-phone-photo fix proposes explicitly reviewed local copies capped at 1,600 pixels
-on the longest side; ADR 0006 records this human-review amendment, with source
-limits and immutable originals preserved. Production
+view/replace/remove actions; see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). The owner-requested #66 quality follow-up raises new local copies to a
+1,920-pixel longest edge (without upscaling), retaining the 10 MiB source limit
+and allowing up to 16 MiB for a metadata-free PNG copy. ADR 0006 records the
+reviewable amendment; see [IMAGE_QUALITY.md](IMAGE_QUALITY.md). Production
 connected privacy, physical image/provider acceptance and sharing remain pending.
 Issue #4 adds an explicitly selected, session-only connected local trial with TMM
 lab sharing disabled. This is a reviewable test candidate, not a production-network

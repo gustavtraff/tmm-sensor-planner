@@ -40,6 +40,9 @@ DraftStore commits, stale revisions and an error after metadata replacement.
 No private SDK, signing material or image artifacts are uploaded. The `images` job
 is not automatically added to main's required status rules by this PR.
 
+The [#66 Full HD amendment](IMAGE_QUALITY.md) supersedes the historical 1600-edge
+policy below for new copies; historical version-specific evidence stays unchanged.
+
 ## Image contract
 
 The accepted [ADR 0006](decisions/0006-local-mvp-product-rules.md) remains authoritative:
@@ -47,7 +50,7 @@ The accepted [ADR 0006](decisions/0006-local-mvp-product-rules.md) remains autho
 - Primary JPEG still/PNG detected from bytes, not a filename or supplied MIME type.
 - Input at most 10,485,760 bytes, read with a bounded stream before decoding.
 - Positive source dimensions and at most 20,000,000 pixels checked before bitmap
-  allocation; multiplication uses a long. New local copies are at most **1,600
+  allocation; multiplication uses a long. New local copies are at most **1,920
   pixels on their longest side**, preserving aspect ratio with integer rounding.
   Smaller inputs are not enlarged. The save preview explicitly explains this
   reduction and offers Save locally or Cancel; the original stays untouched.
@@ -64,11 +67,12 @@ The accepted [ADR 0006](decisions/0006-local-mvp-product-rules.md) remains autho
   without copying original EXIF/GPS, text, thumbnails or embedded metadata.
   Source color profiles are not preserved. Normalization is not forensic erasure
   and does not remove sensitive information visibly drawn in an image.
-- The normalized output still has a 10 MiB byte limit. The bounded local dimensions
+- The normalized output has a separate **16 MiB** byte limit. The bounded local dimensions
   prevent the previous full-resolution JPEG-to-PNG expansion failure in the
   reproduced camera-size fixture. Low memory remains an explicit failure; no
   every-device memory guarantee is made. Old full-resolution owned PNGs remain
-  readable under the original 10 MiB / 20-million-pixel limits and are not rewritten.
+  readable under the 16 MiB / 20-million-pixel owned-read limits and are not rewritten.
+  The complete original input remains capped at 10 MiB.
 - Source streams/files are never modified. The caller owns and closes the source
   stream. The original is never written into the image directory.
 
@@ -123,7 +127,7 @@ Save a device first, then use **Lägg till bild** in its detail view. The system
 local-document picker requests JPEG/PNG; byte validation remains authoritative.
 Cancel leaves the saved device unchanged. The worker copies and normalizes the
 selected document, and the scrollable preview displays only that normalized copy
-with the 1,600-pixel reduction notice. **Spara bilden lokalt**
+with the 1,920-pixel reduction notice. **Spara bilden lokalt**
 explicitly attaches it. **Ersätt bild**, **Visa bild** and confirmed **Ta bort bild**
 operate on the same saved record. **Visa bild** now opens large inspection; tapping
 the pending preview or **Visa större bild** opens the same read-only viewer. Deleting a draft commits metadata before safe
@@ -131,7 +135,8 @@ image cleanup. Viewing a missing/unsupported reference reports an error and reta
 metadata. An uncertain save asks for a fresh reload rather than blind retry.
 
 Preview decoding runs on the worker with a sampled display bitmap (approximately
-1,024 pixels on its longest side). New stored copies have the 1,600-pixel longest-side cap; legacy files retain their
+1,024 pixels on its longest side); inspection decodes up to 2,048 pixels
+independently. New stored copies have the 1,920-pixel longest-side cap; legacy files retain their
 existing validated resolution. Picker/read/normalization operations use the same serialized worker as
 metadata; a slow document provider may delay later operations. No persistent URI
 grant or original URI is stored. Close unregisters the result callback and discards
