@@ -186,3 +186,50 @@ See [the exact protocol and limits](TWO_CLIENT_LAB.md#actual-planner-follow-up--
 No draft publishing implementation or relaxation of the offline restriction is
 introduced by this evidence. Phone/standard-client, companion-plugin and other
 transport/privacy acceptance remain separate gates.
+
+## Simplified map labels (#53) — 2026-10-21
+
+The owner-approved map text is `<manual ID> · Lokal`, without a redundant type
+letter or appended lifecycle-status name. Status remains explicit in the list,
+details and the five-option manual editor. The saved-review introduction explains
+that a local draft is on this device and that server connectivity proves neither
+synchronization nor delivery. No ID/status, snapshot-v1, wire, image, publishing,
+access-policy, icon, tint, label-font or map-selection behavior is changed.
+
+Verification uses only synthetic data in a dedicated API-35 arm64 SDK-host guest
+at 720×1280 and 1280×720 px / 320 dpi. The 22-record fixture covers all four types ×
+five statuses plus a long Unicode ID and a nearby overlapping point. Raw fixtures,
+APKs, logs and screenshots stay in ignored private storage. First-run host graphics
+failed before plugin loading with `No config chosen`; the existing
+[generic EGL emulator workaround](EMULATOR_TEST.md#graphics-workaround) resolved it.
+No plugin trust/signature setting was bypassed. Airplane mode is enabled, Wi-Fi,
+data and location are disabled, and IPv4/IPv6 output is blocked. No server or feed
+is configured. This is SDK-emulator evidence, not physical-phone or service-signed
+standard-client acceptance, nor a new connected/privacy test.
+
+The runtime candidate is source `99a5b26`, based on main `c0e8343`, with Android
+Debug APK SHA-256
+`bddfcf364bb8e6d5f243958492c50e63667769d44109189e7540db714d533a50`.
+`sh scripts/test.sh` and `sh scripts/check-sdk.sh` passed with Temurin
+17.0.20.1+1 and the supplied ATAK-CIV 5.6.0.24 SDK (build, lint, existing app tests
+and static APK checks). No ATAK API was added or guessed.
+
+- Actual phone-size landscape and portrait rendering retained the four pictograms,
+  yellow Planned, green Deployed/Active and gray Retrieved/Cancelled. Map labels
+  showed IDs and `Lokal`, without appended lifecycle words. Existing bearing cues
+  remained in their planning colors.
+- A real map tap opened PIR 141 with Active status and the new local-state explanation.
+- The long ID remained complete in review and on the centered portrait map. The
+  nearby pair demonstrated SDK label suppression: both labels are not guaranteed
+  to appear simultaneously. At dense grid spacing labels can still touch/overlap;
+  zooming and the list/review remain necessary. This change does not implement a
+  new collision engine or promise every ID is always visible.
+
+- Tapping each of the nearby icon centers opened its correct full ID/status:
+  the long PIR remained Active and Scout NEAR remained Retrieved.
+- The editor still exposed all five status choices. Cancelling the edit and
+  returning to the map left the complete snapshot byte-identical to the fixture.
+- The post-workaround runtime log contained no AndroidRuntime fatal exception.
+Physical-phone readability, diverse map backgrounds, TalkBack and a newly signed
+standard-client artifact remain unverified for this change. Human review/merge
+and the existing release gates still apply.
