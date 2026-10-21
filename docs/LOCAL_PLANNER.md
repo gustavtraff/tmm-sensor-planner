@@ -233,3 +233,9 @@ and static APK checks). No ATAK API was added or guessed.
 Physical-phone readability, diverse map backgrounds, TalkBack and a newly signed
 standard-client artifact remain unverified for this change. Human review/merge
 and the existing release gates still apply.
+
+After Full HD PR #70 merged as main `e8aabdf`, it was integrated without conflicts
+at `092efbd`. `sh scripts/check-sdk.sh` passed again on that combined source.
+The label/review Java files are byte-identical to the runtime-tested `99a5b26`;
+the image changes belong to #66. The combined APK has not been retested on a phone
+or standard client, and the earlier runtime APK hash above is not its identity.
