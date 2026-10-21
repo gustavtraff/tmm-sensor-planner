@@ -16,9 +16,9 @@ public class ImagePreparationMessagesTest {
             assertTrue(messages.add(message));
         }
         assertTrue(ImagePreparationMessages.forFailure(new ImagePreparationException(
-                ImagePreparationException.Reason.INPUT_TOO_LARGE)).contains("Originalfilen"));
+                ImagePreparationException.Reason.INPUT_TOO_LARGE)).contains("10 MiB"));
         assertTrue(ImagePreparationMessages.forFailure(new ImagePreparationException(
-                ImagePreparationException.Reason.OUTPUT_TOO_LARGE)).contains("Bildkopian"));
+                ImagePreparationException.Reason.OUTPUT_TOO_LARGE)).contains("16 MiB"));
         String provider = ImagePreparationMessages.forFailure(new IOException("content://synthetic-private-provider"));
         assertFalse(provider.contains("synthetic-private-provider"));
         assertTrue(provider.contains("lokal fil"));

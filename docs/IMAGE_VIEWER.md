@@ -15,7 +15,7 @@ an attached image. Missing/decode failures retain the saved reference.
 ## Detail and memory boundary
 
 Inspection decodes the owned PNG on the existing serialized worker, independently
-of the small preview. A current 1600-pixel copy is read at its stored resolution;
+of the small preview. A current copy up to 1920 pixels is read at its stored resolution;
 it is no longer enlarged only from the old approximately-1024-pixel thumbnail.
 Legacy larger copies are sampled to at most 2048 pixels on either display-bitmap
 edge (at most 4,194,304 ARGB pixels, approximately 16 MiB). The pending preview still
@@ -24,10 +24,10 @@ uses the smaller decode; a second bounded inspection bitmap is released on close
 Zoom is between fit and eight times fit; panning is clamped so the image cannot
 be lost outside the viewport. Zoom enlarges available pixels and cannot recover
 detail removed during earlier normalization. No new dependency, permission,
-transport, image encoding, saved-copy cap, handle or snapshot migration is added.
-New stored copies remain at most 1600 pixels / 10 MiB. Higher-detail storage needs
-a separately reviewed encoding/quality/memory proposal under #66; simply raising
-the PNG cap risks the expansion/memory failures recorded in #49.
+transport, image encoding, handle or snapshot migration is added by the viewer.
+The [#66 quality amendment](IMAGE_QUALITY.md) raises new stored copies to 1920 pixels /
+16 MiB, with the source limit still 10 MiB. Previously stored 1600-pixel images
+remain unchanged. The larger storage cap does not raise this viewer's display-memory limit.
 
 ## Verification gates
 

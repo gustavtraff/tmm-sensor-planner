@@ -16,7 +16,7 @@ public final class ImagePreparationMessages {
                 case PIXEL_LIMIT: message = "Originalbilden har fler än 20 miljoner pixlar. Välj en bild med lägre upplösning."; break;
                 case INVALID_IMAGE: message = "Bilden kunde inte avkodas som en stödd stillbild. Välj en vanlig JPEG eller PNG."; break;
                 case LOW_MEMORY: message = "Minnet räckte inte till. Stäng andra appar eller välj en mindre bild."; break;
-                case OUTPUT_TOO_LARGE: message = "Bildkopian blev större än 10 MiB. Välj en mindre bild."; break;
+                case OUTPUT_TOO_LARGE: message = "Bildkopian blev större än 16 MiB. Välj en mindre bild."; break;
                 case SAVE_FAILED: message = "Bildkopian kunde inte sparas. Kontrollera ledigt lagringsutrymme och försök igen."; break;
             }
         }

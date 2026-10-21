@@ -1,5 +1,9 @@
 # Tests and gates
 
+The [#66 Full HD copy policy](IMAGE_QUALITY.md) tests aspect ratios, no upscaling,
+orientation/metadata/source preservation, old-copy reads and separate 10 MiB source
+versus 16 MiB owned limits. Physical camera and placement usability remain gates.
+
 The [#66 image viewer](IMAGE_VIEWER.md) adds native gesture/render/decode tests.
 They do not prove actual ATAK dialog lifecycle, phone gestures or higher-detail
 storage; those are separate acceptance gates.
