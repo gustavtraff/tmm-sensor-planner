@@ -21,15 +21,15 @@ enter the actual device label manually and a group/role owner. New drafts defaul
 to Planerad; all five statuses can be selected manually. No field is derived from
 status. Required fields and invalid coordinates have adjacent Swedish errors.
 
-MGRS uses WGS84 UTM zones with five easting and five northing digits. Bearing
-accepts a dot or comma decimal separator, without grouping or exponent notation. The Android key listener preserves both separators independently
-of host keyboard locale; prefilled small values use plain decimals, not exponents. Optional deployment time uses explicit date/time selectors in the device local
+MGRS uses WGS84 UTM zones with five easting and five northing digits. Bearing accepts optional whole mils (0–6400) over unchanged canonical degrees;
+see [device review and bearing](DEVICE_DETAILS.md). Mils requests a numeric keyboard while preserving pasted input for explicit
+validation; the UI does not silently strip decimal punctuation. Optional deployment time uses explicit date/time selectors in the device local
 timezone, with the zone and UTC offset visible; see [form entry](FORM_ENTRY.md).
 Opening a selector initializes an empty value to now without assigning it to the
 draft. Only confirming both date and time assigns a value; Cancel preserves the
 previous value and **Rensa utplaceringstid** explicitly clears it. Existing values
-retain their exact Instant until changed. The review displays timestamps locally. PIR/Scout support optional decimal bearing clockwise from **true
-north**. Other types hide an empty bearing field; a retained nonempty bearing must
+retain their exact Instant until changed. The review displays timestamps locally. PIR/Scout support optional whole-mil bearing on a **6400-mil circle**, clockwise
+from **true north**, with an independent north-up cue. Other types hide an empty bearing field; a retained nonempty bearing must
 be explicitly cleared before saving a type change. Text and decimal fields offer **Done/Klar** to hide the keyboard without moving
 focus or saving. Labels scroll with their active field, and landscape input remains
 in the form rather than a separate fullscreen editor. Touch, hardware Tab and
@@ -37,13 +37,15 @@ accessibility navigation remain available. Comments retain the 2,000
 UTF-16 code-unit limit. Duplicate visible IDs warn and offer **Spara ändå**, without
 merging UUIDs or changing labels. Edits preserve UUID, creation time and image handle.
 
-**Spara lokalt** commits on one background executor. Review shows the saved fields,
-local status, MGRS position, dates/revision, nearest eligible other device and a sorted gateway list.
+**Spara lokalt** commits on one background executor. Review prioritizes ID/type/status, MGRS copy/map actions, an inline local image
+with large-view access, and bearing. Owner/comment/deployment time and distances
+follow; created/updated/revision and less frequent actions are under Fler uppgifter.
+Nearest eligible other device and a sorted gateway list remain available.
 Distances use the accepted core rules, rounded to whole meters, with no coverage claim.
 Saved-device review provides local image add/preview/view/replace/remove actions;
 see [LOCAL_IMAGES.md](LOCAL_IMAGES.md). **Ta bort lokalt utkast** requires confirmation,
 commits metadata and then cleans an image only after a fresh reference check.
-Cancellation saves nothing. **Läs om** reloads the snapshot; storage errors never reset it.
+Cancellation saves nothing. **Uppdatera** reloads the snapshot; storage errors never reset it.
 An uncertain save keeps entered text and disables repeat saving until the user reloads.
 
 The map uses one plugin-owned in-memory database/FeatureLayer3 per planner lifetime.

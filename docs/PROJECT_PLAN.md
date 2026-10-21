@@ -51,6 +51,8 @@ lab sharing disabled. This is a reviewable test candidate, not a production-netw
 approval; see [ADR 0009](decisions/0009-connected-local-trial.md).
 The #52 [MGRS/map position adapter](MAP_POSITION.md) uses verified SDK conversion
 and a temporary screen sight with explicit accept/cancel, preserving numeric storage.
+The #67 [device review](DEVICE_DETAILS.md) prioritizes status, MGRS, local image
+and a 6400-mil bearing display/input without changing canonical stored degrees.
 See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md).
 
 ### Functional requirements
@@ -63,7 +65,7 @@ See [LOCAL_PLANNER.md](LOCAL_PLANNER.md) and [LOCAL_STORAGE.md](LOCAL_STORAGE.md
 | F04 | Save and reopen drafts offline, including after restart. Clearly show `Local draft` and `Shared` states. | MVP |
 | F05 | Preview the entire object and require an active `Share` selection; show the target recipient or selected feed and a summary before confirmation. | MVP |
 | F06 | Show TMM markers with distinguishable type and status on the ATAK map; selecting the marker opens the object's details. | MVP |
-| F07 | Set bearing from 0° to just below 360° for PIR and Scout, with an explicit reference direction and a simple direction display. | MVP |
+| F07 | Enter/display whole 0–6400 mils for PIR/Scout, with true-north reference and a direction cue. Canonical storage remains degrees [0,360); see DEVICE_DETAILS.md. | MVP |
 | F08 | Show the horizontal map distance to the nearest *other* TMM device; for gateways, also show a sorted list of distances to other gateways. Update when positions change. | MVP |
 | F09 | Attach an image/sketch to a device, view it again and remove it; metadata and image must not be confused during sharing. | Local in MVP; sharing in a later stage |
 | F10 | Receive and interpret shared TMM objects using the same schema, identify them by stable UUID and prevent duplicates. | Synchronization stage |

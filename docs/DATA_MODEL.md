@@ -15,7 +15,10 @@ Position: finite degrees, latitude [-90,90], longitude [-180,180].
 createdAt/updatedAt: UTC Instant; updatedAt must not precede createdAt.
 Optional deployedAt: actual time, not automatically derived from status.
 Bearing: optional for PIR/Scout, finite [0,360), clockwise from true north; Gateway and Mini
-reject bearing. Comment: at most 2000 UTF-16 code units (Java String.length()).
+reject bearing. The local UI uses whole 6400-circle mils and retains untouched
+exact degree values; [DEVICE_DETAILS.md](DEVICE_DETAILS.md) defines conversion,
+rounding and the equivalent 0/6400 boundary. This is not a snapshot/wire-unit change.
+Comment: at most 2000 UTF-16 code units (Java String.length()).
 Image reference: optional local reference; no image blob, file handling or sharing.
 It is not a wire field or recipient-readable path. Keep it out of CoT and package
 manifests; a future attachment needs separate content identity and verified bytes.
