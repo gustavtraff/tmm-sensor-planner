@@ -88,8 +88,7 @@ final class LocalDraftLayer {
             int count = 0;
             for (TmmDraft draft : nextDrafts) {
                 int color = color(draft.status);
-                String label = letter(draft) + " · " + draft.displayId + " · "
-                        + statusLabel(draft.status) + " · Lokal";
+                String label = draft.displayId + " · Lokal";
                 insert(store, nextSetId, label,
                         new Point(draft.position.longitude, draft.position.latitude),
                         new CompositeStyle(new Style[]{new IconPointStyle(color,
@@ -195,16 +194,6 @@ final class LocalDraftLayer {
                 ((Math.toDegrees(endLongitude) + 540) % 360) - 180);
     }
 
-    private static String letter(TmmDraft draft) {
-        switch (draft.type) {
-            case MINI: return "M";
-            case SCOUT: return "S";
-            case PIR: return "P";
-            case GATEWAY: return "G";
-            default: throw new IllegalArgumentException("Unknown device type");
-        }
-    }
-
     private static String iconUri(TmmDraft draft) {
         int resource;
         switch (draft.type) {
@@ -215,17 +204,6 @@ final class LocalDraftLayer {
             default: throw new IllegalArgumentException("Unknown device type");
         }
         return "android.resource://se.tmm.sensorplanner.plugin/" + resource;
-    }
-
-    static String statusLabel(DeviceStatus status) {
-        switch (status) {
-            case PLANNED: return "Planerad";
-            case DEPLOYED: return "Utplacerad";
-            case ACTIVE: return "Aktiv";
-            case RETRIEVED: return "Intagen";
-            case CANCELLED: return "Avbruten";
-            default: throw new IllegalArgumentException("Unknown device status");
-        }
     }
 
     private static int color(DeviceStatus status) {

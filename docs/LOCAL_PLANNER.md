@@ -53,8 +53,14 @@ the database on each refresh; that approach was removed before review readiness.
 M/S/P/G disc artwork in four 64 px PNG point icons, so type shape remains visible
 even when the SDK declutters labels. The vector masters follow the private reference
 silhouettes; no extracted manual bitmap is packaged. Numeric `android.resource` URIs
-load the APK drawables through the SDK bitmap loader. Labels additionally contain
-the letter, manual ID, Swedish status and `Lokal`; status colors are a secondary cue: yellow Planned, green Deployed/Active,
+load the APK drawables through the SDK bitmap loader. Map labels contain only the full manual ID and `Lokal`, for example
+`PIR 134 · Lokal` (#53); device pictograms identify type without an extra type
+letter. Lifecycle-status words are kept in the list, details and manual edit form.
+`Lokal` means a draft on this device, separate from lifecycle status. Connecting
+ATAK to a server neither changes that label nor proves synchronization or delivery;
+the details explain this distinction. IDs are not truncated or renamed in storage.
+SDK decluttering may still hide overlapping or very long labels; use map-tap review
+or the list to read the complete ID and status. Status colors remain a secondary cue: yellow Planned, green Deployed/Active,
 gray Retrieved/Cancelled, as approved on 2026-10-18.
 A PIR/Scout arrow is a fixed **100 m direction cue**, not sensor range. Tapping within
 32 dp of a point opens review when another planner dialog is not already open; nearest
