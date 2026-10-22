@@ -126,3 +126,7 @@ resources instead of plugin resources; #62 tracks it. A generated image saved an
 reopened, but the size disclosure was wrong. PR #64 fixes the notice, now checked
 in both the SDK host and the returned versionCode 10 standard-host candidate before
 the next phone image trial. No claim of full A05 or A08 acceptance follows from this run.
+
+## Current evidence and next gate — 2026-10-22
+
+The owner-reported version 15 offline phone test passed the local workflow; see [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md). It does not close the connected privacy gate. The next priority is the signed standard-binary two-client procedure in [NEXT_STEPS.md](NEXT_STEPS.md#1-verify-connected-private-drafts--4-with-7), using an isolated server and positive controls, before considering an authorized phone online trial.

@@ -14,10 +14,10 @@ based on the HV Reports package label; that label is retained below as reported.
 
 | Component | Reported version / target | Verification |
 |---|---|---|
-| TMM Sensor Planner | No release; planned 0.1.0 | Service-signed trial passed bounded standard 5.6.0.25 emulator lifecycle/storage checks; physical-phone acceptance pending |
+| TMM Sensor Planner | No release; planned 0.1.0 | Signed version 15 passed owner-reported offline OnePlus acceptance; connected privacy, full coexistence and release review remain open |
 | ATAK API | 5.6.0 active target | User-approved target; integration unverified |
 | Additional standard-client installer | ATAK-CIV 5.6.0.25 (238484ee) | Installed in a separate offline API 35 emulator; signed TMM load/unload/restart and local draft preservation passed |
-| Installed phone client | ATAK-CIV full build 5.6.0.12 | User-reported; plugin loading not tested |
+| Installed phone client | ATAK-CIV full build 5.6.0.12 | Previously reported build; signed version 15 offline phone workflow passed per owner, host build not freshly re-read |
 | Supplied SDK | Directory labeled full build 5.6.0.24; app, guide and JARs present | Local debug and release-variant build/lint verified; provenance and standard-host runtime compatibility with 5.6.0.12 pending |
 | HV Reports/8S | Inspected APK 1.1.9 [5.5.0], API 5.5.0.CIV | Android installation passed; loading failed in SDK host 5.6.0.24 with and without TMM active. Standard 5.6.0.25 load/empty-view check passed with the older-API warning; phone/report workflows pending |
 | Data Sync | Inspected APK 3.7.4 (58746181) [5.6.0] | Installation passed; SDK 5.6.0.24 load attempt failed with missing host class. Standard 5.6.0.25 load/empty-feed-view comparison passed; synchronization and TMM Data Sync integration unverified |
@@ -52,3 +52,7 @@ Source submission, signing, private APK delivery and public publication are
 separate steps; no upload, feed publication or release is approved by this record.
 The available 5.6.0.25 standard installer adds a test target and does not replace
 phone verification on the reported 5.6.0.12 installation.
+
+## Signed version 15 offline phone result — 2026-10-22
+
+[PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md) records source/APK hashes, static checks, successful owner-reported upgrade/camera/zoom/MGRS/mils/lifecycle/orientation checks and their limits. No release is approved. [NEXT_STEPS.md](NEXT_STEPS.md) prioritizes standard-binary connected-private verification before production sharing.

@@ -46,3 +46,7 @@ cleared. Both selector confirmations are required; cancellation changes nothing.
 The timezone and selected UTC offset are displayed. Storage remains a UTC Instant
 with no schema change. [FORM_ENTRY.md](FORM_ENTRY.md) records minute precision for
 new selections, daylight-saving handling and actual-client verification limits.
+
+## Local physical evidence — 2026-10-22
+
+The owner reports the signed version 15 offline phone workflow working, including camera images, zoom, MGRS/map movement and 6400-mil bearing. See [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md) for scope and limitations. Earlier statements about pending local physical acceptance are historical; production connected privacy, sharing, import/conflicts, image delivery and full coexistence remain open.

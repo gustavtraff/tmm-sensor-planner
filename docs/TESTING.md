@@ -245,3 +245,7 @@ and daylight-saving handling. The private SDK check now includes app unit tests
 for UTC date/year rollover, overlap and gap conversion. These app tests require
 the local SDK; public core/images CI does not run them or establish actual
 keyboard, small-screen, standard-client or phone acceptance.
+
+## Current evidence and next gate — 2026-10-22
+
+The owner-reported signed version 15 offline phone results and their limits are recorded in [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md). This supports local physical acceptance; A01 connected privacy, A06/A07 production sharing and full A08 coexistence remain open. The proposed order and exit gates are in [NEXT_STEPS.md](NEXT_STEPS.md).
