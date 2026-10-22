@@ -82,3 +82,7 @@ Issue #14 now has a bounded [saved-metadata sharing lab](METADATA_SHARE_LAB.md):
 explicit individual selection/review, final freshness/route checks, excluded images
 and an actual recipient marker inspector. This is experimental SDK-lab evidence;
 production transport approval, standard clients and physical A06/A07 remain open.
+
+## Current evidence and next gate — 2026-10-22
+
+This file preserves the initial setup backlog and historical notes. For the current post-phone-test order, use [NEXT_STEPS.md](NEXT_STEPS.md) and live GitHub Issues. Version 15 owner-reported offline acceptance is in [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md); several older statements below predate implemented features and successful signing.
