@@ -7,6 +7,16 @@ usability; it does not approve an operational-network test or release.
 
 ## 1. Verify connected private drafts — #4 with #7
 
+**Update — 2026-10-23:** The bounded version 15 trial on two standard 5.6.0.25
+emulators has been run; see [the verification record](CONNECTED_SIGNED15_VERIFICATION.md).
+Its CoT controls, absence checks and local lifecycle observations are evidence for
+human review of this gate. The procedure below remains the repeat protocol. A
+separately authorized isolated phone trial and exact phone-host reconfirmation are
+still needed; this result does not complete #7 companion workflows or authorize
+an operational-network trial. The Data Sync automatic-publication/reconnect-queue
+phase added below was not covered by this CoT-only run; that isolated-feed gate
+remains open.
+
 Use the existing service-signed version 15 artifact first; no feature change or new
 signing submission is needed solely to start verification. Reuse
 [CONNECTED_LOCAL_TRIAL.md](CONNECTED_LOCAL_TRIAL.md), with these explicit gates:

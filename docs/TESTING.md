@@ -249,3 +249,14 @@ keyboard, small-screen, standard-client or phone acceptance.
 ## Current evidence and next gate — 2026-10-22
 
 The owner-reported signed version 15 offline phone results and their limits are recorded in [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md). This supports local physical acceptance; A01 connected privacy, A06/A07 production sharing and full A08 coexistence remain open. The proposed order and exit gates are in [NEXT_STEPS.md](NEXT_STEPS.md).
+
+## Signed version 15 connected-private trial — 2026-10-23
+
+[The standard-binary trial](CONNECTED_SIGNED15_VERIFICATION.md) records the actual
+signed APK and installed host hashes, two standard ATAK-CIV 5.6.0.25 clients,
+Android 15/API 35, isolated TAK Server 5.8-RELEASE-92, unique routed controls before
+and after the operation window, and recipient/server/decrypted canary checks.
+Synthetic create/edit/map move/image/delete, background/return, offline/connected
+transitions, Unload/reload, cold restart and renewed consent were exercised.
+This closes no issue automatically and establishes neither unrestricted-network
+privacy nor physical connected acceptance, Data Sync or full companion coexistence.

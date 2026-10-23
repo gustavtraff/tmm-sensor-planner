@@ -1,6 +1,17 @@
 # Signed standard-client verification (#7)
 
-## Latest signed candidate — 2026-10-18
+## Signed version 15 connected-private trial — 2026-10-23
+
+The same service-signed version 15 used in the owner-reported offline phone test
+now has bounded two-standard-client CoT privacy evidence against the isolated lab.
+Normal loading, before/after recipient/server/decrypted controls, synthetic local
+operations, consent resets and image reopening passed on standard ATAK 5.6.0.25
+emulators. See [exact artifacts, observations and limits](CONNECTED_SIGNED15_VERIFICATION.md).
+This does not complete phone connected acceptance, companion workflows or A08.
+
+<a id="latest-signed-candidate--2026-10-18"></a>
+
+## Earlier signed version 10 candidate — 2026-10-18
 
 The owner supplied a second successful service result for reviewed main `d09ac31`
 (PR #64). The following evidence applies to versionCode **10**,
