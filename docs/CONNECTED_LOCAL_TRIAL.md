@@ -4,6 +4,17 @@ This procedure tests private drafts while ATAK is connected to an isolated test
 server. It does not enable production synchronization or authorize operational
 data sharing. Use synthetic records and a separate test environment only.
 
+## Signed standard-client follow-up — 2026-10-23
+
+Service-signed version 15 was tested on two standard ATAK-CIV 5.6.0.25 emulators
+against the existing isolated TAK Server 5.8-RELEASE-92 lab. Before/after controls
+reached the actual recipient, server and independent decrypted observer; no tested
+draft/image/position canary was observed in those channels. Consent, local edits,
+images, deletion, connectivity transitions and lifecycle checks are recorded in
+[the exact version 15 evidence](CONNECTED_SIGNED15_VERIFICATION.md). This newer
+standard-binary result is separate from the historical SDK trials below. Human
+review, isolated physical-client testing and broader acceptance gates remain open.
+
 ## Candidate behavior
 
 Offline operation remains the default. When connected, open **TMM Sensor Planner**
