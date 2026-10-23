@@ -164,3 +164,10 @@ If none is supported, is the server Mission API the intended integration route?
 No full APK build, core/image suite, runtime/network test, developer-account access,
 signing upload, release or operational-server connection was performed. CI is not
 awaited. The investigation does not close #25 or supersede the privacy gate.
+
+## Offline experiment preparation (#77)
+
+[DATA_SYNC_PROBE.md](DATA_SYNC_PROBE.md) provides a bounded fixture/returned-event
+checker using the existing experimental core codec. It adds no publisher or runtime
+Data Sync adapter. A match establishes payload preservation only, not feed selection,
+privacy, receipt or durable import. Lab execution remains gated and coordinated.
