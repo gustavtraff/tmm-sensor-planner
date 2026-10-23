@@ -56,3 +56,11 @@ phone verification on the reported 5.6.0.12 installation.
 ## Signed version 15 offline phone result — 2026-10-22
 
 [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md) records source/APK hashes, static checks, successful owner-reported upgrade/camera/zoom/MGRS/mils/lifecycle/orientation checks and their limits. No release is approved. [NEXT_STEPS.md](NEXT_STEPS.md) prioritizes standard-binary connected-private verification before production sharing.
+
+## Signed version 15 report triage — 2026-10-23
+
+[SIGNED15_SECURITY_REVIEW.md](SIGNED15_SECURITY_REVIEW.md) records exact returned
+report hashes, Fortify/source-coverage limits, the evidence for a false SkyWalking
+component identification and the distinction between build SBOM and runtime APK.
+No app/dependency/suppression change or new signing submission is required by that
+finding. This bounded triage does not approve a release or close #7's other gates.
