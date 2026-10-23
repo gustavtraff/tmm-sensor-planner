@@ -92,3 +92,14 @@ is not release approval. Human review controls merges, releases and data sharing
 
 This is a plan, not completed network testing. No runtime/network checks were run
 for the documentation update, and no dates or release commitments are assigned.
+
+## Owner-directed parallel investigation — 2026-10-23
+
+The owner prioritized Data Sync as the intended collaboration workflow. Investigate
+#25 now, in parallel with another agent's #4/#7 standard-client privacy work.
+[DATA_SYNC_INTEGRATION.md](DATA_SYNC_INTEGRATION.md) records concrete sources,
+candidate paths and the next spike. Do not finish another production transport
+before reviewing this result. Research priority does not approve transport code;
+image delivery still follows identity/import contracts. The parallel privacy run
+should include Data Sync's optional automatic-publication setting and reconnect
+queue behavior in an isolated feed. No operational server is needed for research.

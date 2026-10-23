@@ -4,6 +4,16 @@ Tracking: [Issue #6](https://github.com/gustavtraff/tmm-sensor-planner/issues/6)
 Investigation date: 2026-10-16. Target: ATAK-CIV API 5.6.0, supplied SDK full build
 5.6.0.24. This is a feasibility investigation, not an implemented image-sharing feature.
 
+## Follow-up — 2026-10-23
+
+[DATA_SYNC_INTEGRATION.md](DATA_SYNC_INTEGRATION.md) now identifies bundled Data
+Sync user manuals, exact-SDK export/detail surfaces and pinned official server
+Mission API sources. These give concrete user-workflow/server candidates, not a
+verified callable Data Sync Android API. [ADR 0010](decisions/0010-investigate-data-sync-workflows.md)
+proposes the next experiment while retaining ADR 0005's production deferral.
+The historical SDK loading failure below is not the latest standard-client result;
+see [STANDARD_CLIENT_VERIFICATION.md](STANDARD_CLIENT_VERIFICATION.md).
+
 ## Data Sync decision
 
 Defer direct Data Sync integration. The supplied `main.jar`, `atak-javadoc.jar`
