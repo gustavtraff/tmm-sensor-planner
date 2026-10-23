@@ -38,3 +38,12 @@ An ordinary CoT event is not assumed to become a Data Sync feed.
 
 The isolated lab uses TAK Server 5.8-RELEASE-92. The operational server version remains
 unknown; lab transport evidence does not establish operational compatibility.
+
+## Data Sync investigation — 2026-10-23
+
+[The integration investigation](DATA_SYNC_INTEGRATION.md) distinguishes a candidate
+user-mediated export into Data Sync's chosen feed from a separate Mission API
+adapter. Neither is implemented. [ADR 0010](decisions/0010-investigate-data-sync-workflows.md)
+is proposed for review; private storage/features and experimental wire contracts
+remain unchanged. Data Sync auto-publication and queued offline sends need explicit
+#4/#7 testing before any published MapItem representation is introduced.
