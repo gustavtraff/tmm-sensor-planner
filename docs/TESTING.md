@@ -270,3 +270,13 @@ edits/deletion, reconnect and cold restart. It supplements the earlier CoT-only
 trial; it does not prove a custom TMM feed round trip, physical connected acceptance,
 full companion coexistence or production sharing. No app/domain changes accompany
 the report, and no core/SDK/image suite was rerun for it.
+
+## Data Sync metadata selection trial — 2026-10-24
+
+[DATA_SYNC_METADATA_TRIAL.md](DATA_SYNC_METADATA_TRIAL.md) records a rejected
+canonical waypoint selection and a successful, separate native-type diagnostic
+with exact 15-field preservation in an independently obtained B export. Cancel
+and selected/non-target feed membership were checked for that diagnostic. The
+canonical checker was retained and correctly rejects the diagnostic UID/type.
+This is no canonical sharing/import pass; permission, update/recovery/restart and
+conflict cases remain untested after the selection blocker.
