@@ -122,3 +122,30 @@ Adding the verified host archive detail did not make it selectable. A separate
 native-marker diagnostic preserved all 15 payload fields in B's own feed export;
 it intentionally fails the canonical checker because its UID/type differ. Do not
 interpret that diagnostic as a canonical pass or relax the checker to hide it.
+
+## Explicit sensor-point lab cases (#83)
+
+[ADR 0011](decisions/0011-sensor-point-data-sync-lab.md) proposes a separate
+SDK-registered sensor-point envelope for manual Data Sync testing. The original
+`create` and `check pir` behavior remains unchanged. With JDK 17:
+
+```sh
+sh scripts/datasync-metadata-probe.sh create-sensor /private/path/to/NEW_SENSOR_DIRECTORY
+sh scripts/datasync-metadata-probe.sh check sensor-pir /private/path/returned-sensor-event.cot
+```
+
+This creates `sensor-mini`, `sensor-scout`, `sensor-pir`, `sensor-gateway` and
+`sensor-pir-update` files with outer type `b-m-p-s-p-loc`, host archive detail and
+visible TMM-SENSOR-LAB labels. UUIDs use the distinct synthetic `8083` segment;
+PIR/update still share their case UUID. All 15 custom payload attributes are the
+same as the corresponding original cases. The case-specific checker requires
+that declared type/UUID and rejects the original waypoint or friendly diagnostic;
+the old checker likewise rejects sensor cases. Nothing is silently reclassified.
+
+[The actual PIR trial](DATA_SYNC_SENSOR_TRIAL.md) passed selected-feed delivery and
+B's own export check with another subscribed feed's auto-publication on and prompt
+off, including checked-selection cancellation and before/after native controls.
+Other cases/update have offline checks only. This command still only generates
+files; it never imports, creates a MapItem, publishes, reads private stores or
+approves a production schema/adapter. Its safe bounds/overwrite behavior is shared
+with the original command. App integration must verify its exact creation path.

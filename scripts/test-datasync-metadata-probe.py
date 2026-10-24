@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 import subprocess
 import tempfile
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,4 +37,22 @@ if __name__ == '__main__':
         oversized.write_bytes(b'X' * 262145)
         run('check', 'pir', oversized, success=False)
         assert before == {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
+        sensor_output = Path(temporary) / 'sensor fixture set'
+        run('create-sensor', sensor_output)
+        sensor_files = sorted(sensor_output.iterdir())
+        assert len(sensor_files) == 5
+        sensor_before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sensor_files}
+        for path in sensor_files:
+            run('check', path.stem, path)
+            event = ET.fromstring(path.read_bytes())
+            assert event.get('type') == 'b-m-p-s-p-loc'
+            assert event.get('uid').startswith('00000000-0000-4000-8083-')
+            assert event.find('detail/archive') is not None
+            base = ET.fromstring((output / path.name.removeprefix('sensor-')).read_bytes())
+            assert event.find('detail/tmmShareLab').attrib == base.find('detail/tmmShareLab').attrib
+        run('check', 'pir', sensor_output / 'sensor-pir.cot', success=False)
+        run('check', 'sensor-pir', output / 'pir.cot', success=False)
+        run('check', 'sensor-pir-update', sensor_output / 'sensor-pir.cot', success=False)
+        run('create-sensor', sensor_output, success=False)
+        assert sensor_before == {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sensor_files}
     print('Offline probe CLI checks passed: all cases, read-only checks, overwrite refusal and safe failures.')

@@ -145,3 +145,20 @@ Data Sync type/export contract; do not silently replace the canonical envelope.
 Test publication-copy creation with an unselected feed's auto-publication enabled
 before designing the adapter. Canonical update/duplicate/recovery/conflict tests
 remain downstream of that baseline. No app or signing input changed in the trial.
+
+## Sensor candidate baseline — 2026-10-24
+
+[#83's bounded sensor trial](DATA_SYNC_SENSOR_TRIAL.md) now demonstrates a selectable
+manual publication representation and exact returned metadata on the standard lab
+combination, including cancellation and an unselected auto-publishing feed. Review
+[ADR 0011](decisions/0011-sensor-point-data-sync-lab.md) before treating this as the
+accepted lab baseline. The waypoint failure remains documented; the envelope change
+is explicit and experimental.
+
+Next under #25: permission denial, same-UUID duplicate/update, disconnect/recovery,
+receiver restart and conflict/removal behavior using the reviewed candidate. Keep
+exact inner/outer position consistency when testing map edits. Then scope #14/#15
+production review and durable import around an evidenced creation/selection path.
+The manual import result does not approve a direct factory/dispatcher replacement,
+automatic root-MapItem conversion or an operational phone/server test. This branch
+changes offline tools/docs only; no new signing ZIP is needed.
