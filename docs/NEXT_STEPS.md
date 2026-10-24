@@ -15,7 +15,8 @@ separately authorized isolated phone trial and exact phone-host reconfirmation a
 still needed; this result does not complete #7 companion workflows or authorize
 an operational-network trial. The Data Sync automatic-publication/reconnect-queue
 phase added below was not covered by this CoT-only run; that isolated-feed gate
-remains open.
+is now recorded for human review in [the isolated-feed trial](DATA_SYNC_FEED_VERIFICATION.md).
+It does not establish custom TMM feed publication.
 
 Use the existing service-signed version 15 artifact first; no feature change or new
 signing submission is needed solely to start verification. Reuse
@@ -113,3 +114,19 @@ before reviewing this result. Research priority does not approve transport code;
 image delivery still follows identity/import contracts. The parallel privacy run
 should include Data Sync's optional automatic-publication setting and reconnect
 queue behavior in an isolated feed. No operational server is needed for research.
+
+## Isolated Data Sync baseline — 2026-10-24
+
+[DATA_SYNC_FEED_VERIFICATION.md](DATA_SYNC_FEED_VERIFICATION.md) records ordinary
+selected-feed delivery on two standard clients and the private-draft phase with
+automatic publication off, then on with the content prompt disabled. Reconnect
+and cold restart were included. No private exposure was observed in the bounded
+channels; human review is still required. This replaces the earlier “not covered”
+status for this setup, not the physical-phone or production-sharing gates.
+
+Next under #25: review this evidence, then run the separately reviewed synthetic
+metadata-only publication-copy experiment from [DATA_SYNC_PROBE.md](DATA_SYNC_PROBE.md).
+Verify recipient-exported fields and UUID, destination boundaries, cancellation,
+permissions, repeat/update/restart and conflicts before choosing an adapter. A
+working ordinary Data Sync feed is now an observed baseline, not the missing proof.
+No new APK/signing ZIP is needed for this documentation-only verification.
