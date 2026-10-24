@@ -260,3 +260,13 @@ Synthetic create/edit/map move/image/delete, background/return, offline/connecte
 transitions, Unload/reload, cold restart and renewed consent were exercised.
 This closes no issue automatically and establishes neither unrestricted-network
 privacy nor physical connected acceptance, Data Sync or full companion coexistence.
+
+## Data Sync automatic-publication privacy phase — 2026-10-24
+
+[DATA_SYNC_FEED_VERIFICATION.md](DATA_SYNC_FEED_VERIFICATION.md) records two-client
+standard-host stock-feed controls and private-draft checks with Data Sync 3.7.4
+auto-publication off/on, including prompt-disabled automatic controls, offline
+edits/deletion, reconnect and cold restart. It supplements the earlier CoT-only
+trial; it does not prove a custom TMM feed round trip, physical connected acceptance,
+full companion coexistence or production sharing. No app/domain changes accompany
+the report, and no core/SDK/image suite was rerun for it.

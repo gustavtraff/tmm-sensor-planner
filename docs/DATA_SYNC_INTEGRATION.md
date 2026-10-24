@@ -171,3 +171,14 @@ awaited. The investigation does not close #25 or supersede the privacy gate.
 checker using the existing experimental core codec. It adds no publisher or runtime
 Data Sync adapter. A match establishes payload preservation only, not feed selection,
 privacy, receipt or durable import. Lab execution remains gated and coordinated.
+
+## Runtime follow-up — 2026-10-24
+
+The original investigation above was read/compile-only. The subsequent
+[isolated-feed verification](DATA_SYNC_FEED_VERIFICATION.md) normally loaded the
+pinned Data Sync APK on two standard 5.6.0.25 clients, demonstrated explicit and
+automatic native-marker delivery, and exercised private TMM operations with
+auto-publication off/on, reconnect and cold restart. No private canary exposure
+was observed in its bounded checks. That report is evidence for human review;
+custom TMM metadata round trip, destination/permission/conflict behavior and a
+callable third-party Android API remain unverified. #25 stays open.
