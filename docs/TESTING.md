@@ -97,7 +97,7 @@ work in #11–#13, not passing tests.
 | Standalone synthetic image package | Passed on 2026-10-16 in the isolated two-client SDK lab: recipient cancellation check, byte-identical PNG/ZIP/server resource, remote manifest without local references, viewing and local deletion. Stock PNG import started a placement tool, cancelled without choosing a position. See [DATA_SYNC_AND_ATTACHMENTS.md](DATA_SYNC_AND_ATTACHMENTS.md) |
 | Production TMM image sharing / Data Sync | Deferred; no TMM image association, acknowledgment, EXIF/size policy or applicable Data Sync plugin API verified. A05 and production image A07 remain open |
 | HV Reports SDK-host loading attempt | Failed on 2026-10-16: provided 1.1.9 [5.5.0] installed but could not construct its plugin extension in SDK 5.6.0.24; same missing-class failure after unloading TMM. No reporting workflow passed. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md) |
-| Data Sync / TAK Voice package follow-up | APK/split signatures and installation passed on 2026-10-16; both SDK 5.6.0.24 load attempts failed with missing `gov.tak.api.plugin.a`, including after TMM unload. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md); no feed or voice workflow passed |
+| Data Sync / TAK Voice package follow-up | APK/split signatures and installation passed on 2026-10-16; both SDK 5.6.0.24 load attempts failed with missing `gov.tak.api.plugin.a`, including after TMM unload. See [SIGNING_AND_COEXISTENCE.md](SIGNING_AND_COEXISTENCE.md). Later standard-host manual Data Sync evidence is in [DATA_SYNC_SENSOR_TRIAL.md](DATA_SYNC_SENSOR_TRIAL.md); no voice workflow is established by that trial |
 | Standard signing / full A08 coexistence | Signed service output and bounded standard 5.6.0.25 emulator checks now verified; physical 5.6.0.12, connected workflows and full A08 remain open; see STANDARD_CLIENT_VERIFICATION.md |
 
 Core CI is a public check. Android lint, APK and SDK builds will be added
@@ -280,3 +280,15 @@ and selected/non-target feed membership were checked for that diagnostic. The
 canonical checker was retained and correctly rejects the diagnostic UID/type.
 This is no canonical sharing/import pass; permission, update/recovery/restart and
 conflict cases remain untested after the selection blocker.
+
+## Explicit Data Sync sensor-point candidate (#83)
+
+[DATA_SYNC_SENSOR_TRIAL.md](DATA_SYNC_SENSOR_TRIAL.md) records the actual PIR
+manual-import/selected-feed standard-client pass, B's independent export/strict
+checker result, selection cancellation and exclusion from another subscribed
+auto-publishing feed with prompt disabled and live native controls before/after.
+The offline CLI suite now also tests all five explicit sensor cases, declared
+UUID/type separation, identical custom payload attributes, wrong-envelope/update
+rejection, archive output and read-only/overwrite preservation. The common XML
+input hardening remains unchanged. Core and CLI suites passed locally; no image
+suite, full APK build, CI wait or production integration is claimed.

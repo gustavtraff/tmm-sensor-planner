@@ -34,12 +34,13 @@ public final class DataSyncMetadataProbe {
     public static void main(String[] args) {
         try {
             if (args.length == 1 && "self-test".equals(args[0])) selfTest();
-            else if (args.length == 2 && "create".equals(args[0])) {
+            else if (args.length == 2 && ("create".equals(args[0]) || "create-sensor".equals(args[0]))) {
                 Path directory = Paths.get(args[1]);
                 // Atomic directory creation prevents overwriting any existing fixture set.
                 Files.createDirectory(directory);
                 Instant envelopeTime = Instant.now();
-                for (String name : CASES) {
+                for (String base : CASES) {
+                    String name = "create-sensor".equals(args[0]) ? "sensor-" + base : base;
                     byte[] xml = event(name, envelopeTime);
                     verify(name, xml);
                     Files.write(directory.resolve(name + ".cot"), xml, StandardOpenOption.CREATE_NEW);
@@ -65,19 +66,20 @@ public final class DataSyncMetadataProbe {
         } catch (Exception rejected) {
             // Returned events may contain private data. Do not print parser text, paths or values.
             System.err.println("Probe failed: invalid command/case, unavailable output/input, or metadata mismatch.");
-            System.err.println("Usage: sh scripts/datasync-metadata-probe.sh self-test | create NEW_DIRECTORY | check CASE FILE");
+            System.err.println("Usage: sh scripts/datasync-metadata-probe.sh self-test | create NEW_DIRECTORY | create-sensor NEW_DIRECTORY | check CASE FILE");
             System.exit(1);
         }
     }
 
     private static ShareReview.Metadata metadata(String name) {
-        int index = Arrays.asList(CASES).indexOf(name);
+        boolean sensor = name.startsWith("sensor-");
+        int index = Arrays.asList(CASES).indexOf(sensor ? name.substring(7) : name);
         require(index >= 0);
         boolean update = index == 4;
         DeviceType type = DeviceType.valueOf(CASES[update ? 2 : index].toUpperCase(java.util.Locale.ROOT));
         Instant created = Instant.parse("2026-01-01T00:00:00.123456789Z");
         TmmDraft draft = new TmmDraft(UUID.fromString(String.format(java.util.Locale.ROOT,
-                "00000000-0000-4000-8000-%012d", update ? 3 : index + 1)),
+                "00000000-0000-4000-" + (sensor ? "8083" : "8000") + "-%012d", update ? 3 : index + 1)),
                 "TMM-DATASYNC-LAB-" + type.name(), type,
                 update ? DeviceStatus.ACTIVE : DeviceStatus.PLANNED, "SYNTHETIC-GROUP-ÅÄÖ",
                 created, update ? created.plusSeconds(60) : created,
@@ -113,7 +115,8 @@ public final class DataSyncMetadataProbe {
         Document doc = builder().newDocument();
         Element root = doc.createElement("event"); doc.appendChild(root);
         root.setAttribute("version", "2.0"); root.setAttribute("uid", expected.uid.toString());
-        root.setAttribute("type", "b-m-p-w"); root.setAttribute("how", "h-g-i-g-o");
+        root.setAttribute("type", name.startsWith("sensor-") ? "b-m-p-s-p-loc" : "b-m-p-w");
+        root.setAttribute("how", "h-g-i-g-o");
         root.setAttribute("time", now.toString()); root.setAttribute("start", now.toString());
         root.setAttribute("stale", now.plusSeconds(3600).toString());
         Element point = doc.createElement("point"); root.appendChild(point);
@@ -122,8 +125,9 @@ public final class DataSyncMetadataProbe {
         point.setAttribute("lon", Double.toString(rounded.longitude));
         point.setAttribute("hae", "9999999.0"); point.setAttribute("ce", "9999999.0"); point.setAttribute("le", "9999999.0");
         Element detail = doc.createElement("detail"); root.appendChild(detail);
+        if (name.startsWith("sensor-")) detail.appendChild(doc.createElement("archive"));
         Element contact = doc.createElement("contact"); detail.appendChild(contact);
-        contact.setAttribute("callsign", expected.displayId);
+        contact.setAttribute("callsign", name.startsWith("sensor-") ? "TMM-SENSOR-LAB-" + expected.type.name() : expected.displayId);
         Element fields = doc.createElement(ShareLabFields.TAG); detail.appendChild(fields);
         for (Map.Entry<String, String> entry : ShareLabFields.encode(expected).entrySet())
             fields.setAttribute(entry.getKey(), entry.getValue());
@@ -160,7 +164,8 @@ public final class DataSyncMetadataProbe {
         Document doc = builder().parse(new ByteArrayInputStream(bytes));
         Element event = doc.getDocumentElement();
         require("event".equals(event.getNodeName()) && event.getNamespaceURI() == null);
-        require("2.0".equals(event.getAttribute("version")) && "b-m-p-w".equals(event.getAttribute("type")));
+        String type = name.startsWith("sensor-") ? "b-m-p-s-p-loc" : "b-m-p-w";
+        require("2.0".equals(event.getAttribute("version")) && type.equals(event.getAttribute("type")));
         require(expected.uid.toString().equals(event.getAttribute("uid")));
         Element point = singleChild(event, "point");
         Element detail = singleChild(event, "detail");
@@ -181,7 +186,8 @@ public final class DataSyncMetadataProbe {
 
     private static void selfTest() throws Exception {
         Instant now = Instant.parse("2026-10-23T00:00:00Z");
-        for (String name : CASES) {
+        for (String prefix : new String[]{"", "sensor-"}) for (String base : CASES) {
+            String name = prefix + base;
             byte[] bytes = event(name, now); verify(name, bytes);
             require(Arrays.equals(bytes, event(name, now)));
             Document doc = builder().parse(new ByteArrayInputStream(bytes));
@@ -192,6 +198,12 @@ public final class DataSyncMetadataProbe {
             verify(name, serialize(doc));
         }
         byte[] original = event("pir", now);
+        byte[] sensor = event("sensor-pir", now);
+        reject("pir", sensor); reject("sensor-pir", original);
+        reject("sensor-pir-update", sensor);
+        Document wrongType = builder().parse(new ByteArrayInputStream(sensor));
+        wrongType.getDocumentElement().setAttribute("type", "a-f-G");
+        reject("sensor-pir", serialize(wrongType));
         reject("pir-update", original); reject("unknown", original);
         for (String attribute : ShareLabFields.encode(metadata("pir")).keySet()) {
             Document doc = builder().parse(new ByteArrayInputStream(original));
@@ -220,7 +232,7 @@ public final class DataSyncMetadataProbe {
         reject("pir", new byte[MAX_BYTES + 1]); reject("pir", new byte[0]);
         reject("pir", "<event>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         reject("pir", "<!DOCTYPE event [<!ENTITY x SYSTEM 'file:///not-read'>]><event>&x;</event>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        System.out.println("Offline probe self-checks passed: five cases, envelope tolerance and rejection boundaries.");
+        System.out.println("Offline probe self-checks passed: both envelopes, five cases, tolerance and rejection boundaries.");
     }
 
     private static void reject(String name, byte[] bytes) throws Exception {

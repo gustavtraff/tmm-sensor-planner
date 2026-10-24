@@ -192,3 +192,18 @@ retained its UUID and all 15 custom fields through the selected feed to B's expo
 the non-target feed stayed empty and selected-item cancellation sent nothing.
 This narrows the next task to a supported selectable representation and its privacy/
 destination boundary. It proves neither the canonical TMM route nor durable import.
+
+## Selectable sensor-point candidate — 2026-10-24
+
+[The #83 trial](DATA_SYNC_SENSOR_TRIAL.md) verified a separate `b-m-p-s-p-loc`
+PIR case through the documented manual Local SD / selected-feed Overlays workflow.
+The SDK and pinned public importer register that type in Mission; actual standard
+clients accepted selection and B's own feed export retained UUID and all 15 fields.
+A second subscribed feed with auto-publication on/prompt off received normal
+controls before/after, but not the imported/cancelled or explicitly target-published
+sensor. The old rejected waypoint and friendly diagnostic expectations remain intact.
+
+[ADR 0011](decisions/0011-sensor-point-data-sync-lab.md) scopes this lab candidate.
+It is not a supported callable Data Sync Android API, direct Marker-construction
+proof, production integration or durable import. No private plugin interface or
+REST publisher was added. Review this evidence before the remaining #25 cases.

@@ -96,3 +96,9 @@ The #49 primary-still JPEG amendment changes input normalization only: auxiliary
 camera content is discarded before decoding the primary JPEG range. Snapshot v1,
 opaque image handles, PNG storage limits and the wire model are unchanged. Existing
 owned images are not rewritten; see [the image contract](LOCAL_IMAGES.md).
+
+The [#83 sensor-point experiment](DATA_SYNC_SENSOR_TRIAL.md) adds only explicit
+offline fixture/checker cases for a different host envelope and synthetic UUID
+namespace. It reuses ShareLabFields without changing snapshot identity, canonical
+degrees/coordinates, private image handles or a production wire contract. A live
+MapItem edit cannot be assumed to update exact embedded metadata consistently.
