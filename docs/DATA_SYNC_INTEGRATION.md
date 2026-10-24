@@ -182,3 +182,13 @@ auto-publication off/on, reconnect and cold restart. No private canary exposure
 was observed in its bounded checks. That report is evidence for human review;
 custom TMM metadata round trip, destination/permission/conflict behavior and a
 callable third-party Android API remain unverified. #25 stays open.
+
+## Metadata selection follow-up — 2026-10-24
+
+[DATA_SYNC_METADATA_TRIAL.md](DATA_SYNC_METADATA_TRIAL.md) records the next actual
+experiment after PR #82: the canonical `b-m-p-w` publication fixture was visible
+on the map but rejected by Data Sync's chooser. A separate native-marker control
+retained its UUID and all 15 custom fields through the selected feed to B's export;
+the non-target feed stayed empty and selected-item cancellation sent nothing.
+This narrows the next task to a supported selectable representation and its privacy/
+destination boundary. It proves neither the canonical TMM route nor durable import.

@@ -130,3 +130,18 @@ Verify recipient-exported fields and UUID, destination boundaries, cancellation,
 permissions, repeat/update/restart and conflicts before choosing an adapter. A
 working ordinary Data Sync feed is now an observed baseline, not the missing proof.
 No new APK/signing ZIP is needed for this documentation-only verification.
+
+## Metadata spike result and next decision — 2026-10-24
+
+[The metadata selection trial](DATA_SYNC_METADATA_TRIAL.md) attempted the canonical
+PIR fixture after review of PR #82. Data Sync rejected its waypoint selection.
+A separate native-type diagnostic preserved all 15 custom fields through recipient
+export, so field loss must not be assumed to be the blocker.
+
+Next: verify an intended selectable/exportable publication representation in
+[#83](https://github.com/gustavtraff/tmm-sensor-planner/issues/83), under #25, retaining
+explicit review and destination boundaries. Obtain the applicable
+Data Sync type/export contract; do not silently replace the canonical envelope.
+Test publication-copy creation with an unselected feed's auto-publication enabled
+before designing the adapter. Canonical update/duplicate/recovery/conflict tests
+remain downstream of that baseline. No app or signing input changed in the trial.

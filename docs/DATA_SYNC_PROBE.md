@@ -113,3 +113,12 @@ Local execution passed with the pinned JDK 17; `sh scripts/test.sh` also passed.
 The public core CI job now includes the probe check. No CI result is awaited or
 claimed. No Android build, image suite, SDK runtime, emulator, server, phone, signing
 submission or actual Data Sync transfer was run for this preparation.
+
+## Standard-host selection result — 2026-10-24
+
+[The runtime trial](DATA_SYNC_METADATA_TRIAL.md) found the canonical PIR waypoint
+on the map, but Data Sync rejected its selection with “Cannot select this item.”
+Adding the verified host archive detail did not make it selectable. A separate
+native-marker diagnostic preserved all 15 payload fields in B's own feed export;
+it intentionally fails the canonical checker because its UID/type differ. Do not
+interpret that diagnostic as a canonical pass or relax the checker to hide it.
