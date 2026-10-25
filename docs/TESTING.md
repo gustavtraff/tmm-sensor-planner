@@ -369,3 +369,15 @@ Existing DraftStore v1 remains unchanged. All data are synthetic; these are plai
 Java processes, with no emulator, Docker container or Android build. D (application),
 Android/filesystem/ATAK compatibility, source authentication and real ingress remain
 separate gates. No power-loss durability or transport acknowledgment is claimed.
+
+## SDK-independent read-only inbox review (#15) — 2026-10-25
+
+`sh scripts/test.sh` also runs InboxReviewTest. The passing Temurin 17.0.20.1+1 /
+`--release 8` run covers original fixture receipts/history, UUID grouping and
+provenance preservation, existing comparison results, stable insertion order,
+immutable results and invalid local snapshots. Real store checks compare against
+changed/deleted/recreated drafts and replaced/removed local images while preserving
+inbox/draft/image bytes during review. See [the API and limits](IMPORT_REVIEW.md#read-only-inbox-review-15--2026-10-25).
+No application, new format/migration, outgoing metadata change, Android adapter or
+transport is included. No emulator, Docker container or Android build was run;
+SDK/device acceptance and D remain separate gates.

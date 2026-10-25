@@ -122,3 +122,13 @@ boundary, but Android/filesystem behavior and actual two-client ingress remain
 unverified. Passing these core checks does not prove ATAK compatibility. D needs
 its own approved transaction/recovery and freshness/deletion/clock rules before
 any live-draft application is implemented.
+
+## Read-only review projection — 2026-10-25
+
+[InboxReview](IMPORT_REVIEW.md#read-only-inbox-review-15--2026-10-25) groups an
+already loaded snapshot's receipts by device UUID and compares each variant with
+supplied local drafts using ImportReview. It preserves all receipt/provenance and
+historical observations, exposes the full current supplied local draft separately,
+and performs no store operation. Reassessment is explicit; it neither appends
+observations nor applies data. Format 1, initialization, locking and receipt
+identity/equality are unchanged. D remains deferred.
