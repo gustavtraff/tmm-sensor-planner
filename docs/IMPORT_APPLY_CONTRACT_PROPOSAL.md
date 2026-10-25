@@ -1,10 +1,12 @@
 # Private import application and recovery — D proposal (#15)
 
-**Status: proposed for explicit owner review, not an approved storage format or
-implemented apply API.** Date: 2026-10-25; reviewed main `b69eabd` (#98).
-The owner authorized this contract work, not a new writer/migration. A–C, InboxStore
-format 1 and read-only InboxReview remain implemented and unchanged. No Android
-adapter, outgoing metadata/preparation, SDK or transport changes are included.
+**Status: owner-approved logical principles, including capacity feedback and safe
+local mission cleanup, recorded explicitly in the conversation on 2026-10-25.**
+Exact byte/fingerprint encoding, independent fixtures and migration fixtures still
+require review before any writer/migrator. No apply/reset API is implemented.
+Reviewed baseline: main `b69eabd` (#98). A–C, InboxStore format 1 and read-only
+InboxReview remain implemented and unchanged. No Android adapter, outgoing
+metadata/preparation, SDK or transport changes are included.
 
 ## Adopted user flow and scope
 
@@ -77,7 +79,7 @@ Null removal is an explicit selected value. Validate the entire proposed TmmDraf
 for example changing PIR to Gateway cannot silently discard an unselected bearing.
 No field-level automatic merge or source-ranking rule is introduced.
 
-**Time/identity policy proposed for approval:** incoming createdAt differing from
+**Owner-approved time/identity principles:** incoming createdAt differing from
 an existing local createdAt blocks received-value application in this first slice;
 keep both variants for separate identity review. Do not silently change creation
 time. For other manual field edits, use an explicitly previewed local edit Instant
@@ -87,7 +89,7 @@ not forbid choosing a useful field, nor prove it stale. Both original timestamps
 remain in receipt/decision evidence. A backward local clock fails with a clock
 error and requires a new preview; never rewrite the confirmed time during commit.
 If no selected editable value changes, record a keep-local decision without a
-timestamp/revision bump. This is a proposed manual-edit policy, not a change to
+timestamp/revision bump. This manual-edit policy does not change
 ImportReview equality, TmmDraft invariants or agent 1's outgoing format.
 
 ## Necessary storage change proposed before any writer
@@ -131,9 +133,41 @@ string plus existing domain limits. Each operation has only the fixed before,
 incoming and result metadata projections above, not unbounded nested lists. Full
 storage rejects new changes explicitly without pruning history or tombstones;
 reads and committed-operation readback still work. No reset/retention/export/restore
-API is added. Filling deleted slots can block new UUIDs even with few active drafts;
-this tradeoff needs owner approval. Existing active-slot updates can continue when
+API is implemented by this PR. Filling deleted slots can block new UUIDs even
+with few active drafts; capacity feedback and the separately specified explicit
+local mission cleanup are required below. Existing active-slot updates can continue when
 the slot-count cap is reached if all other bounds permit them.
+
+### Capacity feedback — approved requirement
+
+These are **per-device private storage** limits, not server quotas or a count of
+all devices on a feed. Show active plus deleted UUID slot usage, operation-history
+usage and committed frame bytes as separate bounded dimensions. Inbox format 1
+has its own existing combined receipt/observation budget (1,000 entries, not 1,000
+receipts), string and file limits; do not label it as the proposed UUID-slot limit.
+A string/domain/storage error may prevent one input even with spare total capacity.
+
+Provide a persistent, nonmodal local-storage warning when any applicable count or
+file-size dimension reaches 80% (proposed initial UI threshold). Show which limit
+is near/full with counts/bytes and what is still possible; avoid repeated arrival
+popups or per-device acceptance prompts. Unreadable usage is unknown/error, not 0%.
+Check the projected serialized size/counts before each commit. At a limit, report
+that the attempted change **was not saved**, retain the user's edit/selection and
+all previously committed data, and do not show success or silently evict evidence.
+An ambiguous commit still uses UNKNOWN/readback, never a false NOT_SAVED message.
+
+Reads, review and committed-operation readback remain available on valid full
+storage. Existing updates/no-ops may proceed if the particular operation fits all
+limits. Warn that reregistering after deletion does not free a slot and old choices
+consume history. Explain the safe local mission-cleanup option and its data loss;
+never launch cleanup automatically or as a generic one-click error recovery.
+
+[Safe local mission cleanup](LOCAL_MISSION_CLEANUP_PROPOSAL.md) is a separate future
+operation with explicit multi-step confirmation. It intentionally discards local
+receipt/deduplication/decision/deletion history and creates fresh identities. It
+does not increase server capacity or delete published objects. Cleanup's physical
+layout/activation record and interruption fixtures join the exact-format review
+before any reset writer; the inbox's existing frame itself remains format 1.
 
 Every local writer must participate: ordinary creation/edit/delete, map/form edits,
 image attach/replace/detach and later imports. Future expected-state save/delete
@@ -233,16 +267,18 @@ Parent-directory fsync/power loss, rollback of old backups and operational sourc
 permissions remain outside the process-restart boundary; atomic rename/file sync
 is not advertised as protection against those failures.
 
-## Review decisions before implementation
+## Adopted principles and remaining implementation gate
 
-1. Adopt a single local v2 commit for draft + durable choice/conflict evidence,
+1. Owner-approved: a single local v2 commit for draft + durable choice/conflict evidence,
    permanent per-UUID versions/deleted slots, and migration of **all** local writers;
    keep inbox format 1 unchanged instead of a cross-file journal.
-2. Adopt the proposed field/time/identity policy, including creation-time mismatch
+2. Owner-approved: the field/time/identity policy, including creation-time mismatch
    blocking, explicit local edit time and no automatic recreation/field coercion.
-3. Adopt per-receipt/state-version decision coverage and bounded retained metadata,
+3. Owner-approved: per-receipt/state-version decision coverage and bounded retained metadata,
    including slot/history limits, no eviction and the legacy deletion-history gap.
-4. Review exact v2 byte/fingerprint encoding and independent golden/migration
+   Required capacity feedback and separately confirmed local mission cleanup are
+   included; implementation details/physical format remain unimplemented.
+4. Remaining gate: Review exact v2 byte/fingerprint encoding and independent golden/migration
    fixtures next. Only after explicit adoption introduce its codec/writer/migrator
    and expected-state operations. No approval of a remote protocol is implied.
 
@@ -264,6 +300,9 @@ Future acceptance (not implemented or claimed passing):
 - Inject failures during encoding/temp write/sync/replace/cleanup, halt separate
   processes before/after rename, test lock contention/order, committed readback
   after inbox loss and after later local mutation, and reject operation-ID reuse.
+- Exercise capacity warnings/full/unknown usage, retention of unsaved edits, no
+  false NOT_SAVED after an ambiguous commit, and the separate cleanup interruption
+  and stale-worker/confirmation matrix. These are not implemented tests.
 - Independent v1→v2 migration fixture preserves every old field/image handle;
   migration interruption, downgrade rejection, missing/corrupt/future files, bounds
   and no promotion/reset. Verify every normal writer rotates slot state atomically.

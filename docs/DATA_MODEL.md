@@ -144,5 +144,6 @@ wire schema nor a source-authentication, transport or acknowledgment contract.
 identity, per-UUID mutation versions/deleted slots and atomic decision/conflict
 metadata in a local snapshot v2. These are proposed private persistence fields,
 not TmmDraft domain/wire versions or changes to inbox format 1. No v2 parser,
-writer or migration exists yet; logical and exact byte-format/fixture approval
-must precede implementation. Current domain/time/image rules remain unchanged.
+writer or migration exists yet. The owner has now adopted the logical principles,
+including capacity feedback and separately confirmed local mission cleanup; exact
+byte-format/fixture and cleanup-activation review still precede their writers. Current domain/time/image rules remain unchanged.

@@ -1,22 +1,26 @@
 # Durable metadata inbox and conflict preservation (#15)
 
 **Status: A–C and the format in PR #92 explicitly approved by the repository owner
-on 2026-10-25. D (application to local drafts) remains deferred.** Approval was
+on 2026-10-25. D has adopted logical principles; its exact format and
+implementation remain gated as recorded below.** Approval was
 recorded in the conversation, not inferred from a PR merge.
 The SDK-independent [InboxStore](INBOX_STORAGE.md) implements the separate review
 inbox. No Android adapter, transport, draft application or image lifecycle changes
 are included. The design rationale below originated on main
 `6ae582d7e83aee3330e7cc79553582d50f7ca183`; current API/evidence are linked above.
 
-## D follow-up — proposed 2026-10-25
+## D follow-up — principles adopted 2026-10-25
 
 The owner subsequently adopted the receiving UX: trusted-feed visibility without
 per-device acceptance, explicit Add locally, manual comparison/choice for different
 local metadata and no repeated work for identical metadata. This does not approve
 a writer or migration. [The D application/recovery proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md)
 now concretizes expected-state confirmation, deleted/recreated UUIDs, preserved
-images/variants and interrupted commits. Its local v2 format/migration and detailed
-time/decision policies await explicit review; A–C and inbox format 1 are unchanged.
+images/variants and interrupted commits. The owner explicitly approved its logical
+storage/time/decision principles plus capacity feedback and multi-step local mission
+cleanup in the conversation. Exact v2 encoding/migration fixtures and cleanup
+activation/ownership details still require review before their writers. A–C and
+inbox format 1 are unchanged.
 
 ## Reviewed behavior and gaps
 
@@ -177,11 +181,11 @@ app-data deletion or restoring an old backup is not promised.
 | A. First scope — approved | Separate durable review inbox; no live-draft writes or automatic application |
 | B. Identity/equality — approved | Context + UUID + exact compared metadata; stable local receipt ID; retain different variants and provenance |
 | C. Storage/history — approved | Independent bounded atomic format 1 with golden fixture, explicit initialization and retain-until-full; no reset/export/eviction API |
-| D. Application — deferred | Separate later decision on transaction/recovery, review freshness/deletion reuse, clock/creation identity, permissions and losing-variant retention |
+| D. Application — principles adopted, implementation pending | See IMPORT_APPLY_CONTRACT_PROPOSAL.md for adopted local application/history, capacity and safe-cleanup principles; exact formats/fixtures precede writers |
 
 The owner explicitly approved A–C and the PR #92 format in the conversation,
 including implementation with duplicate/conflict/restart/concurrency/write-failure
-tests. D remains outside this implementation. No production transport or remote
+tests. D remains outside the implemented A–C store. No production transport or remote
 protocol is approved by this document.
 
 ## SDK-independent checks

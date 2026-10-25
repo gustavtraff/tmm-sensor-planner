@@ -399,3 +399,18 @@ No v2 codec/writer/migration or D commit/recovery test is implemented. The propo
 failure/migration/concurrency matrix is required future acceptance, not observed
 behavior. No emulator, Docker container, Android build, SDK/device, image-library
 suite, server or transport test ran. Only synthetic temporary local data were used.
+
+
+### Capacity and safe-cleanup amendment — 2026-10-25
+
+The owner adopted logical D principles and requested capacity feedback plus
+[three-step local mission cleanup](LOCAL_MISSION_CLEANUP_PROPOSAL.md). These are
+requirements/technical proposals, not working UI/reset behavior. Future tests must
+cover near/full/unknown local usage, preserved edits, stale inventory, cancelled
+confirmations, interrupted activation/removal, expired identities/old workers,
+original/host/server copy exclusion and honest incomplete-cleanup reporting.
+
+This amendment changes documentation only. Relative Markdown link targets and
+`git diff --check` were checked; no test suite/build/emulator/container was rerun.
+The passing core run above still describes the unchanged test/source baseline,
+not capacity/cleanup or v2 implementation evidence.
