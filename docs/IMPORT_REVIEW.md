@@ -88,3 +88,12 @@ equal/exhausted local revisions, local-image preservation, rejected incoming han
 and invalid collections. Assessment of an actual saved snapshot preserves its bytes
 and reopened local record. Existing core/forms/storage, fixed v1 fixture and separate
 writer/reader JVM tests also pass. No SDK build, emulator or two-client test was run.
+
+## Durable receipt follow-up — proposed 2026-10-25
+
+[The durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md) records the reviewed
+classifier/store gaps, a minimal receipt/conflict contract and decisions required
+before new schema or application code. The proposal is not implemented or approved.
+A new plain-Java regression covers an image-only edit after assessment: metadata
+equality still holds, while a stale store save is rejected and the new image handle
+survives reopening.
