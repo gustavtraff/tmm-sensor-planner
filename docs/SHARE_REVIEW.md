@@ -38,6 +38,12 @@ freeze that contract. This helper changes no snapshot-v1 bytes or migration rule
 
 ## Destination and freshness
 
+The separate destination-free `PublicationPreparationReview` prepares only an
+in-memory metadata candidate. It shares the saved-state comparison below but
+does not weaken destination validation or confirm sharing. Its one-use/cancellation
+and caller serialization requirements are documented in
+[the publication path](PUBLICATION_PATH.md#private-preparation-core).
+
 Destination ID and display label are required exact strings. Neither is trimmed,
 case-folded or otherwise normalized; surrounding Unicode whitespace, control/format
 characters, line/paragraph separators and malformed surrogates are rejected. This
