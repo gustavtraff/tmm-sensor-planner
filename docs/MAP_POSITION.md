@@ -104,3 +104,9 @@ Standard signed-host, physical keyboard/touch, portrait, rotated-map and
 active-picker Unload remain distinct acceptance gates under #52/#7. The SDK test
 uses blocked network egress, so it does not establish production connected privacy.
 No new signing archive/upload, operational connection or release was performed.
+
+## Prepared local follow-up — 2026-10-25
+
+[The offline acceptance protocol](LOCAL_ACCEPTANCE_PLAN.md) covers active-picker
+Unload, unsaved-field cancellation and actual rotated-map Use/Save boundaries.
+It is preparation only: those runtime cases remain NOT RUN in this follow-up.
