@@ -121,3 +121,11 @@ both candidates in TmmDraft storage. Local deletion left remote content availabl
 for download; server removal deleted the current feed association, not every
 local/history copy. A later receiver still needs explicit conflict storage and
 withdrawal/tombstone rules under #15; native feed state must not substitute for them.
+
+## Durable import contract — proposed 2026-10-25
+
+[The durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md) proposes local receipt
+identity, same-UUID variant preservation and current-image protection. All new
+inbox/schema and later application decisions await explicit human review. Current
+snapshot v1, local revision/timestamp rules and the production wire-contract status
+remain unchanged.
