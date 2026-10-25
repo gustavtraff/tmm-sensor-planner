@@ -20,6 +20,7 @@ find core/src/main/java core/src/test/java -name '*.java' -print > "$build_dir/s
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ImportReviewTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxFormatFixtureTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxStoreTest
+"$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxReviewTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ShareReviewTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.PublicationPreparationReviewTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ShareLabFieldsTest

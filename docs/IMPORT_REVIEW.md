@@ -103,3 +103,66 @@ The image-only-edit regression still verifies SAME_METADATA and stale-save rejec
 [The contract rationale](IMPORT_PERSISTENCE_PROPOSAL.md) records the remaining gates.
 D, live-draft application, remains deferred. There is no Android/transport caller,
 source authentication or acknowledgment. Staging a candidate is not accepting it.
+
+## Read-only inbox review (#15) — 2026-10-25
+
+`InboxReview.assess(inboxSnapshot, localSnapshot)` assembles review data from an
+already loaded, validated InboxStore snapshot and a stable collection of immutable
+local drafts. It performs no I/O and calls the existing ImportReview classifier;
+comparison rules and both storage formats are unchanged. It has no Android caller
+or dependency on outgoing metadata encoding/preparation.
+
+The immutable result contains the inbox identity and groups for UUIDs present in
+the inbox. Groups follow first receipt occurrence, and variants within each group
+follow receipt insertion order. Neither order selects a winner. Local drafts with
+no receipt are not listed; equal visible IDs do not merge different UUIDs.
+
+Each group exposes:
+
+- `uid`: the device UUID shared by the group's receipts.
+- `currentLocal`: the complete local draft supplied for that UUID, including its
+  actual local revision and image handle; null means absent in that supplied
+  snapshot. It does not mean the UUID never existed or that recreation is allowed.
+- `variants`: one entry per original receipt, with its existing `NEW_UID`,
+  `SAME_METADATA` or `REVIEW_REQUIRED` assessment against `currentLocal`. Each entry
+  retains the original receipt ID, source context, first-observed time, incoming
+  metadata and historical local observations through its immutable `receipt`.
+
+Equal metadata from different contexts remains separate receipt evidence inside
+one UUID group. Grouping asserts no common source authority or ownership. No
+variant is hidden because it currently equals the local metadata. Historical
+observations (including explicit absence and stripped image handles) are never
+substituted for `currentLocal`, updated or appended by review.
+
+The complete local collection is validated for null entries and duplicate UUIDs,
+including unrelated duplicates and an empty inbox. Invalid arguments fail before
+returning any result. A caller must load both stores successfully and supply stable
+snapshots; it must not translate missing/corrupt/unreadable inbox data into an
+empty successful review. There is no combined inbox/draft read transaction.
+
+The result is a **point-in-time assessment of supplied data**, not a live view,
+staleness detector, confirmation token or permission to apply. Reload and reassess
+after local edits, image changes, deletion/recreation or inbox changes. Earlier
+results remain immutable and can be stale immediately after creation. An image-only
+edit may still yield SAME_METADATA while the full `currentLocal` has a different
+image handle/revision; historical metadata cannot prove current image identity.
+A deleted UUID yields NEW_UID without authorizing resurrection. Local revision
+reuse after deletion cannot establish object generation. Source authentication
+and application decisions/transactions (D) remain deferred.
+
+### Verification
+
+On 2026-10-25, `JAVA_HOME=<Temurin 17.0.20.1+1> sh scripts/test.sh` passed on macOS
+with `--release 8` and assertions enabled. InboxReviewTest exercises the unchanged
+independent format-1 fixture, preserved receipt/provenance/history, same-metadata
+and differing variants, signed-zero equality, equal labels across different UUIDs,
+interleaved grouping order, absent local drafts, immutable results and rejection
+of ambiguous/null local collections even with an empty inbox.
+
+Real separate DraftStore/InboxStore instances verify reassessment after metadata
+edits, image-only replacement/removal, deletion and explicit local recreation.
+Reviews preserve inbox bytes, draft bytes and synthetic image bytes; reopening
+both stores keeps the pending receipt and compares against the latest supplied
+local state. All existing core/store/fixture checks also pass. No emulator, Docker
+container, Android build, SDK/device or transport test ran. There is no application,
+resolution state, schema migration, historical-image pinning or UI in this change.
