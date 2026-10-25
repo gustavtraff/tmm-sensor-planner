@@ -90,3 +90,8 @@ Next: Android-owned private preparation/artifact lifecycle and actual parser
 execution, followed by separately reviewed new-tag CoT/feed integration. The
 approved received-device UX, source trust, D application/commit rules and images
 remain separate work. Agent 2's core/application contract is untouched here.
+
+**Follow-up:** [the private preparation UI](PRIVATE_PREPARATION_UI.md) now retains a
+candidate only in memory and exercises actual API-35 Android Expat parsing through
+a standalone test APK. It adds no artifact writer. Standard ATAK dialog/phone and
+new-tag feed integration remain separate gates.

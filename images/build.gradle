@@ -8,6 +8,9 @@ android {
     buildToolsVersion '35.0.0'
     defaultConfig {
         minSdk 21
+        // The standalone instrumentation APK needs a modern target; the consuming app sets its own.
+        targetSdk 34
+        testInstrumentationRunner 'se.tmm.sensorplanner.core.PublicationCodecInstrumentation'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -17,6 +20,8 @@ android {
         test.java.srcDir '../core/src/main/java'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/images'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/local'
+        androidTest.java.srcDir '../core/src/main/java'
+        androidTest.assets.srcDir '../test-fixtures/synthetic/publication'
     }
     testOptions {
         unitTests.includeAndroidResources = true

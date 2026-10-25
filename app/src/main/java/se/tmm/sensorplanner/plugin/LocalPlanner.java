@@ -33,6 +33,7 @@ import se.tmm.sensorplanner.plugin.images.DraftAttachments;
 import se.tmm.sensorplanner.plugin.images.LocalImagePreview;
 import se.tmm.sensorplanner.plugin.local.BearingMilsEdit;
 import se.tmm.sensorplanner.plugin.local.BearingDirectionView;
+import se.tmm.sensorplanner.plugin.local.PublicationPreparationUi;
 
 /** Local prototype; API 26 and session access are enforced by the entry point. */
 @TargetApi(26)
@@ -49,6 +50,7 @@ final class LocalPlanner {
     private final DraftAttachments attachments;
     private final LocalImageUi imagesUi;
     private final LocalShareUi sharing;
+    private final PublicationPreparationUi preparation;
     private LocalDraftLayer layer;
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
@@ -82,6 +84,18 @@ final class LocalPlanner {
             @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
         });
         sharing = new LocalShareUi(context, ui, store, worker, () -> !closed && labAllowed.getAsBoolean());
+        preparation = new PublicationPreparationUi(context, store, worker, new PublicationPreparationUi.Host() {
+            @Override public void post(Runnable action) { ui.queueEvent(action); }
+            @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
+            @Override public String summary(ShareReview.Metadata m) {
+                return "ID: " + m.displayId + "\nTyp: " + m.type.displayName + "\nStatus: " + STATUSES[m.status.ordinal()]
+                        + "\nPosition · MGRS: " + positionText(m.position) + "\nÄgare: " + m.owner
+                        + "\nBäring: " + (m.bearingDeg == null ? "Ej angiven" : BearingMilsEdit.format(m.bearingDeg) + " mils · sann nord")
+                        + "\nSkapad UTC: " + m.createdAt + "\nÄndrad UTC: " + m.updatedAt
+                        + "\nUtplacerad UTC: " + (m.deployedAt == null ? "Ej angivet" : m.deployedAt)
+                        + "\nKommentar: " + (m.comment.isEmpty() ? "Ingen" : m.comment) + "\nUUID: " + m.uid;
+            }
+        });
     }
 
     private void selected(UUID uid) {
@@ -229,6 +243,7 @@ final class LocalPlanner {
                 + "\nRevision: " + draft.revision + "\nLokal = utkast på denna enhet. Serveranslutning innebär inte synkronisering eller bekräftad delning."
                 + "\nEndast syntetiska testdata i denna prototyp.\nKartpilen är en 100 m riktningsmarkering från sann nord, inte sensorräckvidd."));
         if (draft.imageRef != null) details.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
+        details.addView(button("Förbered metadatakopia", () -> preparation.show(draft.uid)));
         if (labAllowed.getAsBoolean()) details.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
         details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
         details.setVisibility(View.GONE);
@@ -601,17 +616,18 @@ final class LocalPlanner {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
 
-    private boolean isBusy() { return positionPicker != null || imagesUi.isBusy() || sharing.isBusy(); }
+    private boolean isBusy() { return positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy(); }
 
-    void cancelSharing() { sharing.stopSending(); }
+    void cancelSharing() { sharing.stopSending(); preparation.stop(); }
 
-    void disableSharing() { sharing.close(); }
+    void disableSharing() { sharing.close(); preparation.cancel(); }
 
     void close() {
         closed = true;
         if (positionPicker != null) { positionPicker.close(); positionPicker = null; }
         dismiss();
         sharing.close();
+        preparation.close();
         imagesUi.close();
         worker.shutdown();
         if (layer != null) layer.close();
