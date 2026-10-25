@@ -99,17 +99,15 @@ I/O and map rebuilding after load. See LOCAL_PLANNER.md for bounded runtime resu
 This is not API 21–25 planner support. #13 must separately prove actual image bytes
 survive restart. Future schema migration and physical-phone A02/A09 remain open.
 
-## Import persistence boundary — proposed 2026-10-25
+## Separate import inbox — 2026-10-25
 
-[The durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md) recommends staging
-received metadata separately without changing this v1 store. It records why
-independent load/save calls are not an import transaction, and why future apply
-needs explicit review of revision/deletion reuse, image preservation and timestamp
-invariants. No new format, migration or production store behavior is implemented.
+The owner explicitly approved A–C and the PR #92 byte format for a separate
+[durable review inbox](INBOX_STORAGE.md). Its own file, lock, codec and tests leave
+this DraftStore v1 format, snapshot behavior and current local image handles
+unchanged; no draft migration is involved. The [inbox format](INBOX_FORMAT_PROPOSAL.md)
+has an independent golden fixture plus restart, concurrency and write-failure checks.
 
-## Independent inbox format candidate — 2026-10-25
-
-[The proposed inbox frame](INBOX_FORMAT_PROPOSAL.md) and independent fixture are
-separate from TMMD/drafts.bin v1. No current reader/writer or draft migration is
-changed. The candidate test inspector is test-only; persistence and recovery of
-an inbox remain unimplemented pending explicit format/scope approval.
+D, application to local drafts, remains deferred. Independent inbox and DraftStore
+saves are not an import transaction. Later apply work needs explicit review of
+revision/deletion reuse, fresh-image preservation, timestamp invariants and recovery;
+see [the contract rationale](IMPORT_PERSISTENCE_PROPOSAL.md).
