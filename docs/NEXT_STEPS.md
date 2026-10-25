@@ -168,12 +168,15 @@ changes offline tools/docs only; no new signing ZIP is needed.
 The [update trial](DATA_SYNC_UPDATE_TRIAL.md) found no duplicate after repeated
 publication and preserved the exact updated PIR on the server and B after online
 cold start. Reconnect and feed-list refresh still produced base metadata during
-the bounded observation window. Automatic recovery is **not** accepted.
+the bounded observation window. That run did not establish automatic recovery.
 
-Next under #25: reproduce that stale interval with observed subscription/sync
-state, received routing controls and documented full Download Items/history-version
-download, distinguishing host MapItem state from feed/export state and actual
-transport recovery. Then complete read-only denial, concurrent edits and removal
-semantics before proposing #14/#15 app integration. Keep private drafts outside
+**Later controlled follow-up:** [The reconnect trial](DATA_SYNC_RECONNECT_TRIAL.md)
+verified subscription, a real task-port TCP interruption, recipient routing controls
+and exact updated fields before any manual sync or restart. Full sync and local
+older/latest history downloads were checked separately. This is bounded positive
+evidence for review; the earlier stale interval's cause remains unknown.
+
+Next under #25: read-only publication denial, concurrent edits and local/server
+removal semantics before proposing #14/#15 app integration. Keep private drafts outside
 ordinary map-item publication and retain explicit target/metadata review. This
 evidence changes no app or signing input; no new ZIP is needed.

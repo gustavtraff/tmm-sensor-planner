@@ -6,6 +6,12 @@ accepted a coherent same-UUID update; B exported its exact updated metadata afte
 an online ATAK cold start. Reconnect alone and feed-list refresh still produced
 the old metadata in the observed window. Automatic recovery is not a pass.**
 
+**Later follow-up:** [The controlled reconnect trial](DATA_SYNC_RECONNECT_TRIAL.md)
+obtained the exact update without restart or manual sync, with actual before/after
+B routing controls and observed subscription/sync state. Full sync and local
+history downloads were also checked. The sequence below remains the earlier
+observation; its cause was not established or relabelled as fixed.
+
 ## Scope and setup
 
 Baseline: merged main `7f97393fccb7f7ba2b54d8bb3e81b397fd183661`.

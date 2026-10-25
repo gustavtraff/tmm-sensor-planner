@@ -298,9 +298,21 @@ suite, full APK build, CI wait or production integration is claimed.
 [DATA_SYNC_UPDATE_TRIAL.md](DATA_SYNC_UPDATE_TRIAL.md) records actual standard-host
 repeat publication without duplicate membership, a coherent same-UUID server
 update, B's old exported metadata while offline and after reconnect/list refresh,
-and exact updated metadata after online ATAK cold start. Automatic recovery remains
-an open gate; no root cause or physical-network defect is inferred. Fresh package
+and exact updated metadata after online ATAK cold start. That run left automatic
+recovery open; no root cause or physical-network defect is inferred. Fresh package
 times and strict base/update checks distinguish real exports from stale expected
 data. This documentation-only change does not alter or rerun core/image/SDK suites,
 build an APK or wait for CI. Permission, conflict/removal and durable TmmDraft
 import remain separate acceptance work.
+
+## Controlled Data Sync reconnect and history — 2026-10-25
+
+[DATA_SYNC_RECONNECT_TRIAL.md](DATA_SYNC_RECONNECT_TRIAL.md) records a task-port
+TCP interruption, zero established sockets/red feed state, verified subscription,
+actual before/after recipient controls and exact update receipt before manual sync
+or ATAK restart. Full sync preserved the update; local older/latest history
+downloads changed B's exported version without changing server content/history.
+Sixteen real-capture checks had expected match/rejection outcomes. The earlier
+stale interval was not reproduced or assigned a root cause. An operator
+uiautomator collision is recorded separately; B's original ATAK process survived.
+No core/image/SDK suite, APK build or CI wait accompanied the documentation change.

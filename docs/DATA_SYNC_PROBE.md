@@ -147,7 +147,10 @@ B's own export check with another subscribed feed's auto-publication on and prom
 off, including checked-selection cancellation and before/after native controls.
 The later [same-UUID trial](DATA_SYNC_UPDATE_TRIAL.md) also checked a real server
 update and B's exact exported update after online restart, while reconnect/list
-refresh still returned old metadata. Automatic recovery remains unverified.
+refresh still returned old metadata. A later [controlled reconnect](DATA_SYNC_RECONNECT_TRIAL.md)
+returned the exact update before manual sync or restart; full sync and local
+history downloads also preserved their selected versions. These are bounded lab
+results; the earlier stale interval's cause remains unknown.
 Mini/Scout/Gateway runtime cases remain untested. This command still only generates
 files; it never imports, creates a MapItem, publishes, reads private stores or
 approves a production schema/adapter. Its safe bounds/overwrite behavior is shared
