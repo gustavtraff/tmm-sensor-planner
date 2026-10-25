@@ -38,10 +38,14 @@ and ADR 0010's investigation boundary remain in force.
 A source/server/recipient event must match the declared `sensor-*` case exactly;
 the old waypoint case must continue to reject the different type/UUID. The lab
 UUID namespace is disposable and is not an object-identity migration. Other device
-cases and the same-UUID update have offline tests, not runtime Data Sync acceptance.
+cases have offline tests, not runtime Data Sync acceptance. The later
+[same-UUID trial](../DATA_SYNC_UPDATE_TRIAL.md) preserved an updated PIR through
+server publication and B's export after online restart, without duplicate
+membership. Reconnect/list refresh still exported the old metadata; automatic
+recovery is not accepted and the cause remains unproven.
 
-Review the evidence before continuing #25 permission, duplicate/update, recovery,
-receiver restart and conflict/removal tests. Durable TmmDraft import remains #15;
+Review both reports before continuing #25 permission, automatic recovery and
+conflict/removal tests. Durable TmmDraft import remains #15;
 production review/publishing remains #14 and images #26. A recipient feed export
 is not a live MapItem re-export, durable import or delivery acknowledgment.
 
