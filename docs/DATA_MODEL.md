@@ -107,5 +107,9 @@ The [#25 same-UUID runtime trial](DATA_SYNC_UPDATE_TRIAL.md) preserved the coher
 PIR update's exact metadata through server replacement and B's export after online
 restart, without duplicate feed membership. Reconnect/list refresh still returned
 the base metadata in the observed interval. Fresh export envelope timestamps are
-not evidence of updated embedded fields. No snapshot, wire schema, revision,
+not evidence of updated embedded fields. A later [controlled reconnect](DATA_SYNC_RECONNECT_TRIAL.md)
+returned the exact update without restart; locally downloading an older history
+version changed B's exported fields without changing the server, and selecting
+Latest restored them. Feed version, host/exported content and durable TmmDraft
+state must remain distinct. No snapshot, wire schema, revision,
 conflict policy, durable TmmDraft import or acknowledgment contract changes here.

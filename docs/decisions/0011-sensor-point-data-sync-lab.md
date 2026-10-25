@@ -41,10 +41,16 @@ UUID namespace is disposable and is not an object-identity migration. Other devi
 cases have offline tests, not runtime Data Sync acceptance. The later
 [same-UUID trial](../DATA_SYNC_UPDATE_TRIAL.md) preserved an updated PIR through
 server publication and B's export after online restart, without duplicate
-membership. Reconnect/list refresh still exported the old metadata; automatic
-recovery is not accepted and the cause remains unproven.
+membership. Reconnect/list refresh still exported the old metadata; that trial
+did not establish automatic recovery and the cause remains unproven.
 
-Review both reports before continuing #25 permission, automatic recovery and
+A later [controlled reconnect trial](../DATA_SYNC_RECONNECT_TRIAL.md) delivered the
+exact update without restarting ATAK or manually syncing first. It separately
+checked full sync and older/latest local history downloads. This supplies bounded
+positive evidence for human review, not a fix for the earlier observation or
+approval of an app adapter, physical network or durable TmmDraft receiver.
+
+Review these reports before continuing #25 permission and
 conflict/removal tests. Durable TmmDraft import remains #15;
 production review/publishing remains #14 and images #26. A recipient feed export
 is not a live MapItem re-export, durable import or delivery acknowledgment.
