@@ -1,8 +1,9 @@
 # Reviewed publication path — #14
 
-Status: proposed for human review, 2026-10-25.
-Baseline: main `6ae582d`. This slice defines the outbound boundary and verifies
-SDK construction/serialization. It enables no app action or transport. Agent 2
+Status: publication boundary proposed in merged PR #91; core private preparation
+implemented for human review, 2026-10-25.
+Implementation baseline: main `5dde0b0`. The preceding slice defined the outbound
+boundary and verified SDK construction/serialization. Neither slice enables an app action or transport. Agent 2
 owns the separate #15 import/storage proposal; no incoming schema is decided here.
 
 ## Decision proposed for the next implementation slice
@@ -53,7 +54,7 @@ artifact is different from deleting a published feed association or every copy.
 
 ## Destination, freshness and the manual-handoff limitation
 
-`ShareReview` remains unchanged. Its destination ID/label must identify the actual
+`ShareReview` retains its existing behavior. Its destination ID/label must identify the actual
 verified route, not `Data Sync`, a placeholder server/feed, a guessed URI or an
 empty selection. A separate preparation review has a different purpose; do not
 manufacture a fake destination merely to reuse `ShareReview.isCurrent`.
@@ -119,13 +120,58 @@ SDK construction/serialization and our existing checker, not Android parsing.
 No emulator, Docker, Gradle/Android build, image suite, network transmission,
 signing input, release or CI wait was needed or performed for this slice.
 
-## Gates for the next implementation PR
+## Private preparation core
 
-1. Review this outbound boundary together with #15's inbound contract. Define a
-   preparation review without inventing a destination or changing production
-   storage/wire semantics as a shortcut. Keep agent 2's core/import work separate.
-2. Implement private preparation and its lifecycle/freshness/error checks. No
-   normal host MapItem or operational transmission may result from preparation.
+`PublicationPreparationReview(savedDraft)` captures the existing eleven-field
+`ShareReview.Metadata` projection and image warning without requiring a destination.
+`prepare(current)` returns an immutable `Prepared` value in memory only. This is
+not an encoded artifact, an export, a host map copy or a publication result.
+Its only fields are `metadata` and `imageStatus`; no image handle or local revision
+is exposed. The original draft is retained privately only while review is pending.
+Neither review objects nor saved drafts may be serialized or logged as payloads.
+
+The caller must reload the saved draft and call `prepare` on the same serialized
+boundary as edits/deletes. Preparation and destination-aware sharing use the same
+comparison: UUID, local revision, all metadata and saved image association must
+match. Missing/unavailable data must be supplied as null or the pending review
+closed; a storage failure must never fall back to the captured draft. The helper
+does not read storage, acquire its lock or detect edits after the supplied snapshot.
+
+Every attempt consumes the review, including a stale/missing result. Success
+returns the reviewed metadata; failure throws a generic exception and requires a
+new review. `close()` cancels pending preparation and is idempotent. Synchronized
+methods allow at most one successful preparation per review, including racing
+confirmations or cancellation. If preparation wins a race with close, its returned
+value exists; close cannot revoke copies or securely erase memory. The future app
+owner must serialize lifecycle events, discard references on Cancel/Unload/restart
+and separately govern any subsequent side effect. No lifecycle integration is
+claimed here.
+
+The core tests cover exact projection, optional fields/image exclusion, changed or
+missing drafts, one-use failures/successes, cancellation and competing calls. A
+real temporary DraftStore is reopened to check saved bytes/revision/image-reference
+preservation. Existing ShareReview tests retain their exhaustive metadata and exact
+destination checks. Snapshot v1, wire formats and received storage are unchanged.
+
+No Android action, encoder, private file writer, transport, new status or APK is
+added. Encoding/ownership/error handling for an actual artifact still need their
+own reviewed format and implementation; this class does not decide #15's proposed
+inbox format or production source/causal identity.
+
+Validation on 2026-10-25: `sh scripts/test.sh` passed, including existing separate
+process reopen/100-device checks and the new preparation tests.
+`sh scripts/test-publication-sdk.sh` passed all six construction/serialization cases
+in both locale JVMs. No emulator, Docker, Android build, image tests, app runtime
+verification or CI wait was performed for this core-only change.
+
+## Remaining gates
+
+1. Review this outbound boundary and core preparation together with #15's inbound
+   contract. Keep agent 2's core/import work separate; agree production artifact
+   identity/format before adding an encoder or private writer.
+2. Integrate preparation with the app's serialized storage/lifecycle boundary and
+   truthful review/error UI after the artifact contract is accepted. No normal
+   host MapItem or operational transmission may result from private preparation.
 3. Exclusively reserve the existing two-client lab before executing the exact SDK
    import candidate. Start the server/API first; verify real baseline exports,
    subscription/role controls and before/after recipient/observer controls.
@@ -139,7 +185,8 @@ signing input, release or CI wait was needed or performed for this slice.
 
 Agent 2 needs no emulator/Docker for its SDK-independent proposal/tests. This
 branch does not modify ImportReview, DraftStore, snapshot formats, receiver code or
-the shared DATA_MODEL/TESTING/NEXT_STEPS files.
+the shared DATA_MODEL/TESTING/NEXT_STEPS files. Both parallel branches add their
+own test invocation to `scripts/test.sh`; retain both when merging.
 
 References: [project plan](PROJECT_PLAN.md), [share review](SHARE_REVIEW.md),
 [investigation](DATA_SYNC_INTEGRATION.md),

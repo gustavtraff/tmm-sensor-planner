@@ -24,8 +24,12 @@ public final class ShareReview {
 
     /** Compare against a fresh local record and the exact current selection; null means unavailable. */
     public boolean isCurrent(TmmDraft current, String selectedId, String selectedLabel) {
-        return current != null && destinationId.equals(selectedId) && destinationLabel.equals(selectedLabel)
-                && reviewed.uid.equals(current.uid) && reviewed.revision == current.revision
+        return destinationId.equals(selectedId) && destinationLabel.equals(selectedLabel)
+                && sameSavedState(reviewed, current);
+    }
+
+    static boolean sameSavedState(TmmDraft reviewed, TmmDraft current) {
+        return current != null && reviewed.uid.equals(current.uid) && reviewed.revision == current.revision
                 && Objects.equals(reviewed.imageRef, current.imageRef)
                 && ImportReview.sameMetadata(reviewed, current);
     }
