@@ -92,3 +92,18 @@ explicit confirmation/cancellation/failure behavior and verified two-client deli
 The later [manual metadata lab](METADATA_SHARE_LAB.md) connects this review to an
 explicit, isolated one-recipient experiment. It does not approve production sharing
 or remove the offline/physical-client gates.
+
+## Publication-copy path proposal — 2026-10-25
+
+[PUBLICATION_PATH.md](PUBLICATION_PATH.md) separates private metadata preparation,
+host-copy creation, native Data Sync feed confirmation and durable TMM receipt.
+It preserves this helper's destination/freshness contract: a generic handoff label
+must not be passed as though it identifies an actual verified feed. Preparation
+cannot claim Shared or receipt, and its freshness check cannot be represented as
+a callback at native Done. The manual-snapshot versus fully integrated boundary
+requires human review before a user-facing handoff is enabled.
+
+An optional local SDK probe constructs/serializes all six fixed sensor cases and
+checks their exact metadata under en-US/sv-SE. The importer signature is compile-only
+and never executed. No runtime adapter, production schema, private-draft conversion
+or network path is enabled. Agent 2 owns the separate #15 import/storage proposal.
