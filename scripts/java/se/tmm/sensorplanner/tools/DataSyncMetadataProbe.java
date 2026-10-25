@@ -71,7 +71,7 @@ public final class DataSyncMetadataProbe {
         }
     }
 
-    private static ShareReview.Metadata metadata(String name) {
+    static ShareReview.Metadata metadata(String name) {
         boolean sensor = name.startsWith("sensor-");
         int index = Arrays.asList(CASES).indexOf(sensor ? name.substring(7) : name);
         require(index >= 0);
@@ -159,7 +159,7 @@ public final class DataSyncMetadataProbe {
         return found;
     }
 
-    private static void verify(String name, byte[] bytes) throws Exception {
+    static void verify(String name, byte[] bytes) throws Exception {
         require(bytes.length > 0 && bytes.length <= MAX_BYTES);
         ShareReview.Metadata expected = metadata(name);
         Document doc = builder().parse(new ByteArrayInputStream(bytes));

@@ -8,5 +8,6 @@ set -eu
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$repo_dir"
 sh scripts/test-mgrs-sdk.sh
+sh scripts/test-publication-sdk.sh
 ./gradlew --no-daemon :app:assembleCivDebug :app:lintCivDebug :app:testCivDebugUnitTest
 python3 scripts/check-plugin-apk.py app/build/outputs/apk/civ/debug/app-civ-debug.apk
