@@ -124,8 +124,8 @@ The inbox magic/version/encoding, independent fixture, missing-file initializati
 marker and retention/export/reset rules remain **unapproved**. In particular,
 missing storage cannot establish whether earlier receipt history was erased. Do
 not promise permanent replay suppression across deletion of app data or reimport
-of an old backup. No parser/writer should be added until those format choices are
-reviewed; this proposal changes no currently documented byte contract.
+of an old backup. No production parser/writer should be added until those format
+choices are reviewed; this proposal changes no currently implemented byte contract.
 
 ## Gates for later explicit application and resolution
 
@@ -198,3 +198,11 @@ still holds, and proves a stale save fails without changing the replacement imag
 or snapshot on reopen. This verifies existing behavior, not the proposed inbox.
 All existing core/form/review/codec/storage/separate-process/100-device checks
 passed. No emulator, Docker container, Android build, SDK or transport test ran.
+
+## Concrete format follow-up — proposed 2026-10-25
+
+[Candidate inbox format 1](INBOX_FORMAT_PROPOSAL.md) specifies byte order, fields,
+limits, identity/equality, explicit initialization and retain-until-full behavior.
+It includes an independently encoded synthetic fixture and a test-only inspector,
+not a production parser/writer. Decisions A–D and the concrete format remain
+proposed; fixture checks do not approve application, migration or transport.

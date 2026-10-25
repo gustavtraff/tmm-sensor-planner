@@ -106,3 +106,10 @@ received metadata separately without changing this v1 store. It records why
 independent load/save calls are not an import transaction, and why future apply
 needs explicit review of revision/deletion reuse, image preservation and timestamp
 invariants. No new format, migration or production store behavior is implemented.
+
+## Independent inbox format candidate — 2026-10-25
+
+[The proposed inbox frame](INBOX_FORMAT_PROPOSAL.md) and independent fixture are
+separate from TMMD/drafts.bin v1. No current reader/writer or draft migration is
+changed. The candidate test inspector is test-only; persistence and recovery of
+an inbox remain unimplemented pending explicit format/scope approval.
