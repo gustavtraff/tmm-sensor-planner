@@ -166,6 +166,12 @@ verification or CI wait was performed for this core-only change.
 
 ## Remaining gates
 
+The v16 [synthetic SDK import candidate](PUBLICATION_IMPORT_PROBE.md) now provides
+a guarded executable experiment for gate 3–4. It still requires service signing
+and the standard-client run; compile/build success is not that runtime evidence.
+The merged #94 inbox implements approved A–C separately, not transport or draft
+application. This does not yet approve an artifact encoder or user-facing handoff.
+
 1. Review this outbound boundary and core preparation together with #15's inbound
    contract. Keep agent 2's core/import work separate; agree production artifact
    identity/format before adding an encoder or private writer.
