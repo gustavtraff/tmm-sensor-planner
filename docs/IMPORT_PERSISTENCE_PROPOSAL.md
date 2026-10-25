@@ -8,14 +8,24 @@ inbox. No Android adapter, transport, draft application or image lifecycle chang
 are included. The design rationale below originated on main
 `6ae582d7e83aee3330e7cc79553582d50f7ca183`; current API/evidence are linked above.
 
+## D follow-up — proposed 2026-10-25
+
+The owner subsequently adopted the receiving UX: trusted-feed visibility without
+per-device acceptance, explicit Add locally, manual comparison/choice for different
+local metadata and no repeated work for identical metadata. This does not approve
+a writer or migration. [The D application/recovery proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md)
+now concretizes expected-state confirmation, deleted/recreated UUIDs, preserved
+images/variants and interrupted commits. Its local v2 format/migration and detailed
+time/decision policies await explicit review; A–C and inbox format 1 are unchanged.
+
 ## Reviewed behavior and gaps
 
 [ImportReview](../core/src/main/java/se/tmm/sensorplanner/core/ImportReview.java)
 is a pure classifier. Equal UUID plus equal metadata gives SAME_METADATA; any
 compared metadata difference gives REVIEW_REQUIRED, not proof of concurrency.
 `revision` and local `imageRef` are excluded from comparison, and incoming image
-handles are rejected. No production caller invokes `assess`; its current uses are
-core tests. `ShareReview` also reuses `sameMetadata`, so changing that equality
+handles are rejected. InboxReview now invokes `assess` for read-only grouping; there is no Android
+receiver/apply caller. `ShareReview` also reuses `sameMetadata`, so changing that equality
 would affect outgoing-review freshness as well as imports.
 
 [DraftStore](../core/src/main/java/se/tmm/sensorplanner/core/DraftStore.java)

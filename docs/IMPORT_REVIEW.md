@@ -166,3 +166,11 @@ both stores keeps the pending receipt and compares against the latest supplied
 local state. All existing core/store/fixture checks also pass. No emulator, Docker
 container, Android build, SDK/device or transport test ran. There is no application,
 resolution state, schema migration, historical-image pinning or UI in this change.
+
+## D confirmation and recovery follow-up — proposed 2026-10-25
+
+The [application/recovery proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md) separates
+the adopted receiving UX from still-proposed commit/storage decisions. It keeps
+this comparison and read-only grouping unchanged. A future command must bind to
+persisted local mutation identity, not reuse InboxReview or SAME_METADATA as a
+confirmation token. No application API or new writer is added by that proposal.
