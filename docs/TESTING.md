@@ -7,9 +7,19 @@ new plugin-side `CotImporterManager` experiment from the earlier manual file imp
 Core tests, actual-canary SDK construction/independent CLI verification, CivDebug
 build/lint/app unit tests/static APK checks and CivRelease assembly passed locally.
 The initial fixture API-26 lint annotation was corrected before the passing rerun.
-No emulator, Docker, image suite or CI wait was used. Service signing and actual
+No emulator, Docker, image suite or CI wait was used for those preparation checks.
+At that stage, service signing and actual
 standard-client import/re-export, pre-confirmation/other-feed privacy, recipient
-content and lifecycle checks remain **unverified**. It is not a production path.
+content and lifecycle checks were **unverified**. It was not a production path.
+
+**Later signed run:** [PUBLICATION_SDK_RUNTIME](PUBLICATION_SDK_RUNTIME.md) records
+actual standard 5.6.0.25/Data Sync 3.7.4 SDK import and re-export, pre-Done/feed
+absence, native Cancel/Done, B's fresh export, repeats and pending review
+restart/Unload/reload. The fixed PIR passes that bounded lab gate. Private snapshots
+and bounded canary scans stayed clean. Production UI/ingress, every device type,
+physical 5.6.0.12 and operational-combination acceptance remain separate. This
+documentation branch reran three real-event CLI checks/static signed APK checks;
+it did not rerun unchanged core/image/build suites or await CI.
 
 The [#67 device review](DEVICE_DETAILS.md) adds 6400-mil conversion/preservation,
 actual cardinal-direction rendering and asynchronous thumbnail-lifetime tests.

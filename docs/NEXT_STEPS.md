@@ -2,28 +2,25 @@
 
 ## Current implementation gate — 2026-10-25
 
+**Signed v16 follow-up:** [the actual SDK-path trial](PUBLICATION_SDK_RUNTIME.md)
+now passes its bounded fixed-PIR gate: one exact host copy, no pre-Done feed
+membership, intended-feed/native confirmation and B-export preservation, with
+comparison auto-publication controls and repeat/lifecycle observations. Lab resources
+are stopped and original settings restored. Propose closing #83 after human review.
+
+Next under #14: agree the production artifact/source-identity contract aligned
+with the inbox, implement private Android preparation on the edit/delete/lifecycle
+boundary, and explicitly review the manual-snapshot handoff limitation before any
+real-draft host-copy action. No supported native Done callback or Data Sync Android
+API has been established. #15 still owns trusted ingress and deferred draft
+application; #26 owns images. No new ZIP is needed for this documentation-only result.
+
 The merged #93 core preparation and #94 durable review inbox are implemented and
 tested separately. The inbox's approved A–C does not apply received data to local
 drafts (D remains deferred), authenticate an origin or connect an Android receiver.
-
-Next is [the synthetic SDK-import v16 candidate](PUBLICATION_IMPORT_PROBE.md):
-sign the tested committed source, then execute the exact plugin-side import path
-in the existing isolated standard-client lab. No new emulator/container was started
-to prepare this candidate. The archive supplied during this work is from commit
-`a2078a9`, on the review branch, not a main release; subsequent documentation-only
-changes do not change its app/build/core/image inputs.
-
-**Stop criterion:** if ordinary SDK copy creation publishes to an unselected
-auto-publishing feed, reject that creation path for the intended privacy boundary.
-Record the blocker and decide an explicit manual export handoff or supported route;
-do not cycle through source-tag impersonation or call another constructor test a pass.
-If it passes, complete actual B export, native Cancel/Done, repeats and lifecycle
-checks before planning the production artifact/Android review/ingress work.
-
-This gives #14 a concrete pass/fail experiment. #14 stays open for the actual
-reviewed sharing flow; #15 stays open for ingress and draft-application/conflict
-resolution. Image delivery remains #26. No new phone/operational-server trial is
-requested until the signed lab evidence is reviewed.
+The previous signing/runtime plan has been executed as recorded above. Keep the
+earlier manual trials and later signed SDK evidence distinct; no source-tag
+impersonation or direct-REST fallback was introduced to obtain this result.
 
 GitHub Issues are the live backlog. This dated plan supersedes stale implementation
 status in the initial [BACKLOG.md](BACKLOG.md), not the product/project requirements.

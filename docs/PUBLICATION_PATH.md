@@ -167,8 +167,11 @@ verification or CI wait was performed for this core-only change.
 ## Remaining gates
 
 The v16 [synthetic SDK import candidate](PUBLICATION_IMPORT_PROBE.md) now provides
-a guarded executable experiment for gate 3–4. It still requires service signing
-and the standard-client run; compile/build success is not that runtime evidence.
+a guarded executable experiment for gate 3–4. Its
+[signed standard-client run](PUBLICATION_SDK_RUNTIME.md) passed the bounded fixed
+PIR import, native selection/Cancel/Done, actual B export and repeat/lifecycle
+observations. This is actual runtime evidence, separately scoped from production
+draft review, all-type compatibility and app ingress/acknowledgment.
 The merged #94 inbox implements approved A–C separately, not transport or draft
 application. This does not yet approve an artifact encoder or user-facing handoff.
 
