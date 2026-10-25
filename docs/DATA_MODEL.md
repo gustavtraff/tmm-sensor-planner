@@ -102,3 +102,10 @@ offline fixture/checker cases for a different host envelope and synthetic UUID
 namespace. It reuses ShareLabFields without changing snapshot identity, canonical
 degrees/coordinates, private image handles or a production wire contract. A live
 MapItem edit cannot be assumed to update exact embedded metadata consistently.
+
+The [#25 same-UUID runtime trial](DATA_SYNC_UPDATE_TRIAL.md) preserved the coherent
+PIR update's exact metadata through server replacement and B's export after online
+restart, without duplicate feed membership. Reconnect/list refresh still returned
+the base metadata in the observed interval. Fresh export envelope timestamps are
+not evidence of updated embedded fields. No snapshot, wire schema, revision,
+conflict policy, durable TmmDraft import or acknowledgment contract changes here.
