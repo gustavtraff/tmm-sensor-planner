@@ -1,9 +1,14 @@
 # Synthetic SDK publication-import candidate — #14
 
-Status: implemented test candidate, **runtime and feed privacy unverified**.
+Status: implemented test candidate; **bounded signed PIR runtime trial passed**.
 Date: 2026-10-25. Baseline: main `adc7d24` (including the #94 review inbox).
-Version 16 / `0.1.0-publication-lab.1` requires new service signing for standard ATAK.
+Version 16 / `0.1.0-publication-lab.1` required new service signing for standard ATAK.
 The package ID is unchanged. This is a lab candidate, not an operational release.
+
+**Runtime follow-up:** the [signed standard-client trial](PUBLICATION_SDK_RUNTIME.md)
+records the bounded actual SDK import, private pre-Done behavior, native selected
+feed and B-export pass, repeat and lifecycle observations. Production integration
+and the remaining gates below are not thereby complete.
 
 ## Purpose and boundaries
 
@@ -66,9 +71,10 @@ The signing-service target `./gradlew --no-daemon :app:assembleCivRelease` also
 passed locally using the inspected external SDK. This is not verification of the
 remote Maven environment or the service signature.
 
-No emulator/Docker, runtime import, recipient export or actual wrong-feed absence
-check has run for v16. Signing and the following lab protocol remain prerequisites
-to any runtime/privacy claim. Existing production sharing stays disabled.
+At candidate preparation, no emulator/Docker, runtime import, recipient export or
+actual wrong-feed absence check had run for v16. The later signed trial linked
+above supplies its own bounded evidence against the following protocol. Existing
+production sharing stays disabled.
 
 ## Standard-client lab protocol after signing
 
