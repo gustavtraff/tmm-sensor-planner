@@ -71,3 +71,9 @@ Tested debug APK SHA-256:
 Physical OnePlus camera/provider acceptance, physical pinch/TalkBack, portrait,
 active-viewer Unload and a newly service-signed standard-host build remain open.
 This change does not close #66 or #49 and does not authorize sharing or a release.
+
+## Prepared local follow-up — 2026-10-25
+
+[The offline acceptance protocol](LOCAL_ACCEPTANCE_PLAN.md) covers active-viewer,
+picker and pending-preview Unload with saved-byte/source preservation checks.
+It is preparation only: no new runtime result or completed acceptance is claimed.
