@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.*;
 
-/** Test-only inspector of a proposed local format; no production store, parser API or writer. */
+/** Independent format oracle kept separate from the production inbox codec. */
 public final class InboxFormatFixtureTest {
     private static final int LIMIT = 1000;
     private static final UUID DEVICE = UUID.fromString("00000000-0000-4000-8015-000000000003");
@@ -57,9 +57,23 @@ public final class InboxFormatFixtureTest {
         byte[] empty = Arrays.copyOf(bytes, 28);
         ByteBuffer.wrap(empty).putInt(24, 0);
         assert inspect(seal(empty)).isEmpty();
+        InboxStore.Snapshot decoded = InboxCodec.decode(bytes);
+        assert Arrays.equals(bytes, InboxCodec.encode(decoded));
+        assert decoded.receipts.size() == receipts.size();
+        for (int i = 0; i < receipts.size(); i++) {
+            Receipt oracle = receipts.get(i); InboxStore.Receipt actual = decoded.receipts.get(i);
+            assert actual.id.equals(oracle.id) && actual.contextId.equals(oracle.context);
+            assert actual.firstObservedAt.equals(oracle.received) && equal(actual.incoming, oracle.metadata);
+            assert actual.localObservations.size() == oracle.observations.size();
+            for (int j = 0; j < oracle.observations.size(); j++) {
+                Observation observed = oracle.observations.get(j); TmmDraft localActual = actual.localObservations.get(j);
+                assert observed.metadata == null ? localActual == null
+                        : localActual != null && localActual.revision == observed.revision && equal(localActual, observed.metadata);
+            }
+        }
         malformed(bytes);
         assert Arrays.equals(source, Files.readAllBytes(path));
-        System.out.println("Proposed inbox fixture passed (independent bytes, variants, equality and malformed inputs; no storage implementation).");
+        System.out.println("Inbox fixture passed (independent oracle, exact production codec bytes and malformed inputs).");
     }
 
     private static void malformed(byte[] bytes) throws Exception {
@@ -167,6 +181,8 @@ public final class InboxFormatFixtureTest {
     private static byte[] reseal(byte[] bytes) throws Exception { return seal(Arrays.copyOf(bytes, bytes.length - 32)); }
     private static void rejected(byte[] bytes) throws Exception {
         try { inspect(bytes); throw new AssertionError("Malformed proposed fixture accepted"); }
+        catch (IOException expected) { }
+        try { InboxCodec.decode(bytes); throw new AssertionError("Production codec accepted malformed fixture"); }
         catch (IOException expected) { }
     }
     private static IOException invalid() { return new IOException("Invalid proposed inbox fixture"); }

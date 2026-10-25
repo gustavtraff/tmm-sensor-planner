@@ -1,15 +1,15 @@
-# Private inbox format candidate 1 (#15)
+# Private inbox format 1 (#15)
 
-**Status: proposed for explicit human review, not an accepted schema.**
-Date: 2026-10-25. Baseline: main `96c4f0ae039efe2dc871027b6548424431fe799b`.
-This makes decision C of [the durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md)
-concrete. Decisions A–D still need adoption before a production parser/writer.
-The independent fixture and its test-only inspector do not add a store, receiver,
-Android adapter, transport, import application or acknowledgment.
+**Status: A–C and the concrete format from PR #92 explicitly approved by the
+repository owner on 2026-10-25; D (application to local drafts) remains deferred.**
+Approval was recorded in the conversation, not inferred from merging the proposal.
+The SDK-independent [InboxStore implementation](INBOX_STORAGE.md) uses this frame.
+No Android adapter, transport, import application or acknowledgment is included.
+The historical proposal filename is retained for links.
 
 ## Isolation from existing contracts
 
-Propose a separate private directory with `inbox.bin`, a permanent `inbox.lock`
+Use a separate private directory with `inbox.bin`, a permanent `inbox.lock`
 and ignored same-directory temporary files. Never reuse `drafts.bin`, its magic,
 lock or schema counter. [DraftStore v1](LOCAL_STORAGE.md) remains unchanged; no
 old-to-new draft migration is proposed. Metadata units/catalogue remain those in
@@ -20,7 +20,7 @@ tombstone, remote revision, content hash, image handle or delivery-status field 
 included. Arrival order and timestamps provide no causal/permission authority.
 Current local images stay exclusively in the current local draft/image store.
 
-## Proposed primitives and frame
+## Primitives and frame
 
 All integers are big-endian. `int` is signed 32-bit, `long` signed 64-bit and
 `double` IEEE 754 binary64. UUIDs are two longs, most significant then least.
@@ -63,7 +63,7 @@ Use existing enum **names** and domain validation, not ordinals or UI translatio
 Display ID/owner must already be nonempty and equal to their Java `trim()` result;
 comment may be empty. Finite coordinates/bearings, type/bearing compatibility,
 creation/update ordering and optional presence follow TmmDraft. Neither imageRef
-nor a local/remote revision is part of M. A test carrier may use a dummy local
+nor a local/remote revision is part of M. The incoming domain carrier uses local
 revision 1 to invoke current domain validation; that value is not serialized.
 
 Preserve finite double bits, including negative zero. Equality still treats +0/-0
@@ -88,7 +88,7 @@ an image-only edit. No distributed ordering is inferred from those counters.
 
 inboxId is a locally generated UUID for explicit initialization. Receipt IDs are
 locally generated UUIDs, unique within the inbox, retained across replacements and
-retries. They are never device UUID replacements or sender message IDs. A future
+retries. They are never device UUID replacements or sender message IDs. The
 reader accepts opaque UUID values, not only the particular IDs in the fixture.
 
 contextId is a nonempty, already trimmed, case-sensitive opaque local identifier
@@ -106,14 +106,14 @@ frame containing duplicate logical keys is invalid, even if receipt IDs/times or
 signed-zero encodings differ. Different UUIDs never merge by visible label.
 Receipt/local-observation order is insertion order, not winner selection.
 
-These are format/insertion requirements, not an implemented insertion algorithm.
-The fixture can prove values/equality/rejection rules; it cannot prove concurrent
-insertion, locking, process-restart recovery or storage durability.
+InboxStore implements insertion under its own exclusive lock. The independent
+fixture pins the format; separate storage tests exercise insertion, locking,
+process-restart reopening and write failures. See [the API and evidence](INBOX_STORAGE.md).
 
-## Initialization, retention and failure choices for approval
+## Approved initialization, retention and failure boundary
 
 1. The committed inbox file itself carries initialization identity; no independent
-   mutable marker or multi-file journal is proposed. Missing `inbox.bin` is
+   mutable marker or multi-file journal is used. Missing `inbox.bin` is
    NOT_INITIALIZED_OR_MISSING, never an implicitly empty successful load.
 2. Only an explicit initialize-new operation, under the permanent inbox lock, may
    create a new empty frame with a new inboxId. It must refuse any existing file,
@@ -128,8 +128,8 @@ insertion, locking, process-restart recovery or storage durability.
 4. Recover committed frames only; abandoned temporary files are not live receipts.
    Never auto-promote a temp file or reset malformed storage. A readback after an
    ambiguous commit must distinguish present, absent and unreadable, not blindly
-   retry under a new receipt ID. Production locking/atomic replacement/recovery
-   checks remain required before implementation is accepted.
+   retry under a new receipt ID. InboxStore provides lookup only after a complete
+   successful read and validation; unreadable storage is an error, never absence.
 5. Preserve the earlier process-restart-only durability boundary. Parent-directory
    sync, power loss, app-data deletion and rollback of an old backup are not solved
    by this file header. An inboxId is not a monotonic rollback detector.
@@ -140,7 +140,7 @@ insertion, locking, process-restart recovery or storage durability.
 was encoded independently with Python standard-library `struct`, `uuid`, UTF-8,
 `hashlib` and `base64`, without DraftStore or a Java encoder. Its
 [field values and byte offsets](../test-fixtures/synthetic/inbox/README.md) allow
-independent inspection. Base64 is a repository wrapper, not the proposed disk format.
+independent inspection. Base64 is a repository wrapper, not the disk format.
 
 The decoded fixture is **964 bytes**; SHA-256:
 `b836b42f3fc195046817fb4746faecbc9f9c130e486c4db80505bffdd1f4e513`.
@@ -149,17 +149,13 @@ and the equal base metadata in another context. It retains two distinct local
 metadata versions and explicit absent observations. Unicode, nanoseconds, optional
 values, enum names and signed-zero encodings are pinned.
 
-`InboxFormatFixtureTest` is a **test-only inspector**, compiled only by the plain
-Java checks; no production parser/API/writer is added. It validates every fixture
-field against independently specified values, uses existing metadata equality,
-checks an in-memory initialized-empty frame, and rejects malformed checksums,
-versions, counts, lengths, UTF-8, instants, domains, flags, local revisions/UUIDs,
-duplicate receipt IDs/logical keys, truncated and extra payloads. Those negative
-cases re-seal altered payloads when needed, so checks are not merely digest failures.
+`InboxFormatFixtureTest` keeps its independent test-only inspector and compares
+all fixture values with the production decoder. Production encoding of the decoded
+fixture must reproduce the exact independent bytes. Both readers reject malformed
+checksums, versions, counts, lengths, UTF-8, instants, domains, flags, local
+revisions/UUIDs, duplicate receipt IDs/logical keys, truncated and extra payloads.
+Negative cases re-seal altered payloads when needed rather than only failing a digest.
 
-On 2026-10-25, `JAVA_HOME=<Temurin 17.0.20.1+1> sh scripts/test.sh` passed with
-`--release 8`, including the fixture inspector and existing import/store tests.
-Existing DraftStore v1 fixture and separate-process reopening still pass. This is
-**not** an inbox write/restart/concurrency/atomic-failure test: those await a writer
-and approved decisions. No emulator, Docker container, Android build, signing,
-SDK runtime or transport test ran. No existing schema or production source changed.
+The fixture bytes and existing DraftStore v1 fixture are unchanged. Current test
+results, storage failure checks and remaining platform gates are recorded in
+[INBOX_STORAGE.md](INBOX_STORAGE.md). No draft migration or wire format is added.

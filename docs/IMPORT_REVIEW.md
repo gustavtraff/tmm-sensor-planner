@@ -4,7 +4,8 @@ Status: proposed for human review with the SDK-independent part of
 [Issue #15](https://github.com/gustavtraff/tmm-sensor-planner/issues/15), F10/F11.
 Date: 2026-10-17. No synchronization policy or production receiver is approved by
 this document or by passing tests. Human PR review may adopt this limited classifier;
-source identity, causal versions, persisted conflicts and user resolution remain open.
+source identity, causal versions and user resolution remain open. The separate
+2026-10-25 inbox approval/implementation is recorded below.
 
 ## Scope and API
 
@@ -55,8 +56,9 @@ Two client-local values are deliberately excluded:
 The comparison is between the snapshots supplied now. A local edit that changes
 updatedAt can require review even when the visible fields look the same. The
 function does not remember prior arrivals, rewrite timestamps or establish replay
-history. Repeated assessment of the same metadata has the same result; deduplication
-across accepted imports/restart needs the later source/version/storage contract.
+history. Repeated assessment of the same metadata has the same result. The separate
+inbox provides durable staging deduplication under its approved context/equality
+contract, without accepting imports.
 
 ## Persistence and later adapter gates
 
@@ -75,7 +77,7 @@ implementing acceptance. A UID absent after local deletion is merely NEW_UID her
 there are no tombstones to prevent resurrection. Do not connect automatic imports
 or sharing using only this helper. The laboratory CoT fixture is not that contract.
 
-Issue #15 remains open for those decisions, persistence, transport/UI integration,
+Issue #15 remains open for application decisions, transport/UI integration,
 and two-client/restart tests. No ATAK API or SDK/device behavior is verified by this
 change. #35's local image adapter and the shared emulator remain separate.
 
@@ -89,11 +91,15 @@ and invalid collections. Assessment of an actual saved snapshot preserves its by
 and reopened local record. Existing core/forms/storage, fixed v1 fixture and separate
 writer/reader JVM tests also pass. No SDK build, emulator or two-client test was run.
 
-## Durable receipt follow-up — proposed 2026-10-25
+## Durable receipt follow-up — 2026-10-25
 
-[The durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md) records the reviewed
-classifier/store gaps, a minimal receipt/conflict contract and decisions required
-before new schema or application code. The proposal is not implemented or approved.
-A new plain-Java regression covers an image-only edit after assessment: metadata
-equality still holds, while a stale store save is rejected and the new image handle
-survives reopening.
+The owner explicitly approved A–C and the concrete PR #92 format for the separate
+[InboxStore](INBOX_STORAGE.md). It reuses `sameMetadata` for receipt deduplication,
+retains different variants and observed local metadata across restart, and never
+writes DraftStore or changes this pure classifier. Current local image references
+remain in the live draft; historical observations intentionally omit image handles.
+The image-only-edit regression still verifies SAME_METADATA and stale-save rejection.
+
+[The contract rationale](IMPORT_PERSISTENCE_PROPOSAL.md) records the remaining gates.
+D, live-draft application, remains deferred. There is no Android/transport caller,
+source authentication or acknowledgment. Staging a candidate is not accepting it.

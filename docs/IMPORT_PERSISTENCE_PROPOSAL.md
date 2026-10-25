@@ -1,10 +1,12 @@
-# Durable metadata inbox and conflict preservation — proposal (#15)
+# Durable metadata inbox and conflict preservation (#15)
 
-**Status: proposed, awaiting explicit human decisions.** Date: 2026-10-25.
-Source reviewed: main `6ae582d7e83aee3330e7cc79553582d50f7ca183`.
-This is an SDK-independent contract proposal for F10/F11, not an implemented
-receiver, accepted schema or production wire protocol. No Android adapter,
-transport, snapshot writer or image lifecycle changes are included.
+**Status: A–C and the format in PR #92 explicitly approved by the repository owner
+on 2026-10-25. D (application to local drafts) remains deferred.** Approval was
+recorded in the conversation, not inferred from a PR merge.
+The SDK-independent [InboxStore](INBOX_STORAGE.md) implements the separate review
+inbox. No Android adapter, transport, draft application or image lifecycle changes
+are included. The design rationale below originated on main
+`6ae582d7e83aee3330e7cc79553582d50f7ca183`; current API/evidence are linked above.
 
 ## Reviewed behavior and gaps
 
@@ -21,7 +23,8 @@ locks each operation, validates the complete snapshot and atomically replaces on
 checksummed file. It rejects ordinary stale revisions, but `load` → assess → `save`
 is not one transaction. A future caller that reloads, increments the latest revision
 and blindly applies an old review would defeat the intended stale-review guard.
-No received variant, source context, decision or deletion history is stored today.
+DraftStore stores no receipt, source context, decision or deletion history; the
+separate InboxStore now retains receipts and metadata variants only.
 
 Creation time must remain unchanged on updates; updatedAt cannot decrease and the
 local revision must advance exactly once. A foreign revision must not be passed to
@@ -37,7 +40,7 @@ conflict dialog, feed download or server removal is not this plugin's import pol
 
 ## Smallest recommended first slice
 
-Add a **separate private, versioned inbox** after approval. Persist validated
+The approved first slice adds a **separate private, versioned inbox**. Persist validated
 incoming metadata and an observed local metadata variant for later review. Leave
 `drafts.bin` v1 and all local draft/image writes unchanged in that slice. No automatic
 new-draft creation, update, merge, deletion, accepted/resolved status or remote
@@ -49,7 +52,7 @@ It does not mean “applied”, “Shared”, authenticated authorship, image de
 acknowledged to the sender. A later applying/resolution slice must meet the commit
 gates below; it must not turn two separate saves into a claimed transaction.
 
-### Logical receipt, not a frozen byte/wire schema
+### Logical receipt (the separate disk frame is specified in INBOX_FORMAT_PROPOSAL.md)
 
 | Value | Minimum meaning |
 |---|---|
@@ -74,7 +77,7 @@ not an inbox. Historical image pinning/retention is outside this metadata propos
 
 ### Identity, repeat and conflict rules
 
-| Input / state | Proposed result |
+| Input / state | Result / caller responsibility |
 |---|---|
 | Same source context, UUID and equal M | Return the existing receipt ID; do not add another row, conflict copy or local revision, including after restart |
 | Same UUID, different M | Retain a separate immutable candidate; never replace the earlier incoming variant or choose by timestamp/arrival order |
@@ -103,8 +106,8 @@ This is bounded conflict evidence, not a journal of every intermediate local edi
 - Receipt insertion and deduplication run under the inbox's own exclusive lock,
   with complete read/validate/compare/write in that operation. A repeat cannot race
   into a second receipt. Concurrent different variants must both survive.
-- The proposed inbox uses a bounded checksummed snapshot and same-directory synced
-  temporary-file/atomic-replacement pattern. Recommend the existing limits of
+- The inbox uses a bounded checksummed snapshot and same-directory synced
+  temporary-file/atomic-replacement pattern. It enforces limits of
   1,000 stored receipt/retained-local-variant entries in total, 16 MiB total and
   65,536 UTF-8 bytes per string, plus domain limits. At capacity reject explicitly;
   do not silently evict a conflict or forget replay history.
@@ -120,12 +123,11 @@ This is bounded conflict evidence, not a journal of every intermediate local edi
 - Keep inbox data private/no-backup under the eventual platform policy. No raw
   fields, source credentials, exceptions/paths or snapshots in public logs.
 
-The inbox magic/version/encoding, independent fixture, missing-file initialization
-marker and retention/export/reset rules remain **unapproved**. In particular,
-missing storage cannot establish whether earlier receipt history was erased. Do
-not promise permanent replay suppression across deletion of app data or reimport
-of an old backup. No production parser/writer should be added until those format
-choices are reviewed; this proposal changes no currently implemented byte contract.
+[Inbox format 1](INBOX_FORMAT_PROPOSAL.md) specifies the approved magic/version,
+encoding, independent fixture, explicit initialization and retain-until-full rules.
+There is no reset, export, restore or eviction API. Missing storage cannot establish
+whether earlier receipt history was erased. Permanent replay suppression across
+app-data deletion or restoring an old backup is not promised.
 
 ## Gates for later explicit application and resolution
 
@@ -156,22 +158,23 @@ choices are reviewed; this proposal changes no currently implemented byte contra
    once such operations exist. Define tombstones/re-import consent and retention
    before automatic recreation or incoming removals. Local metadata deletion is
    not server withdrawal, feed removal or secure erasure. No such operation is
-   added to the proposed inbox-only slice.
+   added to the inbox-only slice.
 
-## Decisions to confirm before implementation
+## Decision record — 2026-10-25
 
 | Decision | Recommendation / boundary |
 |---|---|
-| A. First scope | Separate durable review inbox; no live-draft writes or automatic application |
-| B. Identity/equality | Context + UUID + exact compared metadata; stable local receipt ID; retain different variants and provenance |
-| C. Storage/history | Independently versioned bounded atomic inbox; no silent eviction; approve the byte format, initialization and reset/retention policy with fixtures before its writer |
-| D. Application | Separate later decision on transaction/recovery, review freshness/deletion reuse, clock/creation identity, permissions and losing-variant retention |
+| A. First scope — approved | Separate durable review inbox; no live-draft writes or automatic application |
+| B. Identity/equality — approved | Context + UUID + exact compared metadata; stable local receipt ID; retain different variants and provenance |
+| C. Storage/history — approved | Independent bounded atomic format 1 with golden fixture, explicit initialization and retain-until-full; no reset/export/eviction API |
+| D. Application — deferred | Separate later decision on transaction/recovery, review freshness/deletion reuse, clock/creation identity, permissions and losing-variant retention |
 
-All four remain proposed. PR merge should not be described as implementation
-approval unless the responsible human explicitly records the adopted decisions
-and scope. No production transport or remote protocol is approved by this document.
+The owner explicitly approved A–C and the PR #92 format in the conversation,
+including implementation with duplicate/conflict/restart/concurrency/write-failure
+tests. D remains outside this implementation. No production transport or remote
+protocol is approved by this document.
 
-## Required SDK-independent checks after approval — not implemented here
+## SDK-independent checks
 
 - Same logical receipt repeated before/after a separate-JVM reopen returns one ID;
   same-label/different-UUID and different-context cases keep their intended identity.
@@ -189,7 +192,7 @@ and scope. No production transport or remote protocol is approved by this docume
   retention and crash points between receipt/decision/draft persistence. Until the
   transaction design is approved, those are gates, not passing behavior.
 
-## Verification performed in this PR
+## Historical proposal verification (before InboxStore)
 
 `JAVA_HOME=<Temurin 17.0.20.1+1> sh scripts/test.sh` passed on 2026-10-25 using
 `--release 8`. A focused new ImportReviewTest regression performs an assessment,
@@ -199,10 +202,9 @@ or snapshot on reopen. This verifies existing behavior, not the proposed inbox.
 All existing core/form/review/codec/storage/separate-process/100-device checks
 passed. No emulator, Docker container, Android build, SDK or transport test ran.
 
-## Concrete format follow-up — proposed 2026-10-25
+## Approved implementation follow-up — 2026-10-25
 
-[Candidate inbox format 1](INBOX_FORMAT_PROPOSAL.md) specifies byte order, fields,
-limits, identity/equality, explicit initialization and retain-until-full behavior.
-It includes an independently encoded synthetic fixture and a test-only inspector,
-not a production parser/writer. Decisions A–D and the concrete format remain
-proposed; fixture checks do not approve application, migration or transport.
+[Inbox format 1](INBOX_FORMAT_PROPOSAL.md) now has a production codec/store,
+independent golden-byte compatibility checks and storage/failure tests.
+[INBOX_STORAGE.md](INBOX_STORAGE.md) records the current API, actual verification
+and remaining gates. Application, migration of drafts and transport remain deferred.

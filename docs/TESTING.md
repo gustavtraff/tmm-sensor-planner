@@ -334,3 +334,17 @@ baseline/role UI, a pending owner confirmation and an unavailable accessibility
 dump on the conflict dialog are documented without being relabelled as passes.
 The usage-limit pause is included in final observation bounds. No image suite,
 full APK build, signing submission or CI wait was run for this change.
+
+## SDK-independent durable review inbox (#15) — 2026-10-25
+
+Following explicit owner approval of A–C and the PR #92 format,
+`sh scripts/test.sh` runs InboxFormatFixtureTest and InboxStoreTest. The
+[storage evidence](INBOX_STORAGE.md#verification--2026-10-25) records the passing
+Temurin 17.0.20.1+1 / `--release 8` run: independent golden-byte compatibility,
+duplicate/conflict/local-observation preservation, separate-JVM restart and forced
+lock contention, process halts and injected errors before/after atomic replacement,
+initialization, corrupt/future/limit rejection and current draft/image preservation.
+Existing DraftStore v1 remains unchanged. All data are synthetic; these are plain
+Java processes, with no emulator, Docker container or Android build. D (application),
+Android/filesystem/ATAK compatibility, source authentication and real ingress remain
+separate gates. No power-loss durability or transport acknowledgment is claimed.

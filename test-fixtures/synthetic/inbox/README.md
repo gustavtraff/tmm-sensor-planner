@@ -1,11 +1,13 @@
-# Independent proposed inbox fixture
+# Independent inbox format 1 fixture
 
-Status: **candidate only**, not an accepted format or runtime store. See
-[the proposed byte contract](../../../docs/INBOX_FORMAT_PROPOSAL.md).
+Status: **format 1 explicitly approved with A–C on 2026-10-25**. D (applying to
+local drafts) remains deferred. The historical filename is retained unchanged. See
+[the byte contract](../../../docs/INBOX_FORMAT_PROPOSAL.md).
 `candidate-v1.base64` is one Base64 line plus LF. Decoding yields a 964-byte
 binary frame with a 32-byte SHA-256 trailer. It was assembled with Python's
 standard-library big-endian struct/UUID/UTF-8 primitives, not DraftStore or a Java
-writer. The separate Java test-only inspector checks the independent bytes.
+writer. The separate Java test-only inspector checks the independent bytes and
+compares the production codec against them, including exact re-encoding.
 
 - File SHA-256: `b836b42f3fc195046817fb4746faecbc9f9c130e486c4db80505bffdd1f4e513`.
 - Payload/trailer digest: `538448e713eb8091dd79c05ce82eeda1b1e4e7338535c34b2195aa5ae5362f87`.
@@ -56,3 +58,7 @@ These offsets describe this fixed golden fixture, not a dynamic parsing algorith
 The test re-seals structural mutations to distinguish schema/domain rejection from
 checksum rejection. Passing its read-only checks does not establish crash recovery,
 idempotent insertion, initialization, filesystem durability or migration behavior.
+
+The separate [InboxStore tests](../../../docs/INBOX_STORAGE.md#verification--2026-10-25)
+exercise insertion, restart, contention and write failures; those claims do not
+come from the fixture alone. No Android or transport integration is implied.

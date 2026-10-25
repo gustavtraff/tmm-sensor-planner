@@ -79,7 +79,8 @@ The proposed [metadata import review](IMPORT_REVIEW.md) compares validated snaps
 by UUID without writes. It ignores local revision counters and preserves local image
 handles; different metadata requires explicit review. Incoming image handles are
 rejected. This preparatory #15 helper changes neither snapshot v1 nor the production
-wire contract and does not implement a receiver or durable conflict storage.
+wire contract and does not implement a receiver. The separate durable inbox
+implementation described below retains metadata conflict evidence only.
 
 The proposed [metadata sharing review](SHARE_REVIEW.md) exposes an explicit metadata
 projection without image handles or local revision counters. It retains the saved
@@ -122,10 +123,16 @@ for download; server removal deleted the current feed association, not every
 local/history copy. A later receiver still needs explicit conflict storage and
 withdrawal/tombstone rules under #15; native feed state must not substitute for them.
 
-## Durable import contract — proposed 2026-10-25
+## Durable import inbox — 2026-10-25
 
-[The durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md) proposes local receipt
-identity, same-UUID variant preservation and current-image protection. All new
-inbox/schema and later application decisions await explicit human review. Current
-snapshot v1, local revision/timestamp rules and the production wire-contract status
-remain unchanged.
+The owner explicitly approved A–C and the PR #92 format for a separate
+[InboxStore](INBOX_STORAGE.md). [Inbox format 1](INBOX_FORMAT_PROPOSAL.md) persists
+local receipt identity, source context, incoming metadata variants and historical
+local metadata observations. It uses its own TMMI file/lock and independent fixture;
+TMMD snapshot v1, live draft revisions/timestamps and local image ownership remain
+unchanged. No old draft format is migrated or reinterpreted.
+
+Incoming/local image handles are not serialized into the inbox. Current handles
+remain exclusively in live DraftStore records; historical images are not pinned.
+D, application to local drafts, remains deferred. This is neither a production
+wire schema nor a source-authentication, transport or acknowledgment contract.
