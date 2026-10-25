@@ -167,9 +167,10 @@ verification or CI wait was performed for this core-only change.
 ## Remaining gates
 
 A [concrete metadata XML profile](PUBLICATION_FORMAT_PROPOSAL.md) and independent
-fixtures now make the next artifact-format decision reviewable. This is a proposal
-only: no production codec, writer, new source-context authority or native-handoff
-approval is inferred. The experimental lab schema and approved inbox remain unchanged.
+fixtures were reviewed in #98. The owner authorized the
+[core codec](PUBLICATION_CODEC.md), which now encodes/decodes that profile without
+a writer or transport. No new source-context authority or native-handoff approval
+is inferred. The experimental lab schema and approved inbox remain unchanged.
 
 The v16 [synthetic SDK import candidate](PUBLICATION_IMPORT_PROBE.md) now provides
 a guarded executable experiment for gate 3–4. Its

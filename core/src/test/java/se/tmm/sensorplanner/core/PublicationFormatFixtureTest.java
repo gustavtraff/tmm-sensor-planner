@@ -1,6 +1,8 @@
 package se.tmm.sensorplanner.core;
 
 import java.io.StringReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +19,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-/** Test-only inspector for a proposed format; no production codec, I/O writer or SDK integration. */
+/** Independent DOM format oracle; cross-checks the production codec without sharing its parser. */
 public final class PublicationFormatFixtureTest {
     private static final int MAX_BYTES = 262144;
     private static final Set<String> FIELDS = new HashSet<>(Arrays.asList("schemaVersion", "deviceUid",
@@ -37,12 +39,14 @@ public final class PublicationFormatFixtureTest {
             TmmDraft actual = inspect(bytes), expected = expected(i);
             assert ImportReview.assess(Collections.singletonList(expected), actual).kind == ImportReview.Kind.SAME_METADATA;
             assert actual.imageRef == null && actual.revision == 1;
+            PublicationPreparationReview.Prepared prepared = new PublicationPreparationReview(expected).prepare(expected);
+            assert Arrays.equals(bytes, PublicationCodec.encode(prepared)) : "Independent encoder bytes changed";
             if (i == 1) assert Double.doubleToRawLongBits(actual.position.latitude) == Long.MIN_VALUE;
         }
         String pir = new String(Files.readAllBytes(Paths.get("test-fixtures/synthetic/publication/pir-v1.xml")), StandardCharsets.UTF_8);
         invalidInputs(pir);
         canonicalAndLimits(pir);
-        System.out.println("Publication proposal fixtures passed (independent values, strict profile, limits and no image/local revision).");
+        System.out.println("Publication fixtures passed (independent oracle, exact production bytes, strict profile and limits).");
     }
 
     private static TmmDraft expected(int index) {
@@ -79,6 +83,8 @@ public final class PublicationFormatFixtureTest {
                 {"displayIdUtf8=\"UElSIDEzNA==\"", "displayIdUtf8=\"\""},
                 {"displayIdUtf8=\"UElSIDEzNA==\"", "displayIdUtf8=\"IFBJUiAxMzQ=\""},
                 {" schemaVersion=\"1\"", ""}, {"tmmPublication ", "tmmPublication xmlns=\"urn:unexpected\" "},
+                {"tmmPublication ", "tmmPublication xmlns=\"\" "},
+                {"tmmPublication ", "tmmPublication xmlns:unused=\"urn:extra\" "},
                 {" />", "><extra /></tmmPublication>"}, {" />", ">hidden data</tmmPublication>"},
                 {" />", "><!--hidden data--></tmmPublication>"},
                 {"encoding='utf-8'", "encoding='utf-16'"}, {"version='1.0'", "version='1.1'"}}) {
@@ -133,6 +139,18 @@ public final class PublicationFormatFixtureTest {
     }
 
     private static TmmDraft inspect(byte[] bytes) throws Exception {
+        TmmDraft oracle = inspectOracle(bytes);
+        ShareReview.Metadata actual = PublicationCodec.decode(new ByteArrayInputStream(bytes));
+        TmmDraft decoded = new TmmDraft(actual.uid, actual.displayId, actual.type, actual.status, actual.owner,
+                actual.createdAt, actual.updatedAt, actual.deployedAt, actual.comment, actual.position,
+                actual.bearingDeg, null, 1);
+        assert ImportReview.assess(Collections.singletonList(oracle), decoded).kind == ImportReview.Kind.SAME_METADATA;
+        assert Double.doubleToRawLongBits(oracle.position.latitude) == Double.doubleToRawLongBits(actual.position.latitude);
+        assert oracle.bearingDeg == null || Double.doubleToRawLongBits(oracle.bearingDeg) == Double.doubleToRawLongBits(actual.bearingDeg);
+        return oracle;
+    }
+
+    private static TmmDraft inspectOracle(byte[] bytes) throws Exception {
         require(bytes.length > 0 && bytes.length <= MAX_BYTES);
         String text = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString();
@@ -200,8 +218,10 @@ public final class PublicationFormatFixtureTest {
 
     private static void reject(String text) throws Exception { reject(text.getBytes(StandardCharsets.UTF_8)); }
     private static void reject(byte[] bytes) throws Exception {
-        try { inspect(bytes); throw new AssertionError("Invalid publication proposal accepted"); }
+        try { inspectOracle(bytes); throw new AssertionError("Invalid publication proposal accepted"); }
         catch (Exception expected) { }
+        try { PublicationCodec.decode(new ByteArrayInputStream(bytes)); throw new AssertionError("Invalid publication accepted by production codec"); }
+        catch (IOException expected) { assert expected.getCause() == null; }
     }
     private static void require(boolean valid) { if (!valid) throw new IllegalArgumentException("Invalid proposal fixture"); }
     private static String hex(byte[] bytes) {
