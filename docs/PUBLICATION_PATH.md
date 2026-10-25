@@ -166,6 +166,12 @@ verification or CI wait was performed for this core-only change.
 
 ## Remaining gates
 
+[Private app preparation](PRIVATE_PREPARATION_UI.md) now implements the review,
+fresh reload, one-use encode/decode and cancellation path in memory. The verified
+SDK route can consume an in-memory event; this slice adds no persistent preparation
+cache. Actual Android codec execution passed on API 35; standard ATAK/phone dialog
+acceptance and the production new-tag host/feed handoff remain pending.
+
 A [concrete metadata XML profile](PUBLICATION_FORMAT_PROPOSAL.md) and independent
 fixtures were reviewed in #98. The owner authorized the
 [core codec](PUBLICATION_CODEC.md), which now encodes/decodes that profile without
