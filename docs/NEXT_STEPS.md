@@ -162,3 +162,18 @@ production review and durable import around an evidenced creation/selection path
 The manual import result does not approve a direct factory/dispatcher replacement,
 automatic root-MapItem conversion or an operational phone/server test. This branch
 changes offline tools/docs only; no new signing ZIP is needed.
+
+## Same-UUID result and recovery gate — 2026-10-25
+
+The [update trial](DATA_SYNC_UPDATE_TRIAL.md) found no duplicate after repeated
+publication and preserved the exact updated PIR on the server and B after online
+cold start. Reconnect and feed-list refresh still produced base metadata during
+the bounded observation window. Automatic recovery is **not** accepted.
+
+Next under #25: reproduce that stale interval with observed subscription/sync
+state, received routing controls and documented full Download Items/history-version
+download, distinguishing host MapItem state from feed/export state and actual
+transport recovery. Then complete read-only denial, concurrent edits and removal
+semantics before proposing #14/#15 app integration. Keep private drafts outside
+ordinary map-item publication and retain explicit target/metadata review. This
+evidence changes no app or signing input; no new ZIP is needed.

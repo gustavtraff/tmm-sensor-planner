@@ -292,3 +292,15 @@ UUID/type separation, identical custom payload attributes, wrong-envelope/update
 rejection, archive output and read-only/overwrite preservation. The common XML
 input hardening remains unchanged. Core and CLI suites passed locally; no image
 suite, full APK build, CI wait or production integration is claimed.
+
+## Data Sync same-UUID update/recovery — 2026-10-25
+
+[DATA_SYNC_UPDATE_TRIAL.md](DATA_SYNC_UPDATE_TRIAL.md) records actual standard-host
+repeat publication without duplicate membership, a coherent same-UUID server
+update, B's old exported metadata while offline and after reconnect/list refresh,
+and exact updated metadata after online ATAK cold start. Automatic recovery remains
+an open gate; no root cause or physical-network defect is inferred. Fresh package
+times and strict base/update checks distinguish real exports from stale expected
+data. This documentation-only change does not alter or rerun core/image/SDK suites,
+build an APK or wait for CI. Permission, conflict/removal and durable TmmDraft
+import remain separate acceptance work.
