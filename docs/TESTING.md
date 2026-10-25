@@ -381,3 +381,36 @@ inbox/draft/image bytes during review. See [the API and limits](IMPORT_REVIEW.md
 No application, new format/migration, outgoing metadata change, Android adapter or
 transport is included. No emulator, Docker container or Android build was run;
 SDK/device acceptance and D remain separate gates.
+
+## D application/recovery contract baseline (#15) — 2026-10-25
+
+[The D proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md) specifies future confirmation,
+atomic application/history, deleted-UUID protection, migration and recovery gates;
+it introduces no production writer or format. `JAVA_HOME=<Temurin 17.0.20.1+1>
+sh scripts/test.sh` passed on macOS with `--release 8` and assertions enabled.
+The added DraftStoreTest **v1 characterization** proves byte-identical
+local delete/recreate can admit a previously prepared save and revision-based
+delete. This exposes why current revisions/full-state comparison cannot implement
+D's freshness guarantee; it is not a passing D protection test. Existing core,
+import/inbox/review, independent fixture, publication-preparation/format and
+100-device checks pass unchanged.
+
+No v2 codec/writer/migration or D commit/recovery test is implemented. The proposal's
+failure/migration/concurrency matrix is required future acceptance, not observed
+behavior. No emulator, Docker container, Android build, SDK/device, image-library
+suite, server or transport test ran. Only synthetic temporary local data were used.
+
+
+### Capacity and safe-cleanup amendment — 2026-10-25
+
+The owner adopted logical D principles and requested capacity feedback plus
+[three-step local mission cleanup](LOCAL_MISSION_CLEANUP_PROPOSAL.md). These are
+requirements/technical proposals, not working UI/reset behavior. Future tests must
+cover near/full/unknown local usage, preserved edits, stale inventory, cancelled
+confirmations, interrupted activation/removal, expired identities/old workers,
+original/host/server copy exclusion and honest incomplete-cleanup reporting.
+
+This amendment changes documentation only. Relative Markdown link targets and
+`git diff --check` were checked; no test suite/build/emulator/container was rerun.
+The passing core run above still describes the unchanged test/source baseline,
+not capacity/cleanup or v2 implementation evidence.

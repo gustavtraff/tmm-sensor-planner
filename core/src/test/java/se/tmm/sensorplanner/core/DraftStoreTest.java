@@ -20,6 +20,7 @@ public final class DraftStoreTest {
             roundTrip(root.resolve("round-trip"));
             fixtureAndFailures(root.resolve("fixture"));
             limits(root.resolve("limits"));
+            legacyRevisionReuseIsNotAFreshnessToken(root.resolve("revision-reuse"));
             System.out.println("Storage tests passed (reopen, fixture, failures, limits and locking).");
         } finally {
             try (java.util.stream.Stream<Path> paths = Files.walk(root)) {
@@ -77,6 +78,26 @@ public final class DraftStoreTest {
             store.load().add(first);
             throw new AssertionError("Mutable snapshot");
         } catch (UnsupportedOperationException expected) { }
+    }
+
+    /** Characterizes v1 only: D must not use its revision or full snapshot bytes as an incarnation token. */
+    private static void legacyRevisionReuseIsNotAFreshnessToken(Path directory) throws Exception {
+        DraftStore store = new DraftStore(directory);
+        TmmDraft original = TmmDraft.create("PIR SYNTHETIC D", DeviceType.PIR, "SYNTHETIC ROLE",
+                new Position(0, 1), Instant.EPOCH);
+        store.save(original);
+        TmmDraft preparedBeforeDeletion = edit(original);
+        byte[] reviewed = Files.readAllBytes(directory.resolve("drafts.bin"));
+        store.delete(original.uid, original.revision);
+        store.save(original);
+        assert Arrays.equals(reviewed, Files.readAllBytes(directory.resolve("drafts.bin")));
+        // Even an identical full-state check cannot distinguish delete/recreate in this legacy format.
+        store.save(preparedBeforeDeletion);
+        assertSame(preparedBeforeDeletion, new DraftStore(directory).load().get(0));
+        store.delete(original.uid, preparedBeforeDeletion.revision);
+        store.save(original);
+        store.delete(original.uid, original.revision); // A pre-deletion revision can also delete the recreated record.
+        assert new DraftStore(directory).load().isEmpty();
     }
 
     private static void fixtureAndFailures(Path directory) throws Exception {

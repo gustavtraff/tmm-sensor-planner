@@ -136,3 +136,14 @@ Incoming/local image handles are not serialized into the inbox. Current handles
 remain exclusively in live DraftStore records; historical images are not pinned.
 D, application to local drafts, remains deferred. This is neither a production
 wire schema nor a source-authentication, transport or acknowledgment contract.
+
+
+## Private application state — D proposal, 2026-10-25
+
+[The proposed D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md) would add local store
+identity, per-UUID mutation versions/deleted slots and atomic decision/conflict
+metadata in a local snapshot v2. These are proposed private persistence fields,
+not TmmDraft domain/wire versions or changes to inbox format 1. No v2 parser,
+writer or migration exists yet. The owner has now adopted the logical principles,
+including capacity feedback and separately confirmed local mission cleanup; exact
+byte-format/fixture and cleanup-activation review still precede their writers. Current domain/time/image rules remain unchanged.

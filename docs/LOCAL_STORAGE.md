@@ -111,3 +111,14 @@ D, application to local drafts, remains deferred. Independent inbox and DraftSto
 saves are not an import transaction. Later apply work needs explicit review of
 revision/deletion reuse, fresh-image preservation, timestamp invariants and recovery;
 see [the contract rationale](IMPORT_PERSISTENCE_PROPOSAL.md).
+
+## D application storage follow-up — proposed 2026-10-25
+
+[The D contract proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md) recommends a local v2
+snapshot with persistent per-UUID mutation versions/deleted slots and atomic
+application/decision evidence. This is not an implemented format or adopted
+migration. A new v1 characterization in DraftStoreTest proves that exact
+byte-identical delete/recreate can reuse a revision and admit an old save/delete;
+ordinary v1 checks therefore cannot serve as D's confirmation token. Current v1
+reader/writer/fixture and image behavior are unchanged. Review the logical change,
+then exact encoding/independent migration fixtures, before any v2 writer.
