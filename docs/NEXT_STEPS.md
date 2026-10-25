@@ -1,5 +1,30 @@
 # Next steps after offline phone acceptance — 2026-10-22
 
+## Current implementation gate — 2026-10-25
+
+The merged #93 core preparation and #94 durable review inbox are implemented and
+tested separately. The inbox's approved A–C does not apply received data to local
+drafts (D remains deferred), authenticate an origin or connect an Android receiver.
+
+Next is [the synthetic SDK-import v16 candidate](PUBLICATION_IMPORT_PROBE.md):
+sign the tested committed source, then execute the exact plugin-side import path
+in the existing isolated standard-client lab. No new emulator/container was started
+to prepare this candidate. The archive supplied during this work is from commit
+`a2078a9`, on the review branch, not a main release; subsequent documentation-only
+changes do not change its app/build/core/image inputs.
+
+**Stop criterion:** if ordinary SDK copy creation publishes to an unselected
+auto-publishing feed, reject that creation path for the intended privacy boundary.
+Record the blocker and decide an explicit manual export handoff or supported route;
+do not cycle through source-tag impersonation or call another constructor test a pass.
+If it passes, complete actual B export, native Cancel/Done, repeats and lifecycle
+checks before planning the production artifact/Android review/ingress work.
+
+This gives #14 a concrete pass/fail experiment. #14 stays open for the actual
+reviewed sharing flow; #15 stays open for ingress and draft-application/conflict
+resolution. Image delivery remains #26. No new phone/operational-server trial is
+requested until the signed lab evidence is reviewed.
+
 GitHub Issues are the live backlog. This dated plan supersedes stale implementation
 status in the initial [BACKLOG.md](BACKLOG.md), not the product/project requirements.
 The owner-reported [version 15 offline test](PHONE_ACCEPTANCE.md) supports local

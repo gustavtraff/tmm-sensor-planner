@@ -33,6 +33,8 @@ public final class SensorPlannerPlugin implements IPlugin {
     private LocalPlanner planner;
     private CotRoundTripProbe cotProbe;
     private ShareLabReceiver shareReceiver;
+    private PublicationImportProbe publicationProbe;
+    private AlertDialog labMenu;
 
     public SensorPlannerPlugin(IServiceController services) {
         Objects.requireNonNull(services, "services");
@@ -70,22 +72,47 @@ public final class SensorPlannerPlugin implements IPlugin {
                                 hostUi.showToast("CoT-labbet är avstängt under uppkopplat lokalt test och kräver annars offline-läge");
                                 return;
                             }
-                            try {
-                                if (Build.VERSION.SDK_INT >= 26 && shareReceiver == null) {
-                                    shareReceiver = new ShareLabReceiver(Objects.requireNonNull(MapView.getMapView()), hostUi);
-                                }
-                                if (cotProbe == null) cotProbe = new CotRoundTripProbe(
-                                        Objects.requireNonNull(MapView.getMapView()), hostUi, () -> {
-                                            if (shareReceiver != null) shareReceiver.show();
-                                            else hostUi.showToast("Metadatalabbet kräver Android 8 eller senare");
-                                        });
-                                cotProbe.show();
-                            } catch (RuntimeException unavailable) {
-                                hostUi.showToast("CoT-labbet kunde inte startas");
-                            }
+                            if (labMenu != null) labMenu.dismiss();
+                            labMenu = new AlertDialog.Builder(MapView.getMapView().getContext())
+                                    .setTitle("Välj isolerat labbprov")
+                                    .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov"}, (d, which) -> {
+                                        if (!started || !labAllowed()) return;
+                                        try {
+                                            if (which == 0) openCotLab();
+                                            else openPublicationLab();
+                                        } catch (RuntimeException unavailable) {
+                                            hostUi.showToast("Labbprovet kunde inte startas");
+                                        }
+                                    }).setNegativeButton("Avbryt", null).create();
+                            labMenu.show();
                         });
                     }
                 }).build();
+    }
+
+    private void openCotLab() {
+        if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
+        if (Build.VERSION.SDK_INT >= 26 && shareReceiver == null) {
+            shareReceiver = new ShareLabReceiver(Objects.requireNonNull(MapView.getMapView()), hostUi);
+        }
+        if (cotProbe == null) cotProbe = new CotRoundTripProbe(
+                Objects.requireNonNull(MapView.getMapView()), hostUi, () -> {
+                    if (shareReceiver != null) shareReceiver.show();
+                    else hostUi.showToast("Metadatalabbet kräver Android 8 eller senare");
+                });
+        cotProbe.show();
+    }
+
+    private void openPublicationLab() {
+        if (Build.VERSION.SDK_INT < 26) {
+            hostUi.showToast("SDK-importprovet kräver Android 8 eller senare"); return;
+        }
+        // The old waypoint-only metadata handler must not consume the sensor experiment's detail.
+        if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
+        if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
+        if (publicationProbe == null) publicationProbe = new PublicationImportProbe(
+                Objects.requireNonNull(MapView.getMapView()), hostUi, this::labAllowed);
+        publicationProbe.show();
     }
 
     @Override
@@ -122,6 +149,8 @@ public final class SensorPlannerPlugin implements IPlugin {
                             if (!started) return;
                             localSession.startConnectedTrial();
                             if (planner != null) planner.disableSharing();
+                            if (labMenu != null) { labMenu.dismiss(); labMenu = null; }
+                            if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
                             if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
                             if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
                             try { openPlanner(true); }
@@ -153,6 +182,10 @@ public final class SensorPlannerPlugin implements IPlugin {
             AlertDialog stoppingConsent = trialConsent;
             trialConsent = null;
             if (stoppingConsent != null) hostUi.queueEvent(stoppingConsent::dismiss);
+            if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
+            AlertDialog stoppingMenu = labMenu;
+            labMenu = null;
+            if (stoppingMenu != null) hostUi.queueEvent(stoppingMenu::dismiss);
             hostUi.removeToolbarItem(entry);
             hostUi.removeToolbarItem(cotEntry);
             if (cotProbe != null) {
