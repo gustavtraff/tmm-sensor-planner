@@ -20,6 +20,7 @@ public final class ImportReviewTest {
         localCountersAndImages();
         invalidInputs();
         storedSnapshotIsPreserved();
+        imageChangeAfterAssessmentRejectsStaleSave();
         System.out.println("Import review tests passed (UUIDs, metadata, revisions, images and preservation).");
     }
 
@@ -142,6 +143,43 @@ public final class ImportReviewTest {
             TmmDraft reopened = new DraftStore(directory).load().get(0);
             assert reopened.revision == 1 && reopened.status == DeviceStatus.ACTIVE;
             assert reopened.imageRef.equals("owned-local-image") && reopened.uid.equals(local.uid);
+        } finally {
+            Files.deleteIfExists(directory.resolve("drafts.bin"));
+            Files.deleteIfExists(directory.resolve("drafts.lock"));
+            Files.delete(directory);
+        }
+    }
+
+    private static void imageChangeAfterAssessmentRejectsStaleSave() throws Exception {
+        Path directory = Files.createTempDirectory("tmm-import-review-race-");
+        try {
+            DraftStore store = new DraftStore(directory);
+            TmmDraft original = sample(UID, 1, "original-local-image");
+            store.save(original);
+            TmmDraft incoming = sample(UID, 99, null);
+            ImportReview assessed = ImportReview.assess(store.load(), incoming);
+            assert assessed.kind == SAME_METADATA;
+            TmmDraft stale = assessed.local.edit(original.displayId, original.type, original.status,
+                    original.owner, original.deployedAt, original.comment, original.position,
+                    original.bearingDeg, assessed.local.imageRef, original.updatedAt);
+            TmmDraft replacement = original.edit(original.displayId, original.type, original.status,
+                    original.owner, original.deployedAt, original.comment, original.position,
+                    original.bearingDeg, "replacement-local-image", original.updatedAt);
+            new DraftStore(directory).save(replacement);
+            Path data = directory.resolve("drafts.bin");
+            byte[] current = Files.readAllBytes(data);
+            assert ImportReview.assess(store.load(), incoming).kind == SAME_METADATA;
+            try {
+                store.save(stale);
+                throw new AssertionError("Stale assessment must not restore an earlier local image");
+            } catch (java.io.IOException expected) {
+                assert Arrays.equals(current, Files.readAllBytes(data));
+            }
+            TmmDraft reopened = new DraftStore(directory).load().get(0);
+            assert reopened.uid.equals(UID) && reopened.revision == 2;
+            assert reopened.imageRef.equals("replacement-local-image");
+            assert reopened.updatedAt.equals(original.updatedAt);
+            assert Arrays.equals(current, Files.readAllBytes(data));
         } finally {
             Files.deleteIfExists(directory.resolve("drafts.bin"));
             Files.deleteIfExists(directory.resolve("drafts.lock"));

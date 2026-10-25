@@ -98,3 +98,11 @@ APK minSdk. It uses private host no-backup storage, translated errors, backgroun
 I/O and map rebuilding after load. See LOCAL_PLANNER.md for bounded runtime results.
 This is not API 21–25 planner support. #13 must separately prove actual image bytes
 survive restart. Future schema migration and physical-phone A02/A09 remain open.
+
+## Import persistence boundary — proposed 2026-10-25
+
+[The durable inbox proposal](IMPORT_PERSISTENCE_PROPOSAL.md) recommends staging
+received metadata separately without changing this v1 store. It records why
+independent load/save calls are not an import transaction, and why future apply
+needs explicit review of revision/deletion reuse, image preservation and timestamp
+invariants. No new format, migration or production store behavior is implemented.
