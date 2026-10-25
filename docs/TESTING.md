@@ -1,5 +1,16 @@
 # Tests and gates
 
+## Synthetic SDK import candidate — 2026-10-25
+
+[The v16 probe and runtime protocol](PUBLICATION_IMPORT_PROBE.md) separate the
+new plugin-side `CotImporterManager` experiment from the earlier manual file import.
+Core tests, actual-canary SDK construction/independent CLI verification, CivDebug
+build/lint/app unit tests/static APK checks and CivRelease assembly passed locally.
+The initial fixture API-26 lint annotation was corrected before the passing rerun.
+No emulator, Docker, image suite or CI wait was used. Service signing and actual
+standard-client import/re-export, pre-confirmation/other-feed privacy, recipient
+content and lifecycle checks remain **unverified**. It is not a production path.
+
 The [#67 device review](DEVICE_DETAILS.md) adds 6400-mil conversion/preservation,
 actual cardinal-direction rendering and asynchronous thumbnail-lifetime tests.
 Canonical stored/wire degrees stay unchanged; physical/signed-host gates remain.
