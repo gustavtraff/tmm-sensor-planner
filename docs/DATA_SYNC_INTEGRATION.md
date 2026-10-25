@@ -183,6 +183,18 @@ was observed in its bounded checks. That report is evidence for human review;
 custom TMM metadata round trip, destination/permission/conflict behavior and a
 callable third-party Android API remain unverified. #25 stays open.
 
+## Operator-workflow matrix follow-up — 2026-10-25
+
+The subsequent [sensor](DATA_SYNC_SENSOR_TRIAL.md),
+[same-UUID](DATA_SYNC_UPDATE_TRIAL.md), [controlled reconnect](DATA_SYNC_RECONNECT_TRIAL.md)
+and [permission/conflict/removal](DATA_SYNC_ACCEPTANCE_TRIAL.md) trials now provide
+actual bounded standard-client evidence for the manual path. They retain exact
+custom metadata, separate native UI prevention from server bypass testing, and
+distinguish feed removal from local/history erasure. They do not identify a
+supported callable Data Sync Android API or prove an app-created copy's exact SDK
+path. Review the combined evidence and route choice under #25 before implementing
+#14/#15; export alone is not delivery or durable TmmDraft receipt. Images remain #26.
+
 ## Metadata selection follow-up — 2026-10-24
 
 [DATA_SYNC_METADATA_TRIAL.md](DATA_SYNC_METADATA_TRIAL.md) records the next actual

@@ -28,7 +28,7 @@ import se.tmm.sensorplanner.core.*;
 
 /** Offline synthetic experiment only; never opens a network or a local draft store. */
 public final class DataSyncMetadataProbe {
-    private static final String[] CASES = {"mini", "scout", "pir", "gateway", "pir-update"};
+    private static final String[] CASES = {"mini", "scout", "pir", "gateway", "pir-update", "pir-conflict"};
     private static final int MAX_BYTES = 262144;
 
     public static void main(String[] args) {
@@ -45,7 +45,7 @@ public final class DataSyncMetadataProbe {
                     verify(name, xml);
                     Files.write(directory.resolve(name + ".cot"), xml, StandardOpenOption.CREATE_NEW);
                 }
-                System.out.println("Created five synthetic metadata-only files. Nothing imported or sent.");
+                System.out.println("Created six synthetic metadata-only files. Nothing imported or sent.");
             } else if (args.length == 3 && "check".equals(args[0])) {
                 Path file = Paths.get(args[2]);
                 // Read at most the bound plus one byte, even if the source grows during reading.
@@ -75,18 +75,19 @@ public final class DataSyncMetadataProbe {
         boolean sensor = name.startsWith("sensor-");
         int index = Arrays.asList(CASES).indexOf(sensor ? name.substring(7) : name);
         require(index >= 0);
-        boolean update = index == 4;
+        boolean update = index >= 4;
+        boolean conflict = index == 5;
         DeviceType type = DeviceType.valueOf(CASES[update ? 2 : index].toUpperCase(java.util.Locale.ROOT));
         Instant created = Instant.parse("2026-01-01T00:00:00.123456789Z");
         TmmDraft draft = new TmmDraft(UUID.fromString(String.format(java.util.Locale.ROOT,
                 "00000000-0000-4000-" + (sensor ? "8083" : "8000") + "-%012d", update ? 3 : index + 1)),
                 "TMM-DATASYNC-LAB-" + type.name(), type,
-                update ? DeviceStatus.ACTIVE : DeviceStatus.PLANNED, "SYNTHETIC-GROUP-ÅÄÖ",
-                created, update ? created.plusSeconds(60) : created,
+                conflict ? DeviceStatus.DEPLOYED : update ? DeviceStatus.ACTIVE : DeviceStatus.PLANNED, "SYNTHETIC-GROUP-ÅÄÖ",
+                created, conflict ? created.plusSeconds(120) : update ? created.plusSeconds(60) : created,
                 update ? created.plusSeconds(30) : null,
-                "Synthetic only\nTab:\tåäö < & > " + (update ? "UPDATED" : "BASELINE"),
-                new Position(update ? 0.123456789123 : 0.123456789012, -0.234567891234),
-                type.supportsBearing() ? (update ? 0.0 : 123.45678901234567) : null, null, 1);
+                "Synthetic only\nTab:\tåäö < & > " + (conflict ? "CONCURRENT" : update ? "UPDATED" : "BASELINE"),
+                new Position(conflict ? 0.123456789234 : update ? 0.123456789123 : 0.123456789012, -0.234567891234),
+                type.supportsBearing() ? (conflict ? 90.0 : update ? 0.0 : 123.45678901234567) : null, null, 1);
         return new ShareReview(draft, "synthetic-feed-context", "Synthetic feed").metadata;
     }
 
@@ -232,7 +233,7 @@ public final class DataSyncMetadataProbe {
         reject("pir", new byte[MAX_BYTES + 1]); reject("pir", new byte[0]);
         reject("pir", "<event>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         reject("pir", "<!DOCTYPE event [<!ENTITY x SYSTEM 'file:///not-read'>]><event>&x;</event>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        System.out.println("Offline probe self-checks passed: both envelopes, five cases, tolerance and rejection boundaries.");
+        System.out.println("Offline probe self-checks passed: both envelopes, six cases, tolerance and rejection boundaries.");
     }
 
     private static void reject(String name, byte[] bytes) throws Exception {

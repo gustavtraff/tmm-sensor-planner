@@ -113,3 +113,11 @@ version changed B's exported fields without changing the server, and selecting
 Latest restored them. Feed version, host/exported content and durable TmmDraft
 state must remain distinct. No snapshot, wire schema, revision,
 conflict policy, durable TmmDraft import or acknowledgment contract changes here.
+
+The [#25 permission/conflict/removal trial](DATA_SYNC_ACCEPTANCE_TRIAL.md) adds a
+third same-UUID offline fixture, not a production version field or schema change.
+Native conflict selection preserved the chosen exact fields, but does not persist
+both candidates in TmmDraft storage. Local deletion left remote content available
+for download; server removal deleted the current feed association, not every
+local/history copy. A later receiver still needs explicit conflict storage and
+withdrawal/tombstone rules under #15; native feed state must not substitute for them.

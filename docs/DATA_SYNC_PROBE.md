@@ -21,8 +21,9 @@ replaced. The script compiles core and the standalone tool into a temporary dire
 and removes compiled files on exit. It does not use Gradle, an AVD, SDK binaries,
 server settings, accounts, image files or network tools.
 
-Five .cot files have fixed synthetic UUIDs/metadata: Mini, Scout, PIR, Gateway and
-a same-UUID PIR update. The update changes status, position, timestamp, deployment
+Six .cot files have fixed synthetic UUIDs/metadata: Mini, Scout, PIR, Gateway,
+a same-UUID PIR update and a distinct same-UUID `pir-conflict` variant. The update
+changes status, position, timestamp, deployment
 time, comment and bearing. Unicode/newline/tab and precise numeric values exercise
 field preservation. The envelope time is fresh at generation, with one-hour stale;
 regenerate a new directory for a later lab run. Metadata is deterministic; envelope
@@ -101,7 +102,7 @@ no operational substitute or automatic transport activation is implied.
 ## Verification
 
 `python3 scripts/test-datasync-metadata-probe.py` runs the in-process self-checks
-and real CLI cases in a temporary directory, including paths with spaces, all five
+and real CLI cases in a temporary directory, including paths with spaces, all six
 fixtures, same-UUID update mismatch, missing input, bounded oversized input,
 read-only byte preservation, refusal to overwrite existing output and generic
 non-leaking diagnostics. Self-checks exercise envelope tolerance, all missing
@@ -135,9 +136,9 @@ sh scripts/datasync-metadata-probe.sh check sensor-pir /private/path/returned-se
 ```
 
 This creates `sensor-mini`, `sensor-scout`, `sensor-pir`, `sensor-gateway` and
-`sensor-pir-update` files with outer type `b-m-p-s-p-loc`, host archive detail and
+`sensor-pir-update` and `sensor-pir-conflict` files with outer type `b-m-p-s-p-loc`, host archive detail and
 visible TMM-SENSOR-LAB labels. UUIDs use the distinct synthetic `8083` segment;
-PIR/update still share their case UUID. All 15 custom payload attributes are the
+All three PIR versions share their case UUID. All 15 custom payload attributes are the
 same as the corresponding original cases. The case-specific checker requires
 that declared type/UUID and rejects the original waypoint or friendly diagnostic;
 the old checker likewise rejects sensor cases. Nothing is silently reclassified.
@@ -155,3 +156,13 @@ Mini/Scout/Gateway runtime cases remain untested. This command still only genera
 files; it never imports, creates a MapItem, publishes, reads private stores or
 approves a production schema/adapter. Its safe bounds/overwrite behavior is shared
 with the original command. App integration must verify its exact creation path.
+
+The `pir-conflict` / `sensor-pir-conflict` case adds a third same-UUID version for
+concurrent-edit experiments: Deployed status, 90-degree bearing, a distinct comment,
+updated time and precise latitude. Base/update/conflict all reject each other's
+metadata; the earlier five cases retain their identities and payloads. This is an
+offline test variant, not a production conflict policy or schema change.
+
+[The acceptance trial](DATA_SYNC_ACCEPTANCE_TRIAL.md) used the new case for B's
+actual offline edit against A's different update; its own exported fields passed
+before reconnect and the explicitly selected server version passed afterward.
