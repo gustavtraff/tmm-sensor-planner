@@ -1,6 +1,6 @@
 # Publication metadata candidate 1 — independent fixtures
 
-**Proposed, not an approved wire schema.** See
+**Adopted for codec implementation after owner authorization and PR #98 review.** See
 [the complete profile](../../../docs/PUBLICATION_FORMAT_PROPOSAL.md).
 All identifiers, positions and text are synthetic; no camera, operational location,
 account or SDK input was used. These plain XML files are not CoT events and must
@@ -10,7 +10,8 @@ The files were encoded independently with Python standard-library
 `xml.etree.ElementTree` and `base64.b64encode(value.encode('utf-8'))`, then written
 with an XML UTF-8 declaration and a final newline. Field strings were supplied
 explicitly; no Java/domain/lab encoder generated them. The Java test-only inspector
-has separate literal expected values and pinned SHA-256 hashes. Hashes identify
+has separate literal expected values and pinned SHA-256 hashes; it now also
+compares the production codec against that oracle and exact fixture bytes. Hashes identify
 these fixture bytes, not duplicate/causal/source identity in the proposed protocol.
 
 Common values: root `tmmPublication`, schemaVersion `1`, owner `SYNTHETIC ROLE ÅÄÖ`,
@@ -38,5 +39,6 @@ The boundary-coordinate Gateway is a mathematical format case, not a placement.
 
 `sh scripts/test.sh` runs the inspector and the existing core/inbox/storage tests.
 Malformed cases are generated in test memory; the fixed fixture bytes are never
-rewritten. No production source, storage format, lab codec/checker, Android adapter,
-SDK input, emitter or network endpoint is used by this fixture test.
+rewritten. The production codec is now exercised alongside the independent inspector. No
+storage format, lab codec/checker, Android adapter, SDK input, emitter or network
+endpoint is changed by these fixtures.

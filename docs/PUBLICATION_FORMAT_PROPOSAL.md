@@ -1,16 +1,18 @@
-# Publication metadata format candidate 1 — #14
+# Publication metadata XML format 1 — #14
 
-**Status: proposed for explicit owner review; not an accepted production schema.**
+**Status: adopted for codec implementation following owner authorization and the
+merge of PR #98 on 2026-10-25.**
 Date: 2026-10-25. Final baseline: main `f6ce51a`, including the signed SDK-path trial
 and agent 2's merged read-only inbox review (#97).
-This PR supplies independently encoded fixtures and a test-only inspector. It
-adds no production encoder/decoder, artifact writer, Android action or transport.
+PR #98 supplied independently encoded fixtures and a test-only inspector.
+The [production codec](PUBLICATION_CODEC.md) now implements this profile; no artifact
+writer, Android action or transport is added.
 Agent 2's #15 review assembly and the approved inbox format remain unchanged.
 
-## Decision proposed
+## Adopted metadata boundary
 
-Approve a small standalone **metadata XML profile**, `tmmPublication` version 1,
-as the next codec's input/output contract. Use the reviewed eleven-field metadata
+Use the standalone **metadata XML profile**, `tmmPublication` version 1,
+as the codec's input/output contract. Use the reviewed eleven-field metadata
 projection; retain the device UUID and exact domain values, with explicit units and
 image exclusion. Do not turn the experimental `tmmShareLab` payload into production
 by changing its name in place. Both lab codecs/checkers continue to behave as before.
@@ -96,8 +98,8 @@ must continue to derive **Bilden delas inte** from the local saved association.
 
 ## Preparation and future envelope boundary
 
-The future encoder should accept only the explicit metadata projection from a
-successful one-use preparation, never serialize a TmmDraft/review object wholesale.
+The encoder accepts only a successful one-use preparation and uses its explicit
+metadata projection, never a TmmDraft/review object serialized wholesale.
 Validate size/Unicode/domain suitability without modifying source metadata. Saved
 image associations and revision remain private freshness inputs even though they
 are absent from this format. A too-large ID/owner or malformed saved Unicode must
@@ -121,17 +123,17 @@ runtime acceptance is still required before operational use.
 
 The manual-native-handoff decision in [PUBLICATION_PATH](PUBLICATION_PATH.md) is
 unchanged: no verified native Done callback revalidates a draft at a later click.
-Approving this metadata profile would authorize a codec PR, not a destination API,
-real-draft host-copy action, release, deployment or weakened freshness guarantee.
+This profile authorizes the codec; it does not authorize a destination API, real-draft
+host-copy action, release, deployment or weakened freshness guarantee.
 
-## Independent evidence and approval scope
+## Independent evidence and implementation scope
 
 Four [synthetic XML fixtures](../test-fixtures/synthetic/publication/README.md) were
 encoded with Python standard-library ElementTree/Base64, without a Java encoder
 or ShareLabFields. Their exact values/hashes are pinned independently in
-`PublicationFormatFixtureTest`, which contains a **test-only inspector**. It uses
-the existing validated domain and ImportReview equality; it writes no files and
-does not add a production parser or call InboxStore. Its temporary TmmDraft carrier
+`PublicationFormatFixtureTest`, which retains its separate **test-only inspector**
+and now cross-checks the production codec. It uses the existing validated domain
+and ImportReview equality; it writes no files or calls InboxStore. Its temporary TmmDraft carrier
 has revision 1 and no image handle solely for validation, not draft application.
 
 Checks cover all four types, optional values, manual IDs, Unicode/control text,
@@ -148,6 +150,7 @@ rebasing onto #97, including its read-only inbox-review tests. Local document li
 `git diff --check` passed. No SDK build, Android/image suite, emulator, Docker,
 signing submission or CI wait was performed; no new APK or ZIP is needed.
 
-Owner review should explicitly adopt or amend **this profile and its identity/image
-semantics** before a production codec/writer is implemented. This is separate from
-the already approved inbox A–C; it does not reopen that format or approve D.
+The owner's instruction to proceed with the codec after PR #98's merge adopts
+this profile for that implementation. It is separate from the already approved
+inbox A–C and the later received-device/D UX approval: it does not change the inbox,
+create a transaction protocol, authenticate a source or approve operational sharing.
