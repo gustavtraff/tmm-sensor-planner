@@ -176,7 +176,15 @@ and exact updated fields before any manual sync or restart. Full sync and local
 older/latest history downloads were checked separately. This is bounded positive
 evidence for review; the earlier stale interval's cause remains unknown.
 
-Next under #25: read-only publication denial, concurrent edits and local/server
-removal semantics before proposing #14/#15 app integration. Keep private drafts outside
+The later [acceptance trial](DATA_SYNC_ACCEPTANCE_TRIAL.md) covers normal read-only
+UI prevention with actual assigned roles, divergent offline/online edits with
+explicit native conflict choice, and separate local/server removal/re-download.
+These are bounded observations, not durable TmmDraft import, permission-bypass
+testing or a production deletion policy.
+
+Next: review the combined #25 evidence and decide the intended integration route
+and issue disposition. A supported callable third-party Android contract is still
+unidentified. Then scope #14's exact reviewed publication-copy creation/confirmation
+path and #15's durable receipt/conflicts/withdrawal behavior. Keep private drafts outside
 ordinary map-item publication and retain explicit target/metadata review. This
 evidence changes no app or signing input; no new ZIP is needed.

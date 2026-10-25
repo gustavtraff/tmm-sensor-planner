@@ -316,3 +316,21 @@ Sixteen real-capture checks had expected match/rejection outcomes. The earlier
 stale interval was not reproduced or assigned a root cause. An operator
 uiautomator collision is recorded separately; B's original ATAK process survived.
 No core/image/SDK suite, APK build or CI wait accompanied the documentation change.
+
+## Data Sync permissions, conflicts and removal — 2026-10-25
+
+[DATA_SYNC_ACCEPTANCE_TRIAL.md](DATA_SYNC_ACCEPTANCE_TRIAL.md) records actual
+read-only subscription/UI publication prevention, distinct same-UUID offline and
+online edits, a native conflict prompt and exact metadata after explicit choice.
+It separates cancelled/local-only deletion, missing-item re-download and server
+association removal, including actual recipient views and later server readback.
+Normal UI prevention is not a forged-request/HTTP-denial test; native conflict
+handling is not durable TmmDraft conflict storage or a production deletion policy.
+
+The CLI suite passed with six cases per envelope family and mutual rejection of
+the three different same-UUID payloads. Core tests (`sh scripts/test.sh`) passed;
+16 actual-capture checks had the expected match/rejection outcomes. Initial stale
+baseline/role UI, a pending owner confirmation and an unavailable accessibility
+dump on the conflict dialog are documented without being relabelled as passes.
+The usage-limit pause is included in final observation bounds. No image suite,
+full APK build, signing submission or CI wait was run for this change.

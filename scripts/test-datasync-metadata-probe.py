@@ -26,7 +26,7 @@ if __name__ == '__main__':
         output = Path(temporary) / 'fixture set'
         run('create', output)
         files = sorted(output.iterdir())
-        assert len(files) == 5
+        assert len(files) == 6
         before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
         for path in files:
             run('check', path.stem, path)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         sensor_output = Path(temporary) / 'sensor fixture set'
         run('create-sensor', sensor_output)
         sensor_files = sorted(sensor_output.iterdir())
-        assert len(sensor_files) == 5
+        assert len(sensor_files) == 6
         sensor_before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sensor_files}
         for path in sensor_files:
             run('check', path.stem, path)
@@ -53,6 +53,15 @@ if __name__ == '__main__':
         run('check', 'pir', sensor_output / 'sensor-pir.cot', success=False)
         run('check', 'sensor-pir', output / 'pir.cot', success=False)
         run('check', 'sensor-pir-update', sensor_output / 'sensor-pir.cot', success=False)
+        for directory, prefix in [(output, ''), (sensor_output, 'sensor-')]:
+            names = [prefix + name for name in ['pir', 'pir-update', 'pir-conflict']]
+            events = [ET.fromstring((directory / (name + '.cot')).read_bytes()) for name in names]
+            assert len({event.get('uid') for event in events}) == 1
+            assert len({tuple(sorted(event.find('detail/tmmShareLab').attrib.items())) for event in events}) == 3
+            for name in names:
+                for other in names:
+                    if name != other:
+                        run('check', name, directory / (other + '.cot'), success=False)
         run('create-sensor', sensor_output, success=False)
         assert sensor_before == {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sensor_files}
     print('Offline probe CLI checks passed: all cases, read-only checks, overwrite refusal and safe failures.')

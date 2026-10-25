@@ -50,8 +50,12 @@ checked full sync and older/latest local history downloads. This supplies bounde
 positive evidence for human review, not a fix for the earlier observation or
 approval of an app adapter, physical network or durable TmmDraft receiver.
 
-Review these reports before continuing #25 permission and
-conflict/removal tests. Durable TmmDraft import remains #15;
+The later [acceptance trial](../DATA_SYNC_ACCEPTANCE_TRIAL.md) supplies bounded
+normal read-only UI, native conflict-choice and local/server removal observations.
+It adds a distinct metadata fixture with the same identity/envelope, not a new
+wire contract. Read its limitations before deciding the integration route or
+closing #25; no supported callable third-party Android API is established.
+Durable TmmDraft import remains #15;
 production review/publishing remains #14 and images #26. A recipient feed export
 is not a live MapItem re-export, durable import or delivery acknowledgment.
 
