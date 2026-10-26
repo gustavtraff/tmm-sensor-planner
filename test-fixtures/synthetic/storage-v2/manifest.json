@@ -1,0 +1,22 @@
+{
+  "empty-v1.base64": {
+    "bytes": 44,
+    "sha256": "5241702b60b5c4e5ff5d0cb464a9674249c1159c7ca9b85968d9bf8ddac73e7d"
+  },
+  "empty-v2.base64": {
+    "bytes": 64,
+    "sha256": "abd92ed4d4e0ca3ba3cbf285bb04e799b8721218f41b2d6421e5db7e7fe3429a"
+  },
+  "history-v2.base64": {
+    "bytes": 3365,
+    "sha256": "71a43709bb7b339fa3325c91f4957e2ab65f3c66f23ca0448865c4a54540dd43"
+  },
+  "migrated-v1-v2.base64": {
+    "bytes": 246,
+    "sha256": "a83aed3f900845346acd8de5b03054c79d99741dd20549e89fd31ea7ecb4ebfb"
+  },
+  "source-v1": {
+    "bytes": 217,
+    "sha256": "f980a436617a2616fc93b33e5b1491b8718259515a50c3ab77b6c10007f55b14"
+  }
+}

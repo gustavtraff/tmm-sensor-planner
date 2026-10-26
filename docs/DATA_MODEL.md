@@ -147,3 +147,13 @@ not TmmDraft domain/wire versions or changes to inbox format 1. No v2 parser,
 writer or migration exists yet. The owner has now adopted the logical principles,
 including capacity feedback and separately confirmed local mission cleanup; exact
 byte-format/fixture and cleanup-activation review still precede their writers. Current domain/time/image rules remain unchanged.
+
+
+## Exact local v2 byte proposal — 2026-10-26
+
+[LOCAL_V2_FORMAT_PROPOSAL.md](LOCAL_V2_FORMAT_PROPOSAL.md) now gives the proposed
+private snapshot and fingerprint bytes plus independent fixtures. Snapshot version
+2 and fingerprint version 1 are local persistence formats, not a domain or outgoing
+wire schema update. The production model/store/inbox and metadata comparison are
+unchanged; old deletion/application history is unavailable on migration. Exact
+format adoption still precedes any production v2 parser/writer/migrator.
