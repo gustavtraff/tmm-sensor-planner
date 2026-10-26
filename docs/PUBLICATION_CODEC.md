@@ -7,6 +7,9 @@ codec, not an Android preparation UI, private artifact writer or publishing path
 
 ## API and ownership
 
+- `fields(PublicationPreparationReview.Prepared)` exposes the same canonical
+  fifteen attributes as a read-only map, for standalone XML and SDK detail
+  construction. It adds no metadata, image path or local revision.
 - `encode(PublicationPreparationReview.Prepared)` returns a new deterministic UTF-8
   byte array. The input can only be constructed by a successful one-use preparation.
   Encoding uses its explicit metadata projection, never the original review/draft,
