@@ -164,6 +164,14 @@ process reopen/100-device checks and the new preparation tests.
 in both locale JVMs. No emulator, Docker, Android build, image tests, app runtime
 verification or CI wait was performed for this core-only change.
 
+## New-tag SDK candidate — 2026-10-26
+
+[The v18 production-format envelope experiment](PUBLICATION_ENVELOPE.md) now
+constructs the approved profile through the actual SDK and adds four fixed
+synthetic app canaries. The normal private preparation action is not connected to
+host import. New-tag/all-type feed preservation remains pending a new signed
+runtime run; the v16 old-tag result is not relabeled as evidence for it.
+
 ## Remaining gates
 
 [Private app preparation](PRIVATE_PREPARATION_UI.md) now implements the review,

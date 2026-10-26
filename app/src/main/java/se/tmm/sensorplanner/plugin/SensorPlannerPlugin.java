@@ -34,6 +34,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     private CotRoundTripProbe cotProbe;
     private ShareLabReceiver shareReceiver;
     private PublicationImportProbe publicationProbe;
+    private PublicationEnvelopeProbe envelopeProbe;
     private AlertDialog labMenu;
 
     public SensorPlannerPlugin(IServiceController services) {
@@ -75,11 +76,12 @@ public final class SensorPlannerPlugin implements IPlugin {
                             if (labMenu != null) labMenu.dismiss();
                             labMenu = new AlertDialog.Builder(MapView.getMapView().getContext())
                                     .setTitle("Välj isolerat labbprov")
-                                    .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov"}, (d, which) -> {
+                                    .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov", "Produktionsformat · syntetiskt prov"}, (d, which) -> {
                                         if (!started || !labAllowed()) return;
                                         try {
                                             if (which == 0) openCotLab();
-                                            else openPublicationLab();
+                                            else if (which == 1) openPublicationLab();
+                                            else openEnvelopeLab();
                                         } catch (RuntimeException unavailable) {
                                             hostUi.showToast("Labbprovet kunde inte startas");
                                         }
@@ -91,6 +93,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     }
 
     private void openCotLab() {
+        if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
         if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
         if (Build.VERSION.SDK_INT >= 26 && shareReceiver == null) {
             shareReceiver = new ShareLabReceiver(Objects.requireNonNull(MapView.getMapView()), hostUi);
@@ -104,6 +107,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     }
 
     private void openPublicationLab() {
+        if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
         if (Build.VERSION.SDK_INT < 26) {
             hostUi.showToast("SDK-importprovet kräver Android 8 eller senare"); return;
         }
@@ -113,6 +117,16 @@ public final class SensorPlannerPlugin implements IPlugin {
         if (publicationProbe == null) publicationProbe = new PublicationImportProbe(
                 Objects.requireNonNull(MapView.getMapView()), hostUi, this::labAllowed);
         publicationProbe.show();
+    }
+
+    private void openEnvelopeLab() {
+        if (Build.VERSION.SDK_INT < 26) { hostUi.showToast("Provet kräver Android 8 eller senare"); return; }
+        if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
+        if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
+        if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
+        if (envelopeProbe == null) envelopeProbe = new PublicationEnvelopeProbe(
+                Objects.requireNonNull(MapView.getMapView()), hostUi, this::labAllowed);
+        envelopeProbe.show();
     }
 
     @Override
@@ -151,6 +165,7 @@ public final class SensorPlannerPlugin implements IPlugin {
                             if (planner != null) planner.disableSharing();
                             if (labMenu != null) { labMenu.dismiss(); labMenu = null; }
                             if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
+                            if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
                             if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
                             if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
                             try { openPlanner(true); }
@@ -183,6 +198,7 @@ public final class SensorPlannerPlugin implements IPlugin {
             trialConsent = null;
             if (stoppingConsent != null) hostUi.queueEvent(stoppingConsent::dismiss);
             if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
+            if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
             AlertDialog stoppingMenu = labMenu;
             labMenu = null;
             if (stoppingMenu != null) hostUi.queueEvent(stoppingMenu::dismiss);

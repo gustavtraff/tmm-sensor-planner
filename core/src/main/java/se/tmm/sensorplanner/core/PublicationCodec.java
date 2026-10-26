@@ -26,8 +26,8 @@ public final class PublicationCodec {
 
     private PublicationCodec() { }
 
-    /** Encode the explicit metadata projection of a successful preparation, never the review itself. */
-    public static byte[] encode(PublicationPreparationReview.Prepared prepared) {
+    /** Canonical read-only attribute projection shared by XML and SDK detail construction. */
+    public static Map<String, String> fields(PublicationPreparationReview.Prepared prepared) {
         try {
             ShareReview.Metadata m = Objects.requireNonNull(prepared, "prepared").metadata;
             Map<String, String> fields = new LinkedHashMap<>();
@@ -40,6 +40,14 @@ public final class PublicationCodec {
             fields.put("longitude", Double.toString(m.position.longitude));
             fields.put("bearingDeg", m.bearingDeg == null ? "" : m.bearingDeg.toString());
             fields.put("bearingReference", "true-north"); fields.put("imageIncluded", "false");
+            return Collections.unmodifiableMap(fields);
+        } catch (Exception rejected) { throw new IllegalArgumentException(INVALID); }
+    }
+
+    /** Encode the explicit metadata projection of a successful preparation, never the review itself. */
+    public static byte[] encode(PublicationPreparationReview.Prepared prepared) {
+        try {
+            Map<String, String> fields = fields(prepared);
             // All values are canonical ASCII scalars or Base64, so raw user text never enters XML syntax.
             StringBuilder xml = new StringBuilder("<?xml version='1.0' encoding='utf-8'?>\n<tmmPublication");
             for (Map.Entry<String, String> field : fields.entrySet()) {

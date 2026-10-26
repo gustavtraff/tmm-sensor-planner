@@ -83,6 +83,11 @@ public final class PublicationCodecTest {
                 store.save(original);
                 byte[] before = Files.readAllBytes(dir.resolve("drafts.bin"));
                 PublicationPreparationReview.Prepared prepared = new PublicationPreparationReview(original).prepare(original);
+                Map<String, String> fields = PublicationCodec.fields(prepared);
+                assert fields.size() == 15 && fields.get("deviceUid").equals(original.uid.toString());
+                assert fields.get("latitude").equals("-0.0") && fields.get("imageIncluded").equals("false");
+                try { fields.put("revision", "1"); throw new AssertionError("Mutable projection"); }
+                catch (UnsupportedOperationException expected) { }
                 byte[] encoded = PublicationCodec.encode(prepared);
                 assert Arrays.equals(encoded, PublicationCodec.encode(prepared));
                 String xml = new String(encoded, StandardCharsets.UTF_8);
