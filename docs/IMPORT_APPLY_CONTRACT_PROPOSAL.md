@@ -8,6 +8,15 @@ Reviewed baseline: main `b69eabd` (#98). A–C, InboxStore format 1 and read-onl
 InboxReview remain implemented and unchanged. No Android adapter, outgoing
 metadata/preparation, SDK or transport changes are included.
 
+## Exact-format follow-up — proposed 2026-10-26
+
+[The local v2 byte/fingerprint proposal](LOCAL_V2_FORMAT_PROPOSAL.md) now specifies
+slot/deletion/version and committed-decision encoding, canonical reviewed-state
+hashing and independently encoded frame/migration fixtures. These exact bytes are
+submitted for review; no production parser/writer/migrator or reset is implemented.
+It explicitly identifies the pre-migration history that v1 cannot reconstruct.
+The approved logical requirements below and inbox format 1 are unchanged.
+
 ## Adopted user flow and scope
 
 The [owner-approved receiving flow](https://github.com/gustavtraff/tmm-sensor-planner/issues/15)

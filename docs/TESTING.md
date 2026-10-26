@@ -414,3 +414,29 @@ This amendment changes documentation only. Relative Markdown link targets and
 `git diff --check` were checked; no test suite/build/emulator/container was rerun.
 The passing core run above still describes the unchanged test/source baseline,
 not capacity/cleanup or v2 implementation evidence.
+
+## Exact local v2 proposal and migration fixtures (#15/D) — 2026-10-26
+
+`JAVA_HOME=<Temurin 17.0.20.1+1> sh scripts/test.sh` passed on macOS with
+`--release 8` and assertions. LocalV2FormatFixtureTest is test-only: it inspects
+[independently encoded Python fixtures](../test-fixtures/synthetic/storage-v2/README.md)
+for active/deleted/versioned slots, Add/re-add/selected/keep/no-op history and
+current-versus-historical results. Eighteen independent canonical preimage/digest
+vectors check signed-zero normalization, optional bearing/images, metadata,
+identity/revision/version and absence/deletion distinctions. Re-sealed malformed
+frame/domain/history/fingerprint cases are rejected. Existing core/publication/
+inbox/storage/100-device checks pass without changing production code.
+
+Expected migration fixtures cover the unchanged existing v1 record and empty v1.
+Tests compare every current v1 field/revision/image and double bits with the
+expected v2 inspection, and verify the legacy reader rejects v2 unchanged. This is
+**not** a migration execution or atomic-commit test: no production v2 codec/writer,
+migrator or reset exists. Pre-v2 deletion/application history cannot be recovered.
+Future writers must match the golden bytes and add real transition/concurrency,
+interrupted-write/recovery and migration tests under the adopted D contract.
+
+Re-running the Python fixture builder reproduced all seven outputs byte-for-byte;
+relative document targets and `git diff --check` passed. Only synthetic temporary
+files/fixtures were used. No emulator, Docker container, Android/SDK build, server,
+transport, reset, image-library suite or CI wait was run. Exact format approval,
+Android/filesystem/ATAK compatibility and cleanup activation remain separate gates.
