@@ -122,3 +122,14 @@ byte-identical delete/recreate can reuse a revision and admit an old save/delete
 ordinary v1 checks therefore cannot serve as D's confirmation token. Current v1
 reader/writer/fixture and image behavior are unchanged. Review the logical change,
 then exact encoding/independent migration fixtures, before any v2 writer.
+
+## Exact local v2 format follow-up — proposed 2026-10-26
+
+[The exact local v2 proposal](LOCAL_V2_FORMAT_PROPOSAL.md) separates file version 2
+from the unchanged TmmDraft domain schema. It specifies active/deleted slots,
+persistent versions, committed decisions and canonical TMMR fingerprints, with
+[independent golden/expected-migration fixtures](../test-fixtures/synthetic/storage-v2/README.md)
+and a test-only inspector. Current v1 production code/fixtures remain unchanged.
+Migration fixtures preserve existing fields/revisions/images and start fresh
+version/history identity; they cannot invent pre-v2 deletion/application history.
+No production v2 writer/migrator or mission-cleanup activation is added.
