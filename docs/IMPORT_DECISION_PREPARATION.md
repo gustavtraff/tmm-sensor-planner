@@ -4,8 +4,9 @@
 [the adopted D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md). It uses existing TMMD
 v2 state values, TMMR fingerprints, selected-field semantics and ImportReview
 metadata equality. It introduces no persisted fields, schema or product policy.
-There is no file writer, migrator, v2 activation, actual application, history write,
-reset, Android UI/adapter or transport. InboxReview and its existing read model
+This class performs no file operations. The separate [isolated v2 store](LOCAL_V2_STORAGE.md)
+now commits Prepared choices under both owning locks. Migration, app activation,
+reset and transport remain unimplemented. InboxReview and its existing read model
 remain source-compatible and unchanged for the parallel read-only review view.
 
 ## Inputs and operations

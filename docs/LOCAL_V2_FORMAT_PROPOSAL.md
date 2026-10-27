@@ -4,7 +4,8 @@
 on 2026-10-27, including the independent test material from merged PR #102.**
 Approval was recorded in the conversation. [The production in-memory codec and
 verification](LOCAL_V2_CODEC.md) now implement these bytes without changing the
-contract. No file writer, migration, v2 activation, apply or reset is implemented.
+contract. An isolated [core file store and transaction](LOCAL_V2_STORAGE.md) now
+implements persistence; migration, Android v2 activation and reset remain unimplemented.
 The historical proposal filename is retained. [D's adopted logical contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md)
 continues to govern later transaction work. Outgoing metadata, preparation,
 Android and transport remain separate work.

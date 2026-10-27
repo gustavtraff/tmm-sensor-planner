@@ -4,8 +4,9 @@ On 2026-10-27 the owner explicitly approved the exact local TMMD v2 frame and TM
 fingerprint format in [LOCAL_V2_FORMAT_PROPOSAL.md](LOCAL_V2_FORMAT_PROPOSAL.md),
 including the independent test material from merged PR #102. Approval is recorded
 in the conversation, not inferred from merging a proposal. This implementation
-encodes/decodes bytes in memory and computes fingerprints only. There is no file
-store/writer, migration, v2 activation, apply/consent API, reset, Android or transport.
+encodes/decodes bytes in memory and computes fingerprints only. The separate
+[isolated file store](LOCAL_V2_STORAGE.md) now adds persistence and prepared transactions. Migration, Android v2 activation, reset and transport remain
+unimplemented.
 Current DraftStore, TmmDraft domain version, InboxStore and outgoing formats remain
 unchanged. No existing production caller is switched to v2.
 
