@@ -69,6 +69,51 @@ final class InboxReviewText {
             default: return kind.name();
         }
     }
+    static String comparison(ImportReview.Kind kind, InboxDecisionCoverage.Entry entry) {
+        return entry != null && entry.covered && kind == ImportReview.Kind.REVIEW_REQUIRED
+                ? "Avvikande metadata · redan granskat mot nuläget" : kind(kind);
+    }
+    static String coverage(InboxDecisionCoverage.Entry entry) {
+        if (entry == null) return "Beslutstäckning saknas i underlaget";
+        if (entry.covered) return "Granskat mot aktuellt lokalt tillstånd";
+        return entry.decisions.isEmpty() ? "Inget matchande granskningsbeslut"
+                : "Äldre beslut · ny granskning av nuläget behövs";
+    }
+    static String currentState(InboxDecisionCoverage.Entry entry) {
+        LocalV2.State state = entry.currentLocal;
+        String presence = state.presence == LocalV2.Presence.ACTIVE ? "Aktiv lokal enhet"
+                : state.presence == LocalV2.Presence.DELETED ? "Känd lokal radering" : "Ingen känd lokal v2-post";
+        return "Lokalt tillstånd i underlaget: " + presence + "\nTillståndsversion: " + state.version
+                + (state.draft == null ? "\nIngen automatisk återläggning." : "\nLokal revision: " + state.draft.revision);
+    }
+    static String fields(int mask) {
+        String[] names = {"ID", "Typ", "Status", "Ägare", "Kommentar", "Utplacerad UTC", "Position", "Bäring"};
+        List<String> selected = new ArrayList<>();
+        for (int i = 0; i < names.length; i++) if ((mask & (1 << i)) != 0) selected.add(names[i]);
+        return selected.isEmpty() ? "Inga valda fält" : String.join(", ", selected);
+    }
+    static String presence(LocalV2.Presence presence) {
+        switch (presence) {
+            case ACTIVE: return "Aktiv lokal enhet";
+            case DELETED: return "Känd lokal radering";
+            default: return "Ingen känd lokal v2-post";
+        }
+    }
+    static String outcome(LocalV2.Outcome outcome) {
+        switch (outcome) {
+            case ADDED: return "Tillagt lokalt";
+            case UPDATED: return "Uppdaterat lokalt";
+            default: return "Behållet lokalt";
+        }
+    }
+    static String action(LocalV2.Action action) {
+        switch (action) {
+            case ADD_LOCAL: return "Lägg till lokalt";
+            case USE_SELECTED: return "Använd valda mottagna uppgifter";
+            case KEEP_LOCAL: return "Behåll lokalt";
+            default: return action.name();
+        }
+    }
     static String preview(String text) {
         String line = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
         return line.codePointCount(0, line.length()) <= 72 ? line : line.substring(0, line.offsetByCodePoints(0, 72)) + "…";
