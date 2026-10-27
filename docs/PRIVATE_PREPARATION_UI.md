@@ -96,3 +96,12 @@ combination. The dialog tests are Robolectric, not standard ATAK runtime evidenc
 Signed v17 loading, physical phone/dialog acceptance and later new-tag/native feed
 integration remain pending. No signing submission, operational test or release was
 performed; a new source ZIP can be prepared when a signed test candidate is wanted.
+
+## Signed standard-host follow-up — 2026-10-26
+
+[The v18 native-host trial](PUBLICATION_ENVELOPE_RUNTIME.md) also exercised Cancel
+and successful private memory-only preparation of an existing synthetic draft
+with a local image. Image-exclusion/no-feed/no-send wording was observed and both
+private snapshots remained byte-identical. This closes the bounded signed-dialog
+check, not every failure/lifecycle case or physical-phone acceptance. Production
+handoff and trusted ingress remain separate; no source change or new ZIP is needed.

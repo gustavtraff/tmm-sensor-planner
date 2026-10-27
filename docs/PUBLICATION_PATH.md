@@ -172,6 +172,15 @@ synthetic app canaries. The normal private preparation action is not connected t
 host import. New-tag/all-type feed preservation remains pending a new signed
 runtime run; the v16 old-tag result is not relabeled as evidence for it.
 
+## Signed new-tag runtime result — 2026-10-26
+
+[Actual signed v18 standard-client evidence](PUBLICATION_ENVELOPE_RUNTIME.md)
+now covers all four types through the SDK importer, native Cancel/Done, actual
+server/B exports and bounded repeat/lifecycle/privacy checks. Private saved-draft
+preparation also passed a bounded native-host Cancel/memory-only-result check.
+This supersedes the pending new-tag experiment status above, not the remaining
+real-draft handoff, source-context, changed-copy and recipient-application gates.
+
 ## Remaining gates
 
 [Private app preparation](PRIVATE_PREPARATION_UI.md) now implements the review,
