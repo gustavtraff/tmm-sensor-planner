@@ -464,3 +464,21 @@ bytes changed. No file writer, migration, activation, apply or reset was added.
 Codec tests do not establish atomic commit/migration durability or SDK/ATAK behavior.
 No emulator, Docker container, Android/SDK build, device/server/transport trial,
 image-library suite or CI wait ran. Only synthetic fixtures/temp data were used.
+
+
+## In-memory import-decision preparation (#15/D) — 2026-10-27
+
+`sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8` and assertions.
+[The preparation tests](IMPORT_DECISION_PREPARATION.md#verification--2026-10-27)
+cover Add/explicit re-add, keep/equal/unchanged and each/all selected fields, exact
+counter/time/image previews, invalid type/bearing/identity/time combinations,
+stale local/source/receipt state, delete/recreate, exhaustion, Cancel and one-use
+concurrent preparation. Additional observations/unrelated edits remain compatible;
+all reads/previews leave original v1 draft, inbox and synthetic image bytes intact.
+Hypothetical memory-only result/decision frames fit the unchanged v2 codec.
+
+Existing core/v1/inbox/InboxReview/v2/publication/preparation/100-device tests and the
+offline envelope checker pass. No schema, fixture, InboxReview or outgoing API was
+changed. No actual application, file writer/migration/activation/reset, Android
+adapter, emulator, Docker, SDK build, device/server/transport or image-library suite
+was run. These are not durable-transaction or ATAK compatibility results.

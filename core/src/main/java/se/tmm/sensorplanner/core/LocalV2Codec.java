@@ -166,8 +166,8 @@ public final class LocalV2Codec {
                 || d.afterRevision != before.revision || !same(d.result, before)) throw invalid();
     }
 
-    // Derives metadata only to validate a history row; never applies a choice to a live draft.
-    private static TmmDraft selected(TmmDraft b, TmmDraft r, int mask, Instant updated) {
+    // Shared metadata projection for history validation and previews; never applies to a live draft.
+    static TmmDraft selected(TmmDraft b, TmmDraft r, int mask, Instant updated) {
         return new TmmDraft(b.uid, (mask & 1) != 0 ? r.displayId : b.displayId,
                 (mask & 2) != 0 ? r.type : b.type, (mask & 4) != 0 ? r.status : b.status,
                 (mask & 8) != 0 ? r.owner : b.owner, b.createdAt, updated,

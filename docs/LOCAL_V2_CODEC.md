@@ -90,3 +90,12 @@ No emulator, Docker container, Android/SDK build, device/server/transport trial 
 image-library suite ran. No file durability, atomic apply/migration, stale-review
 transaction, cleanup activation, Android compatibility or ATAK behavior is proven
 by byte-codec tests. Those remain separate work before any writer/rollout.
+
+
+## Later import-decision preparation — 2026-10-27
+
+[ImportDecisionPreparation](IMPORT_DECISION_PREPARATION.md) reuses this exact codec,
+its metadata selection rules and fingerprints to validate memory-only snapshots
+and preview/prepare explicit choices. The schema/bytes are unchanged. Its distinct
+Prepared type is not persisted history or an apply token; no file/v2 activation
+or change to current DraftStore is included. InboxReview remains unchanged.
