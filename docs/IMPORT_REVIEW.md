@@ -174,3 +174,14 @@ the adopted receiving UX from still-proposed commit/storage decisions. It keeps
 this comparison and read-only grouping unchanged. A future command must bind to
 persisted local mutation identity, not reuse InboxReview or SAME_METADATA as a
 confirmation token. No application API or new writer is added by that proposal.
+
+## Read-only Android component — 2026-10-27
+
+[InboxReviewUi](INBOX_REVIEW_UI.md) now browses a supplied immutable review: UUID
+groups, all receipt variants, exact field differences and separate historical
+observations. It preserves existing classification and image/revision rules and
+adds no store reader, initializer, transport, consent command, apply action or
+production entry. The caller must provide successfully loaded/reassessed data;
+null input is not a missing-storage-to-empty fallback. Targeted Android tests
+cover navigation, snapshot replacement/lifecycle and actual temporary-store/image
+preservation. Agent 2's independent #15 decision preparation remains separate.
