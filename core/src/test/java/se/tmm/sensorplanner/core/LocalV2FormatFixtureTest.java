@@ -18,13 +18,15 @@ public final class LocalV2FormatFixtureTest {
         byte[] history = fixture("history-v2.base64", "71a43709bb7b339fa3325c91f4957e2ab65f3c66f23ca0448865c4a54540dd43");
         Frame frame = inspect(history);
         golden(frame);
+        production(history);
         assert !new String(history, StandardCharsets.ISO_8859_1).contains("owned-old");
         Frame empty = inspect(fixture("empty-v2.base64", "abd92ed4d4e0ca3ba3cbf285bb04e799b8721218f41b2d6421e5db7e7fe3429a"));
         assert empty.slots.isEmpty() && empty.operations.isEmpty() && empty.store.equals(STORE);
+        production(fixture("empty-v2.base64", "abd92ed4d4e0ca3ba3cbf285bb04e799b8721218f41b2d6421e5db7e7fe3429a"));
         fingerprints();
         migration();
         malformed(history);
-        System.out.println("Local v2 proposal fixtures passed (independent frame/fingerprints, history, deleted versions, v1 expected migration and malformed inputs; no production writer).");
+        System.out.println("Local v2 proposal fixtures passed (independent frame/fingerprints, history, deleted versions, v1 expected migration and malformed inputs; exact production codec/fingerprints; no file writer).");
     }
 
     private static UUID id(int value) { return UUID.fromString(String.format(Locale.ROOT, "00000000-0000-4000-8015-%012d", value)); }
@@ -200,6 +202,9 @@ public final class LocalV2FormatFixtureTest {
             byte[] preimage = preimage(store, target, tag, version, m, image, revision);
             assert Arrays.equals(preimage, Base64.getDecoder().decode(values[1]));
             String digest = hex(sha(preimage)); assert digest.equals(values[2]);
+            LocalV2.State state = tag == 0 ? LocalV2.State.neverSeen(target) : tag == 2
+                    ? LocalV2.State.deleted(target, version) : LocalV2.State.active(version, local(m, image, revision));
+            assert Arrays.equals(LocalStateFingerprint.digest(store, state), sha(preimage));
             if (name.equals("active")) first = digest;
             if (name.equals("all-negative-zero")) allZero = digest;
             if (name.equals("positive-zero")) assert digest.equals(first);
@@ -231,6 +236,7 @@ public final class LocalV2FormatFixtureTest {
 
     private static void migration() throws Exception {
         byte[] expected = fixture("migrated-v1-v2.base64", "a83aed3f900845346acd8de5b03054c79d99741dd20549e89fd31ea7ecb4ebfb");
+        production(expected);
         Frame migrated = inspect(expected);
         assert migrated.store.equals(STORE) && migrated.slots.size() == 1 && migrated.operations.isEmpty();
         byte[] source = Base64.getDecoder().decode(new String(Files.readAllBytes(Paths.get("test-fixtures/synthetic/storage/v1.base64")), StandardCharsets.US_ASCII).trim());
@@ -354,7 +360,47 @@ public final class LocalV2FormatFixtureTest {
     private static byte[] seal(byte[] payload) throws Exception { byte[] bytes = Arrays.copyOf(payload, payload.length + 32); System.arraycopy(sha(payload), 0, bytes, payload.length, 32); return bytes; }
     private static byte[] reseal(byte[] bytes) throws Exception { return seal(Arrays.copyOf(bytes, bytes.length - 32)); }
     private static void reject(byte[] bytes) throws Exception {
+        byte[] original = bytes.clone();
         try { inspect(bytes); throw new AssertionError("Malformed local v2 fixture accepted"); } catch (IOException expected) { }
+        try { LocalV2Codec.decode(bytes); throw new AssertionError("Production codec accepted malformed v2"); }
+        catch (IOException expected) { assert expected.getCause() == null; assert expected.getMessage().equals("Invalid or unsupported local v2 data"); }
+        assert Arrays.equals(original, bytes);
+    }
+    private static void production(byte[] bytes) throws Exception {
+        byte[] original = bytes.clone();
+        LocalV2.Snapshot value = LocalV2Codec.decode(bytes);
+        byte[] encoded = LocalV2Codec.encode(value);
+        assert Arrays.equals(original, encoded) && Arrays.equals(original, bytes);
+        Frame oracle = inspect(encoded);
+        assert oracle.store.equals(value.storeId) && oracle.slots.size() == value.slots.size()
+                && oracle.operations.size() == value.decisions.size();
+        Iterator<Slot> slots = oracle.slots.values().iterator();
+        for (LocalV2.State state : value.slots) {
+            Slot expected = slots.next();
+            assert state.uid.equals(expected.uid) && state.version == expected.version && state.presence.code == expected.tag;
+            assert expected.draft == null ? state.draft == null : exactMetadata(expected.draft, state.draft)
+                    && expected.draft.revision == state.draft.revision && Objects.equals(expected.draft.imageRef, state.draft.imageRef);
+        }
+        for (int i = 0; i < value.decisions.size(); i++) {
+            LocalV2.Decision d = value.decisions.get(i); Op expected = oracle.operations.get(i);
+            assert d.id.equals(expected.id) && d.action.code == expected.action && d.target.equals(expected.target);
+            assert d.inboxId.equals(expected.inbox) && d.receiptId.equals(expected.receipt);
+            assert d.contextId.equals(expected.context) && d.firstObservedAt.equals(expected.observed);
+            assert exactMetadata(d.incoming, expected.incoming) && d.incoming.imageRef == null && d.incoming.revision == 1;
+            assert d.before.presence.code == expected.beforeTag && d.before.version == expected.beforeVersion;
+            assert d.before.draft == null ? expected.before == null : exactMetadata(d.before.draft, expected.before)
+                    && d.before.draft.revision == expected.beforeRevision && d.before.draft.imageRef == null;
+            assert Arrays.equals(d.reviewedFingerprint(), expected.fingerprint) && d.fieldMask == expected.mask;
+            assert Objects.equals(d.editTime, expected.editTime) && d.outcome.code == expected.outcome;
+            assert d.afterVersion == expected.afterVersion && d.afterRevision == expected.afterRevision;
+            assert exactMetadata(d.result, expected.result) && d.result.imageRef == null && d.result.revision == 1;
+        }
+    }
+    private static boolean exactMetadata(TmmDraft a, TmmDraft b) {
+        return same(a, b) && Double.doubleToRawLongBits(a.position.latitude) == Double.doubleToRawLongBits(b.position.latitude)
+                && Double.doubleToRawLongBits(a.position.longitude) == Double.doubleToRawLongBits(b.position.longitude)
+                && (a.bearingDeg == null ? b.bearingDeg == null : b.bearingDeg != null
+                && Double.doubleToRawLongBits(a.bearingDeg) == Double.doubleToRawLongBits(b.bearingDeg));
     }
     private static IOException invalid() { return new IOException("Invalid local v2 proposal fixture"); }
     private static String hex(byte[] bytes) { StringBuilder text = new StringBuilder(); for (byte b : bytes) text.append(String.format(Locale.ROOT, "%02x", b & 255)); return text.toString(); }

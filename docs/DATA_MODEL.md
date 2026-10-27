@@ -157,3 +157,13 @@ private snapshot and fingerprint bytes plus independent fixtures. Snapshot versi
 wire schema update. The production model/store/inbox and metadata comparison are
 unchanged; old deletion/application history is unavailable on migration. Exact
 format adoption still precedes any production v2 parser/writer/migrator.
+
+
+## Approved local v2 byte codec — 2026-10-27
+
+The owner explicitly adopted the local v2/TMMR exact formats and #102 fixtures.
+[The SDK-independent implementation](LOCAL_V2_CODEC.md) encodes/decodes immutable
+slot/history values and computes canonical fingerprints in memory. TmmDraft's
+domain schema, existing DraftStore, inbox and outgoing metadata contracts remain
+unchanged. There is no storage activation, migration or application. Counter and
+image-binding evidence is not source authentication or a durable confirmation token.

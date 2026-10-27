@@ -133,3 +133,13 @@ and a test-only inspector. Current v1 production code/fixtures remain unchanged.
 Migration fixtures preserve existing fields/revisions/images and start fresh
 version/history identity; they cannot invent pre-v2 deletion/application history.
 No production v2 writer/migrator or mission-cleanup activation is added.
+
+## Approved local v2 in-memory implementation — 2026-10-27
+
+The owner explicitly approved [the exact local v2/TMMR formats](LOCAL_V2_FORMAT_PROPOSAL.md)
+and PR #102 fixtures. [LocalV2Codec and LocalStateFingerprint](LOCAL_V2_CODEC.md)
+now implement bounded encoding/decoding and hashing entirely in memory. This
+DraftStore v1 implementation/fixture, missing-file behavior and image ownership
+remain unchanged. No existing writer is activated against v2, and no migrator,
+file writer, apply transaction or reset is included. Passing fixture/codec tests
+does not establish migration/durability or Android compatibility.
