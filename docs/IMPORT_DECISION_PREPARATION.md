@@ -130,3 +130,12 @@ All existing core/inbox/v2/old-contract/publication/envelope/100-device tests pa
 No emulator, Docker, Android/SDK build, image-library suite, server or transport
 trial ran. This proves supplied-memory behavior and preservation only; it does not
 prove v2 durability, migration, atomic stale-review protection or ATAK compatibility.
+
+## Android preview component follow-up — 2026-10-27
+
+[The memory-only decision UI](IMPORT_DECISION_UI.md) now consumes this unchanged
+API for explicit choices, exact result/time/image preview and fresh one-use
+preparation. It has an optional transition from the read-only browser, with no
+commit callback, production loader, activation or persistence. The caller must
+provide genuine versioned state and source/access policy; no v1-derived identity
+or state-version fallback is introduced.

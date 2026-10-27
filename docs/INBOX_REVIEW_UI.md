@@ -118,3 +118,13 @@ suite or CI wait was used. Component tests/builds do not prove standard ATAK-hos
 layout, phone usability, source authenticity, durable receipt, real-time freshness
 or draft-application behavior. Those remain explicit integration/acceptance work;
 agent 2's decision engine is not invoked by this view.
+
+## Optional memory-preview transition — 2026-10-27
+
+[ImportDecisionUi](IMPORT_DECISION_UI.md) now offers the independent #107 engine's
+choice/result preview and fresh memory preparation. The original browser constructor
+stays read-only. An explicitly supplied optional preview controller adds one variant
+button, preserves inbox/receipt selection identity and loads actual versioned state
+through its own caller contract. It does not manufacture v2 from this read model,
+activate a production entry or provide an apply action. Real storage/ingress and
+controller lifecycle integration remain later work.

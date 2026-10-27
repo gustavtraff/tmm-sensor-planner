@@ -16,6 +16,7 @@ import se.tmm.sensorplanner.core.*;
 public final class InboxReviewUi {
     private final Context context;
     private final Function<Position, String> coordinates;
+    private final ImportDecisionUi decisions;
     private final AtomicLong generation = new AtomicLong();
     private volatile boolean closed;
     private InboxReview snapshot;
@@ -23,7 +24,11 @@ public final class InboxReviewUi {
 
     /** coordinates is the caller's MGRS formatter, not a store, image resolver or navigation callback. */
     public InboxReviewUi(Context context, Function<Position, String> coordinates) {
-        this.context = Objects.requireNonNull(context); this.coordinates = Objects.requireNonNull(coordinates);
+        this(context, coordinates, null);
+    }
+    /** Optional memory-preview transition only; default construction stays strictly read-only. */
+    public InboxReviewUi(Context context, Function<Position, String> coordinates, ImportDecisionUi decisions) {
+        this.context = Objects.requireNonNull(context); this.coordinates = Objects.requireNonNull(coordinates); this.decisions = decisions;
     }
     /** UI thread; caller must first load both stores successfully and assemble a validated review. */
     public void show(InboxReview review) {
@@ -105,11 +110,21 @@ public final class InboxReviewUi {
                 + "\nRegistrerad källkontext: " + variant.receipt.contextId
                 + "\nMottagnings-ID: " + variant.receipt.id
                 + "\nKällkontexten autentiseras inte av vyn. Ägare är redigerbar metadata, inte verifierad avsändaridentitet.", false));
-        replace(new AlertDialog.Builder(context).setTitle("Jämför variant · skrivskyddat").setView(scroll(content))
+        Button preview = null;
+        if (decisions != null) {
+            preview = new Button(context); preview.setText("Förhandsvisa importval · inget sparas"); preview.setMinHeight(dp(48)); content.addView(preview);
+        }
+        AlertDialog next = new AlertDialog.Builder(context).setTitle("Jämför variant · skrivskyddat").setView(scroll(content))
                 .setNegativeButton("Till varianter", (d, w) -> { if (active(token, d)) variants(group, token); })
                 .setNeutralButton("Historik (" + variant.receipt.localObservations.size() + ")", (d, w) -> {
                     if (active(token, d)) history(group, variant, token);
-                }).setPositiveButton("Stäng", (d, w) -> { if (active(token, d)) cancel(); }).create(), token, () -> variants(group, token));
+                }).setPositiveButton("Stäng", (d, w) -> { if (active(token, d)) cancel(); }).create();
+        if (preview != null) preview.setOnClickListener(v -> {
+            if (!active(token, next)) return;
+            UUID inboxId = snapshot.inboxId; InboxStore.Receipt receipt = variant.receipt;
+            cancel(); decisions.show(inboxId, receipt);
+        });
+        replace(next, token, () -> variants(group, token));
     }
     private void history(InboxReview.Group group, InboxReview.Variant variant, long token) {
         List<TmmDraft> observations = variant.receipt.localObservations;
