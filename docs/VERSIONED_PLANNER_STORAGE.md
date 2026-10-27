@@ -114,3 +114,11 @@ Then connect the optional inbox/import-choice UI to the existing prepared atomic
 transaction with trusted source/lifecycle/result handling. Trusted feed ingestion,
 signed two-client acceptance, image sharing and production sharing approval remain
 separate; this PR does not complete #15 or enable Data Sync ingestion.
+
+## Returned candidate follow-up — 2026-10-27
+
+[Signed v20 verification](SIGNED_V20_UPGRADE_VERIFICATION.md) records passing static
+checks and an actual signed v18-to-v20 update install. Native migration acceptance
+remains blocked: the resumed fresh-profile control reproduces a stock-host EGL
+startup failure even with TMM disabled. No migration/marker/image runtime pass is
+inferred from the existing core/host tests. Owned emulators were stopped.
