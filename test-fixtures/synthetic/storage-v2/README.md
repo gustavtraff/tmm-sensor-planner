@@ -1,9 +1,10 @@
 # Independent local v2 proposal fixtures (#15/D)
 
-Status: **proposed exact bytes, not an accepted production format or implemented
-migration**. See [the exact frame/fingerprint proposal](../../../docs/LOCAL_V2_FORMAT_PROPOSAL.md).
+Status: **exact local v2/TMMR bytes explicitly approved on 2026-10-27**, including
+merged PR #102 test material. There is no implemented migration or file writer. See [the exact frame/fingerprint proposal](../../../docs/LOCAL_V2_FORMAT_PROPOSAL.md).
 All values/identities/coordinates/images are synthetic. No ATAK, outgoing codec,
-production v2 writer or migrator is used to generate or inspect them.
+production v2 writer or migrator is used to generate or inspect them. The
+in-memory production codec/fingerprint implementation now matches these same bytes.
 
 `build-fixtures.py` uses Python standard-library struct, UUID, strict UTF-8 and
 SHA-256. It takes no arguments, accepts no user store and rewrites only these fixed
@@ -117,5 +118,7 @@ those offsets describe this fixture only. Java rejects bad framing/digests/versi
 counts/lengths/UTF-8/enums/domain/nanos/flags, zero versions/revisions, duplicate IDs,
 wrong target, overflowing transitions/masks, inconsistent history order/current
 state and recomputable fingerprints. Original golden inputs stay unchanged.
-Passing is evidence for these proposal bytes and current v1 read behavior, not
+Production decoding/re-encoding and fingerprints now match the same independent
+bytes/oracle; the malformed corpus is rejected by both readers. Passing verifies
+these approved in-memory bytes and current v1 read behavior, not
 production storage, atomic migration/recovery, image ownership, reset, SDK or ATAK.

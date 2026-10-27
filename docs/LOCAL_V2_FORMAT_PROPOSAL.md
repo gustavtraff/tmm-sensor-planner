@@ -1,10 +1,13 @@
-# Local draft storage v2 and review-state fingerprint — exact proposal (#15/D)
+# Local draft storage v2 and review-state fingerprint — approved format (#15/D)
 
-**Status: exact byte format proposed for human review, 2026-10-26. No production
-v2 reader/writer, migrator or reset operation is implemented.** This makes the
-[adopted D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md) concrete; logical approval
-of D does not alone adopt these bytes. Baseline main `510558f` includes #99–#101.
-Outgoing metadata, preparation, Android and transport remain separate work.
+**Status: exact TMMD v2 and TMMR fingerprint bytes explicitly approved by the owner
+on 2026-10-27, including the independent test material from merged PR #102.**
+Approval was recorded in the conversation. [The production in-memory codec and
+verification](LOCAL_V2_CODEC.md) now implement these bytes without changing the
+contract. No file writer, migration, v2 activation, apply or reset is implemented.
+The historical proposal filename is retained. [D's adopted logical contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md)
+continues to govern later transaction work. Outgoing metadata, preparation,
+Android and transport remain separate work.
 
 ## Isolation and primitives
 
@@ -199,15 +202,16 @@ replacement/fault/restart tests. The legacy reader already rejects version 2; no
 fallback/rewrite is allowed. Dataset reset/restore/history loss remains a separate
 explicit operation; this frame is not a rollback detector or mission selector.
 
-## Independent fixtures and actual verification boundary
+## Independent fixtures and verification boundary
 
 [Fixture values, hashes, offsets and reproduction](../test-fixtures/synthetic/storage-v2/README.md)
 include a 3,365-byte mixed-state/history frame, 64-byte empty frame, 246-byte
 expected result for the existing 217-byte v1 golden, a 44-byte empty-v1 source, and 18 TMMR preimage/digest
 vectors. Python standard-library struct/UUID/UTF-8/hashlib encodes the fixture bytes;
-a test-only Java inspector checks the independently specified domain values and
-recomputes canonical preimages/digests. Existing production v1 reads the source
-fixture, and rejects the proposed v2 bytes without rewriting them. This is not
+a separate test-only Java inspector checks independently specified domain values
+and canonical preimages/digests. Production encoding/decoding and fingerprints
+are now compared against those original bytes without replacing the oracle. Existing production v1 reads the source
+fixture, and rejects the approved v2 bytes without rewriting them. This is not
 executing a v2 migration or proving its atomicity.
 
 `LocalV2FormatFixtureTest` runs with plain core tests. It checks pinned digests,
@@ -215,6 +219,7 @@ active/deleted/never-seen states, revision versus version, committed historical
 versus current results, Unicode/nanoseconds/optional values, selected/keep/no-op
 records, canonical zero and image/reference/identity/counter-sensitive fingerprints,
 v1 field preservation and re-sealed malformed frames/history. It contains no v2
-filesystem writer or generic migrator. Future production decoding/writing must
-match the independent fixture and add real transaction/migration/failure tests.
+filesystem writer or generic migrator. Current in-memory encoding/decoding matches the independent fixture. Future
+writers must add real transaction/migration/failure tests; see [the actual codec
+evidence](LOCAL_V2_CODEC.md).
 No Android/SDK/device/transport compatibility or cleanup activation is inferred.

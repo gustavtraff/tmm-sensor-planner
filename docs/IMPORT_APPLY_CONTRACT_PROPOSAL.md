@@ -2,20 +2,21 @@
 
 **Status: owner-approved logical principles, including capacity feedback and safe
 local mission cleanup, recorded explicitly in the conversation on 2026-10-25.**
-Exact byte/fingerprint encoding, independent fixtures and migration fixtures still
-require review before any writer/migrator. No apply/reset API is implemented.
+Exact local v2 byte/fingerprint encoding and #102 fixture material were subsequently
+approved explicitly on 2026-10-27; in-memory implementation is linked below.
+File writing/migration and cleanup activation remain outside this implementation. No apply/reset API is implemented.
 Reviewed baseline: main `b69eabd` (#98). A–C, InboxStore format 1 and read-only
 InboxReview remain implemented and unchanged. No Android adapter, outgoing
 metadata/preparation, SDK or transport changes are included.
 
-## Exact-format follow-up — proposed 2026-10-26
+## Exact-format follow-up — approved 2026-10-27
 
-[The local v2 byte/fingerprint proposal](LOCAL_V2_FORMAT_PROPOSAL.md) now specifies
-slot/deletion/version and committed-decision encoding, canonical reviewed-state
-hashing and independently encoded frame/migration fixtures. These exact bytes are
-submitted for review; no production parser/writer/migrator or reset is implemented.
-It explicitly identifies the pre-migration history that v1 cannot reconstruct.
-The approved logical requirements below and inbox format 1 are unchanged.
+[The local v2 byte/fingerprint format](LOCAL_V2_FORMAT_PROPOSAL.md) and independent
+#102 fixtures have explicit owner approval. [Production in-memory code](LOCAL_V2_CODEC.md)
+now encodes/decodes the frame and computes fingerprints against those fixed bytes.
+There is no file writer/migrator, activation, apply/reset or Android/transport
+integration. The documented v1 history gap remains. Cleanup activation/ownership
+encoding remains a separate review gate; inbox format 1 is unchanged.
 
 ## Adopted user flow and scope
 
@@ -110,9 +111,9 @@ metadata in the same local snapshot as the changed draft. No APPLIED/resolved fl
 is written back to the inbox, so there is no required two-file commit or recovery
 journal. One successful rename is the application commit point.
 
-This is a logical v2 proposal, **not a frozen byte encoding**. Before its writer,
-review/adopt these fields and supply an exact byte-format proposal, independently
-encoded v2/migration fixtures and malformed-input rules. Do not increment the domain
+This logical design is now concretized by the explicitly approved
+[exact v2 bytes and independent fixtures](LOCAL_V2_FORMAT_PROPOSAL.md).
+The in-memory codec does not introduce its file writer or migrator. Do not increment the domain
 TmmDraft schema or change any production wire version merely to version this file.
 
 | Persisted component | Minimum contract |
@@ -287,9 +288,9 @@ is not advertised as protection against those failures.
    including slot/history limits, no eviction and the legacy deletion-history gap.
    Required capacity feedback and separately confirmed local mission cleanup are
    included; implementation details/physical format remain unimplemented.
-4. Remaining gate: Review exact v2 byte/fingerprint encoding and independent golden/migration
-   fixtures next. Only after explicit adoption introduce its codec/writer/migrator
-   and expected-state operations. No approval of a remote protocol is implied.
+4. Exact v2 bytes/fingerprints and independent #102 fixtures are now explicitly
+   adopted. In-memory codec verification is documented separately; file writing,
+   migration, expected-state operations and cleanup activation remain later work. No approval of a remote protocol is implied.
 
 ## Required verification versus evidence actually run
 
