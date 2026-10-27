@@ -5,8 +5,9 @@
 v2 state values, TMMR fingerprints, selected-field semantics and ImportReview
 metadata equality. It introduces no persisted fields, schema or product policy.
 This class performs no file operations. The separate [isolated v2 store](LOCAL_V2_STORAGE.md)
-now commits Prepared choices under both owning locks. Migration, app activation,
-reset and transport remain unimplemented. InboxReview and its existing read model
+now commits Prepared choices under both owning locks. [The versioned planner candidate](VERSIONED_PLANNER_STORAGE.md) now adds migration/
+explicit activation and versioned writers; this import preparation UI remains
+unwired to a live transaction. Reset and trusted receive transport are not implemented. InboxReview and its existing read model
 remain source-compatible and unchanged for the parallel read-only review view.
 
 ## Inputs and operations

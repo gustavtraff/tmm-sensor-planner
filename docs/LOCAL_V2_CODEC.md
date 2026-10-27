@@ -5,8 +5,9 @@ fingerprint format in [LOCAL_V2_FORMAT_PROPOSAL.md](LOCAL_V2_FORMAT_PROPOSAL.md)
 including the independent test material from merged PR #102. Approval is recorded
 in the conversation, not inferred from merging a proposal. This implementation
 encodes/decodes bytes in memory and computes fingerprints only. The separate
-[isolated file store](LOCAL_V2_STORAGE.md) now adds persistence and prepared transactions. Migration, Android v2 activation, reset and transport remain
-unimplemented.
+[isolated file store](LOCAL_V2_STORAGE.md) now adds persistence and prepared transactions. [Migration and the versioned planner candidate](VERSIONED_PLANNER_STORAGE.md)
+now add explicit activation; reset, trusted receive transport and signed runtime
+acceptance remain separate work.
 Current DraftStore, TmmDraft domain version, InboxStore and outgoing formats remain
 unchanged. No existing production caller is switched to v2.
 

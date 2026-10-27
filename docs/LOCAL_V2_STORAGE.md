@@ -6,8 +6,10 @@ The owner authorized this core-only implementation on 2026-10-27, after approvin
 file persistence and the prepared import transaction using those existing bytes.
 No format, fixture, domain schema, inbox encoding or outgoing protocol changes.
 
-**Not activated in the app.** Use an explicitly selected private test directory.
-The live planner and image adapters still use DraftStore v1. An explicit
+**Integration follow-up:** the [versionCode 20 candidate](VERSIONED_PLANNER_STORAGE.md)
+now uses this store behind explicit app upgrade/initialization choices. Signed
+ATAK/phone upgrade acceptance remains pending. Earlier #110 evidence below used
+only private synthetic test directories. An explicit
 [core migrator](LOCAL_V2_MIGRATION.md) now exists, but no activation record,
 cleanup/reset, production import entry or transport is implemented.
 Do not point this store at a live installation, infer versions from revisions,
@@ -146,13 +148,13 @@ also pass. Fixed independent fixtures are unchanged. No Docker, emulator, Androi
 SDK build, phone, image-library suite, remote transmission or CI wait was run.
 These are core transaction/process tests, not migration or ATAK acceptance.
 
-## Next integration boundary
+## Integration follow-up
 
-Before activation, inventory and migrate every writer together: LocalPlanner's
+The versionCode 20 candidate converts the writer inventory together: LocalPlanner's
 creation/form/map-save path and DraftAttachments' attach/replace/remove/delete
-path currently call v1 revision-only writes. The isolated [v1-to-v2 migrator](LOCAL_V2_MIGRATION.md)
-and interruption tests now exist. Add explicit dataset activation and expected-state
-propagation through all callers. Then connect the optional
+paths now carry expected v2 store/slot state. The isolated [v1-to-v2 migrator](LOCAL_V2_MIGRATION.md)
+and interruption tests now exist. The candidate adds explicit activation and expected-state propagation. Signed
+runtime acceptance is pending. Next connect the optional
 review/choice UI to a background transaction with source/lifecycle checks, capacity
 feedback and unambiguous current-versus-historical result handling. Genuine source
 context/transport and signed two-client/phone verification remain separate gates.

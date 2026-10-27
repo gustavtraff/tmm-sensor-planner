@@ -24,7 +24,7 @@ public class PublicationPreparationUiTest {
     private final Queue<Runnable> work = new ArrayDeque<>(), ui = new ArrayDeque<>();
     private final List<ShareReview.Metadata> shown = new ArrayList<>();
     private Activity activity;
-    private DraftStore store;
+    private LocalV2Store store;
     private PublicationPreparationUi preparation;
     private boolean available = true;
     private TmmDraft draft;
@@ -33,16 +33,35 @@ public class PublicationPreparationUiTest {
     @Before public void setup() throws Exception {
         activity = Robolectric.buildActivity(Activity.class).setup().get();
         Path directory = temporary.newFolder().toPath(); file = directory.resolve("drafts.bin");
-        store = new DraftStore(directory);
+        store = new LocalV2Store(directory); store.initializeNew();
         draft = new TmmDraft(new UUID(0, 14), "PIR 134", DeviceType.PIR, DeviceStatus.PLANNED, "Synthetic role",
                 Instant.EPOCH, Instant.EPOCH, null, "Synthetic", new Position(0, 1), 45.0,
                 "synthetic-missing-local-image", 1);
-        store.save(draft);
+        save(draft);
         preparation = new PublicationPreparationUi(activity, store, work::add, new PublicationPreparationUi.Host() {
             @Override public void post(Runnable action) { ui.add(action); }
             @Override public boolean available() { return available; }
             @Override public String summary(ShareReview.Metadata m) { shown.add(m); return m.displayId + " / " + m.status; }
         });
+    }
+    private void save(TmmDraft value) throws Exception {
+        LocalV2.Snapshot current = store.load(); store.save(current.storeId, current.state(value.uid), value);
+    }
+    @Test public void byteIdenticalRecreationAndDatasetReplacementInvalidateReview() throws Exception {
+        for (boolean replaceStore : new boolean[]{false, true}) {
+            review();
+            LocalV2.Snapshot saved = store.load();
+            if (replaceStore) {
+                Files.write(file, LocalV2Codec.encode(new LocalV2.Snapshot(UUID.randomUUID(), saved.slots, saved.decisions)));
+            } else {
+                store.delete(saved.storeId, saved.state(draft.uid));
+                save(draft);
+            }
+            click(AlertDialog.BUTTON_POSITIVE);
+            work.remove().run(); drainUi();
+            assertEquals("Kopian kunde inte förberedas", shadowOf(dialog()).getTitle().toString());
+            click(AlertDialog.BUTTON_POSITIVE);
+        }
     }
     @After public void teardown() { preparation.close(); activity.finish(); }
 
@@ -56,7 +75,7 @@ public class PublicationPreparationUiTest {
         assertEquals(draft.uid, shown.get(1).uid);
         assertEquals(draft.comment, shown.get(1).comment);
         assertArrayEquals(before, Files.readAllBytes(file));
-        assertEquals(draft.imageRef, store.load().get(0).imageRef);
+        assertEquals(draft.imageRef, store.load().activeDrafts().get(0).imageRef);
         assertNotNull(field("prepared"));
         click(AlertDialog.BUTTON_POSITIVE);
         assertFalse(preparation.isBusy()); assertNull(field("prepared"));
@@ -65,12 +84,12 @@ public class PublicationPreparationUiTest {
     @Test public void changedMetadataImageOnlyEditAndDeletedRecordRequireNewReview() throws Exception {
         for (int change = 0; change < 3; change++) {
             review();
-            if (change == 2) store.delete(draft.uid, draft.revision);
+            if (change == 2) store.delete(store.load().storeId, store.load().state(draft.uid));
             else {
                 draft = draft.edit(draft.displayId, draft.type, draft.status, draft.owner, draft.deployedAt,
                         change == 0 ? "Changed" : draft.comment, draft.position, draft.bearingDeg,
                         change == 1 ? "replaced-local-image" : draft.imageRef, draft.updatedAt);
-                store.save(draft);
+                save(draft);
             }
             click(AlertDialog.BUTTON_POSITIVE); work.remove().run(); drainUi();
             assertEquals("Kopian kunde inte förberedas", shadowOf(dialog()).getTitle().toString());
@@ -88,13 +107,13 @@ public class PublicationPreparationUiTest {
     @Test public void backAndImageAbsentHaveTruthfulLifecycle() throws Exception {
         draft = draft.edit(draft.displayId, draft.type, draft.status, draft.owner, draft.deployedAt,
                 draft.comment, draft.position, draft.bearingDeg, null, draft.updatedAt);
-        store.save(draft); review();
+        save(draft); review();
         assertTrue(viewText(shadowOf(dialog()).getView()).contains("Ingen lokal bild är bifogad"));
         dialog().cancel(); shadowOf(Looper.getMainLooper()).idle();
         assertFalse(preparation.isBusy()); assertNull(field("prepared"));
         review(); click(AlertDialog.BUTTON_POSITIVE); work.remove().run(); drainUi();
         assertTrue(viewText(shadowOf(dialog()).getView()).contains("Ingen fil har skapats"));
-        assertNull(store.load().get(0).imageRef);
+        assertNull(store.load().activeDrafts().get(0).imageRef);
     }
 
     @Test public void stopSuppressesConfirmationAndDuplicateClicks() throws Exception {

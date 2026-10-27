@@ -25,7 +25,7 @@ public class SavedDraftCopyUiTest {
     @Rule public TemporaryFolder temporary = new TemporaryFolder();
     private final Queue<Runnable> work = new ArrayDeque<>(), ui = new ConcurrentLinkedQueue<>();
     private Activity activity;
-    private DraftStore store;
+    private LocalV2Store store;
     private SavedDraftCopyUi copy;
     private TmmDraft draft;
     private Path file;
@@ -35,10 +35,10 @@ public class SavedDraftCopyUiTest {
     private String label;
     @Before public void setup() throws Exception {
         activity = Robolectric.buildActivity(Activity.class).setup().get();
-        Path directory = temporary.newFolder().toPath(); file = directory.resolve("drafts.bin"); store = new DraftStore(directory);
+        Path directory = temporary.newFolder().toPath(); file = directory.resolve("drafts.bin"); store = new LocalV2Store(directory); store.initializeNew();
         draft = new TmmDraft(new UUID(0, 19), "PIR 134", DeviceType.PIR, DeviceStatus.PLANNED, "Synthetic role",
                 Instant.EPOCH, Instant.EPOCH, null, "Synthetic", new Position(0, 1), 45.0, "synthetic-image", 1);
-        store.save(draft);
+        save(draft);
         copy = new SavedDraftCopyUi(activity, store, work::add, new SavedDraftCopyUi.Host() {
             @Override public void post(Runnable action) { ui.add(action); }
             @Override public boolean available() { return available; }
@@ -49,6 +49,24 @@ public class SavedDraftCopyUiTest {
                 return "Granskad kartkopia verifierad: Ja";
             }
         });
+    }
+    private void save(TmmDraft value) throws Exception {
+        LocalV2.Snapshot current = store.load(); store.save(current.storeId, current.state(value.uid), value);
+    }
+    @Test public void byteIdenticalRecreationAndDatasetReplacementInvalidateReview() throws Exception {
+        for (boolean replaceStore : new boolean[]{false, true}) {
+            review();
+            LocalV2.Snapshot saved = store.load();
+            if (replaceStore) {
+                Files.write(file, LocalV2Codec.encode(new LocalV2.Snapshot(UUID.randomUUID(), saved.slots, saved.decisions)));
+            } else {
+                store.delete(saved.storeId, saved.state(draft.uid));
+                save(draft);
+            }
+            click(AlertDialog.BUTTON_POSITIVE);
+            executeHandoff(); assertEquals(0, imports);
+            click(AlertDialog.BUTTON_POSITIVE);
+        }
     }
     @After public void teardown() { copy.close(); activity.finish(); }
 
@@ -61,7 +79,7 @@ public class SavedDraftCopyUiTest {
         executeHandoff(); assertEquals(1, imports); assertEquals("PIR 134 · r1", label);
         assertEquals(draft.uid, handed.metadata.uid); assertEquals(draft.comment, handed.metadata.comment);
         assertEquals(ShareReview.ImageStatus.LOCAL_IMAGE_NOT_SHARED, handed.imageStatus);
-        assertArrayEquals(before, Files.readAllBytes(file)); assertEquals(draft.imageRef, store.load().get(0).imageRef);
+        assertArrayEquals(before, Files.readAllBytes(file)); assertEquals(draft.imageRef, store.load().activeDrafts().get(0).imageRef);
         assertEquals("Kartkopieprov · resultat", shadowOf(dialog()).getTitle().toString());
         assertTrue(shadowOf(dialog()).getMessage().toString().contains("mottagande är obekräftade"));
         click(AlertDialog.BUTTON_POSITIVE); assertFalse(copy.isBusy());
@@ -69,12 +87,12 @@ public class SavedDraftCopyUiTest {
     @Test public void staleMetadataImageOnlyChangeAndDeletionNeverReachHost() throws Exception {
         for (int change = 0; change < 3; change++) {
             review();
-            if (change == 2) store.delete(draft.uid, draft.revision);
+            if (change == 2) store.delete(store.load().storeId, store.load().state(draft.uid));
             else {
                 draft = draft.edit(draft.displayId, draft.type, draft.status, draft.owner, draft.deployedAt,
                         change == 0 ? "Changed" : draft.comment, draft.position, draft.bearingDeg,
                         change == 1 ? "new-image" : draft.imageRef, draft.updatedAt);
-                store.save(draft);
+                save(draft);
             }
             click(AlertDialog.BUTTON_POSITIVE); executeHandoff();
             assertEquals(0, imports); assertTrue(shadowOf(dialog()).getMessage().toString().contains("Inte skapat"));
@@ -126,7 +144,7 @@ public class SavedDraftCopyUiTest {
     @Test public void absentImageAndUnavailableEntryAreTruthful() throws Exception {
         available = false; copy.show(draft.uid); assertTrue(work.isEmpty()); assertFalse(copy.isBusy());
         available = true; draft = draft.edit(draft.displayId, draft.type, draft.status, draft.owner, draft.deployedAt,
-                draft.comment, draft.position, draft.bearingDeg, null, draft.updatedAt); store.save(draft);
+                draft.comment, draft.position, draft.bearingDeg, null, draft.updatedAt); save(draft);
         review(); assertTrue(text(shadowOf(dialog()).getView()).contains("Ingen lokal bild är bifogad"));
     }
     private void review() throws Exception {

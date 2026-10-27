@@ -21,7 +21,7 @@ public final class PublicationPreparationUi {
     }
 
     private final Context context;
-    private final DraftStore store;
+    private final LocalV2Store store;
     private final Executor worker;
     private final Host host;
     private final AtomicLong generation = new AtomicLong();
@@ -31,7 +31,7 @@ public final class PublicationPreparationUi {
     private ShareReview.Metadata prepared;
     private AlertDialog dialog;
 
-    public PublicationPreparationUi(Context context, DraftStore store, Executor worker, Host host) {
+    public PublicationPreparationUi(Context context, LocalV2Store store, Executor worker, Host host) {
         this.context = context; this.store = store; this.worker = worker; this.host = host;
     }
 
@@ -48,16 +48,17 @@ public final class PublicationPreparationUi {
         worker.execute(() -> {
             if (!valid(token)) return;
             try {
-                TmmDraft saved = find(uid);
-                if (saved == null) throw new IllegalStateException();
-                post(token, () -> review(saved, token));
+                LocalV2.Selection selected = find(uid);
+                if (selected == null) throw new IllegalStateException();
+                post(token, () -> review(selected, token));
             } catch (Exception unavailable) {
                 post(token, () -> failure("Den sparade enheten kunde inte läsas. Läs om enheten och försök igen."));
             }
         });
     }
 
-    private void review(TmmDraft saved, long token) {
+    private void review(LocalV2.Selection selected, long token) {
+        TmmDraft saved = selected.draft;
         PublicationPreparationReview review = new PublicationPreparationReview(saved);
         pending = review;
         replace(new AlertDialog.Builder(context).setTitle("Granska metadatakopia")
@@ -69,15 +70,17 @@ public final class PublicationPreparationUi {
                     if (!valid(token) || pending != review) return;
                     if (!host.available()) { cancel(); return; }
                     pending = null;
-                    worker.execute(() -> prepare(review, token));
+                    worker.execute(() -> prepare(review, selected, token));
                 }).create());
     }
 
-    private void prepare(PublicationPreparationReview review, long token) {
+    private void prepare(PublicationPreparationReview review, LocalV2.Selection selected, long token) {
         try {
             if (!valid(token)) return;
             if (!host.available()) { post(token, this::cancel); return; }
-            TmmDraft current = find(review.metadata.uid);
+            LocalV2.Snapshot snapshot = store.load();
+            if (!selected.isCurrent(snapshot)) throw new IllegalStateException();
+            TmmDraft current = snapshot.state(review.metadata.uid).draft;
             if (!valid(token)) return;
             byte[] bytes = PublicationCodec.encode(review.prepare(current));
             ShareReview.Metadata decoded = PublicationCodec.decode(new ByteArrayInputStream(bytes));
@@ -95,9 +98,9 @@ public final class PublicationPreparationUi {
         } finally { review.close(); }
     }
 
-    private TmmDraft find(UUID uid) throws java.io.IOException {
-        for (TmmDraft draft : store.load()) if (draft.uid.equals(uid)) return draft;
-        return null;
+    private LocalV2.Selection find(UUID uid) throws java.io.IOException {
+        LocalV2.Selection selected = store.load().select(uid);
+        return selected.draft == null ? null : selected;
     }
 
     private boolean valid(long token) { return !closed && generation.get() == token; }

@@ -1,6 +1,8 @@
 package se.tmm.sensorplanner.core;
 
 import java.time.Instant;
+import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.*;
 
 /** Immutable values for the approved private TMMD v2 frame; no store or application operations. */
@@ -56,6 +58,32 @@ public final class LocalV2 {
             this.storeId = Objects.requireNonNull(storeId, "storeId");
             this.slots = Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(slots, "slots")));
             this.decisions = Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(decisions, "decisions")));
+        }
+        public State state(UUID uid) {
+            Objects.requireNonNull(uid, "uid");
+            for (State state : slots) if (state.uid.equals(uid)) return state;
+            return State.neverSeen(uid);
+        }
+        public List<TmmDraft> activeDrafts() {
+            List<TmmDraft> drafts = new ArrayList<>();
+            for (State state : slots) if (state.presence == Presence.ACTIVE) drafts.add(state.draft);
+            return Collections.unmodifiableList(drafts);
+        }
+        public Selection select(UUID uid) { return new Selection(storeId, state(uid)); }
+    }
+
+    /** Captured when a UI action opens, never reconstructed from a fresh revision at save time. */
+    public static final class Selection {
+        public final UUID storeId;
+        public final State state;
+        public final TmmDraft draft;
+        private Selection(UUID storeId, State state) {
+            this.storeId = storeId; this.state = state; this.draft = state.draft;
+        }
+        public boolean isCurrent(Snapshot current) throws IOException {
+            State now = current.state(state.uid);
+            return storeId.equals(current.storeId) && state.presence == now.presence && state.version == now.version
+                    && MessageDigest.isEqual(LocalStateFingerprint.digest(storeId, state), LocalStateFingerprint.digest(storeId, now));
         }
     }
 

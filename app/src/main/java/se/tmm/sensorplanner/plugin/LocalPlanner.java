@@ -35,6 +35,8 @@ import se.tmm.sensorplanner.plugin.local.BearingMilsEdit;
 import se.tmm.sensorplanner.plugin.local.BearingDirectionView;
 import se.tmm.sensorplanner.plugin.local.PublicationPreparationUi;
 import se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi;
+import se.tmm.sensorplanner.plugin.local.LocalStorageUi;
+import se.tmm.sensorplanner.core.LocalV2.Selection;
 import se.tmm.sensorplanner.plugin.publication.PublicationMapCopy;
 
 /** Local prototype; API 26 and session access are enforced by the entry point. */
@@ -45,7 +47,9 @@ final class LocalPlanner {
     private final MapView map;
     private final Context context;
     private final IHostUIService ui;
-    private final DraftStore store;
+    private final LocalV2Store store;
+    private final LocalStorageUi storageUi;
+    private LocalV2Store.Inspection storage;
     private final BooleanSupplier localAllowed;
     private final BooleanSupplier labAllowed;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
@@ -60,8 +64,6 @@ final class LocalPlanner {
     private AlertDialog confirmation;
     private MapPositionPicker positionPicker;
     private volatile boolean closed;
-    private boolean loading;
-    private boolean showAfterLoad;
 
     LocalPlanner(MapView map, IHostUIService ui, BooleanSupplier localAllowed, BooleanSupplier labAllowed,
                  String imageCopyNotice) throws Exception {
@@ -71,17 +73,28 @@ final class LocalPlanner {
         this.context = map.getContext();
         this.ui = ui;
         // The plugin executes as ATAK's UID; no-backup host storage avoids shared files and backups.
-        store = new DraftStore(new java.io.File(context.getNoBackupFilesDir(),
+        store = new LocalV2Store(new java.io.File(context.getNoBackupFilesDir(),
                 "se.tmm.sensorplanner/local-drafts-v1").toPath());
         LocalImages images = new LocalImages(new java.io.File(context.getNoBackupFilesDir(),
                 "se.tmm.sensorplanner/local-images-v1").toPath());
+        storageUi = new LocalStorageUi(context, store, worker, new LocalStorageUi.Host() {
+            @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
+            @Override public void post(Runnable action) { ui.queueEvent(action); }
+            @Override public void loaded(LocalV2Store.Inspection state, boolean showList) {
+                refresh(state); if (showList) list();
+            }
+            @Override public void unavailable(String message, boolean interactive) {
+                clearLayer();
+                if (interactive) alert("Lokal lagring", message); else ui.showToast(message);
+            }
+        });
         attachments = new DraftAttachments(store, images);
         imagesUi = new LocalImageUi(context, imageCopyNotice, worker, images, attachments, new LocalImageUi.Listener() {
             @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
             @Override public void committed(DraftAttachments.Result result, UUID uid) {
                 if (closed) return;
-                refresh(result.drafts);
-                for (TmmDraft saved : drafts) if (saved.uid.equals(uid)) { review(saved); break; }
+                refresh(result.storage);
+                for (TmmDraft saved : drafts) if (saved.uid.equals(uid)) { review(storage.snapshot.select(saved.uid)); break; }
                 if (result.cleanupFailed) ui.showToast("Ändringen är sparad men en äldre bildkopia kunde inte tas bort");
             }
             @Override public void failed(String message) { if (!closed) alert("Bilden kunde inte hanteras", message); }
@@ -114,9 +127,9 @@ final class LocalPlanner {
     }
 
     private void selected(UUID uid) {
-        if (!closed && !loading && !isBusy() && (dialog == null || !dialog.isShowing()) && localAllowed.getAsBoolean()) {
+        if (!closed && !isBusy() && (dialog == null || !dialog.isShowing()) && localAllowed.getAsBoolean()) {
             for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) {
-                review(draft);
+                review(storage.snapshot.select(draft.uid));
                 break;
             }
         }
@@ -132,49 +145,14 @@ final class LocalPlanner {
             if (showList) localAccess();
             return;
         }
-        if (loading) { showAfterLoad |= showList; return; }
+        if (storageUi.isBusy()) { storageUi.load(showList); return; }
         if (isBusy() || (dialog != null && dialog.isShowing())) return;
-        loading = true;
-        showAfterLoad = showList;
-        if (showList) dismiss();
-        worker.execute(() -> {
-            try {
-                List<TmmDraft> loaded = store.load();
-                ui.queueEvent(() -> {
-                    if (closed) return;
-                    loading = false;
-                    boolean openList = showAfterLoad;
-                    showAfterLoad = false;
-                    // Session access may have ended while the worker read storage.
-                    if (!localAllowed.getAsBoolean()) {
-                        clearLayer();
-                        if (openList) localAccess();
-                        return;
-                    }
-                    refresh(loaded);
-                    if (openList) list();
-                });
-            } catch (Exception failure) {
-                ui.queueEvent(() -> {
-                    loading = false;
-                    if (closed) return;
-                    boolean openList = showAfterLoad;
-                    showAfterLoad = false;
-                    clearLayer();
-                    if (openList) {
-                        alert("Lagringen kunde inte öppnas",
-                                "Befintliga data har inte återställts eller skrivits över. Försök öppna igen. "
-                                + "Om felet kvarstår behövs felsökning innan du fortsätter.");
-                    } else {
-                        ui.showToast("Lokala markörer kunde inte återställas. Sparade data har inte ändrats. Öppna TMM för att försöka igen.");
-                    }
-                });
-            }
-        });
+        storageUi.load(showList);
     }
 
     private void clearLayer() {
         drafts = Collections.emptyList();
+        storage = null;
         if (layer != null) layer.close();
         layer = null;
     }
@@ -187,25 +165,30 @@ final class LocalPlanner {
 
     private void list() {
         if (!localAccess() || closed || isBusy()) return;
+        LocalV2.Snapshot listed = storage.snapshot;
         String[] rows = new String[drafts.size()];
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle("TMM – lokala utkast (" + rows.length + ")"
                         + (labAllowed.getAsBoolean() ? "" : " · testläge"))
-                .setItems(rows, (ignored, index) -> review(drafts.get(index)))
+                .setItems(rows, (ignored, index) -> review(listed.select(listed.activeDrafts().get(index).uid)))
+                .setView(label(LocalStorageUi.warning(storage)))
                 .setPositiveButton("Skapa enhet", (ignored, which) -> form(null))
                 .setNeutralButton("Uppdatera", (ignored, which) -> { dismiss(); show(); })
                 .setNegativeButton("Stäng", null).create();
         dialog.show();
     }
 
-    private void review(TmmDraft draft) {
+    private void review(Selection selected) {
+        TmmDraft draft = selected.draft;
         if (closed || !localAccess()) return;
         LinearLayout content = column();
         TextView status = label(draft.type.displayName + " · Status: " + STATUSES[draft.status.ordinal()]);
         status.setTextSize(18);
         status.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         content.addView(status);
+        String warning = LocalStorageUi.warning(storage);
+        if (!warning.isEmpty()) content.addView(label(warning));
         content.addView(label("Lokalt utkast · delas inte automatiskt"));
         content.addView(label("Position · MGRS\n" + positionText(draft.position)));
         Button copy = button("Kopiera MGRS", () -> {
@@ -221,14 +204,14 @@ final class LocalPlanner {
         content.addView(buttonRow(button("Visa på kartan", () -> {
             try { if (layer == null) throw new IllegalStateException(); layer.center(draft); dismiss(); }
             catch (RuntimeException failure) { ui.showToast("Kartan kunde inte centreras"); }
-        }), button("Flytta på kartan", () -> form(draft, true))));
+        }), button("Flytta på kartan", () -> form(selected, true))));
         content.addView(label("Bild · " + (draft.imageRef == null ? "Ingen lokal bild" : "Sparad lokalt")));
         LocalImagePreview preview = draft.imageRef == null ? null : imagesUi.preview(draft);
         if (preview != null) {
             content.addView(preview);
             content.addView(buttonRow(button("Visa bild", () -> imagesUi.view(draft)),
-                    button("Ersätt bild", () -> imagesUi.pick(draft))));
-        } else content.addView(button("Lägg till bild", () -> imagesUi.pick(draft)));
+                    button("Ersätt bild", () -> imagesUi.pick(selected))));
+        } else content.addView(button("Lägg till bild", () -> imagesUi.pick(selected)));
         if (draft.type.supportsBearing()) {
             LinearLayout bearing = new LinearLayout(context);
             bearing.addView(label("Bäring: " + (draft.bearingDeg == null ? "Ej angiven" :
@@ -257,7 +240,7 @@ final class LocalPlanner {
         details.addView(label("Skapad: " + localTime(draft.createdAt) + "\nÄndrad: " + localTime(draft.updatedAt)
                 + "\nRevision: " + draft.revision + "\nLokal = utkast på denna enhet. Serveranslutning innebär inte synkronisering eller bekräftad delning."
                 + "\nEndast syntetiska testdata i denna prototyp.\nKartpilen är en 100 m riktningsmarkering från sann nord, inte sensorräckvidd."));
-        if (draft.imageRef != null) details.addView(button("Ta bort bild", () -> imagesUi.detach(draft)));
+        if (draft.imageRef != null) details.addView(button("Ta bort bild", () -> imagesUi.detach(selected)));
         details.addView(button("Förbered metadatakopia", () -> preparation.show(draft.uid)));
         if (labAllowed.getAsBoolean()) {
             details.addView(button("Skapa granskad kartkopia · labb", () -> {
@@ -269,7 +252,7 @@ final class LocalPlanner {
             }));
             details.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
         }
-        details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(draft)));
+        details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(selected)));
         details.setVisibility(View.GONE);
         Button expand = button("Fler uppgifter", () -> { });
         expand.setOnClickListener(view -> {
@@ -285,7 +268,7 @@ final class LocalPlanner {
         heading.setPadding(dp(16), dp(12), dp(16), dp(4));
         dismiss();
         dialog = new AlertDialog.Builder(context).setCustomTitle(heading)
-                .setView(scroll(content)).setPositiveButton("Redigera", (ignored, which) -> form(draft))
+                .setView(scroll(content)).setPositiveButton("Redigera", (ignored, which) -> form(selected))
                 .setNegativeButton("Till listan", (ignored, which) -> list()).create();
         dialog.setOnDismissListener(ignored -> { if (preview != null) preview.close(); });
         dialog.show();
@@ -298,13 +281,17 @@ final class LocalPlanner {
         return row;
     }
 
-    private void form(TmmDraft original) { form(original, false); }
+    private void form(Selection selected) { form(selected, false); }
 
-    private void form(TmmDraft original, boolean chooseOnOpen) {
+    private void form(Selection selected, boolean chooseOnOpen) {
+        TmmDraft original = selected == null ? null : selected.draft;
+        LocalV2.Snapshot formSnapshot = storage.snapshot;
         if (closed || isBusy() || !localAccess()) return;
         LinearLayout fields = column();
         fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
                 + "Position anges i MGRS (5 + 5 siffror, 1 m ruta). Välj även plats på kartan."));
+        String storageWarning = LocalStorageUi.warning(storage);
+        if (!storageWarning.isEmpty()) fields.addView(label(storageWarning));
         Map<DraftForm.Field, EditText> inputs = new EnumMap<>(DraftForm.Field.class);
         EditText id = field(fields, inputs, DraftForm.Field.DISPLAY_ID, "Enhetens ID", original == null ? "" : original.displayId);
         Spinner type = spinner(fields, "Typ", new String[]{"Mini", "Scout", "PIR", "Gateway"});
@@ -397,8 +384,8 @@ final class LocalPlanner {
             if (closed || !localAccess()) return;
             for (EditText input : inputs.values()) input.setError(null);
             formError.setText("");
-            Position selected;
-            try { selected = position.resolve(value(mgrs)); }
+            Position chosenPosition;
+            try { chosenPosition = position.resolve(value(mgrs)); }
             catch (IllegalArgumentException invalid) {
                 mgrs.setError("Ange giltig MGRS med zon, ruta och 5 + 5 siffror (80°S–84°N), eller välj plats på kartan.");
                 mgrs.requestFocus();
@@ -413,7 +400,7 @@ final class LocalPlanner {
             }
             DraftForm.Result result = DraftForm.validate(original, value(id), TYPES[type.getSelectedItemPosition()],
                     DeviceStatus.values()[status.getSelectedItemPosition()], value(owner), deployed.utcText(), value(comment),
-                    DraftForm.decimalText(selected.latitude), DraftForm.decimalText(selected.longitude), bearingDegrees, Instant.now());
+                    DraftForm.decimalText(chosenPosition.latitude), DraftForm.decimalText(chosenPosition.longitude), bearingDegrees, Instant.now());
             if (!result.isValid()) {
                 EditText firstError = null;
                 for (Map.Entry<DraftForm.Field, DraftForm.Error> error : result.errors.entrySet()) {
@@ -426,7 +413,7 @@ final class LocalPlanner {
                 if (firstError != null) firstError.requestFocus();
                 return;
             }
-            Runnable save = () -> save(result.draft, editor, fields, formError);
+            Runnable save = () -> save(selected == null ? formSnapshot.select(result.draft.uid) : selected, result.draft, editor, fields, formError);
             if (DraftForm.hasDuplicateId(result.draft.displayId, result.draft.uid, drafts)) {
                 confirmation = new AlertDialog.Builder(context).setTitle("Samma ID finns redan")
                         .setMessage("En annan lokal enhet har samma ID. De sparas som separata enheter. Vill du spara ändå?")
@@ -438,18 +425,21 @@ final class LocalPlanner {
         if (chooseOnOpen) choosePosition.post(() -> choosePosition.performClick());
     }
 
-    private void save(TmmDraft draft, AlertDialog editor, LinearLayout fields, TextView error) {
+    private void save(Selection selected, TmmDraft draft, AlertDialog editor, LinearLayout fields, TextView error) {
         if (closed || !editor.isShowing() || !localAccess()) return;
         busy(editor, fields, true);
         worker.execute(() -> {
             try {
-                store.save(draft);
-                List<TmmDraft> loaded = store.load();
+                if (closed || !localAllowed.getAsBoolean()) throw new IllegalStateException();
+                store.save(selected.storeId, selected.state, draft);
+                LocalV2Store.Inspection loaded = store.inspect();
+                if (!loaded.requireV2().storeId.equals(selected.storeId)) throw new IllegalStateException();
                 ui.queueEvent(() -> {
                     if (closed) return;
                     refresh(loaded);
                     editor.dismiss();
-                    review(draft);
+                    Selection current = storage.snapshot.select(draft.uid);
+                    if (current.draft != null) review(current); else list();
                 });
             } catch (Exception failure) {
                 ui.queueEvent(() -> {
@@ -463,19 +453,21 @@ final class LocalPlanner {
         });
     }
 
-    private void confirmDelete(TmmDraft draft) {
+    private void confirmDelete(Selection selected) {
+        TmmDraft draft = selected.draft;
         if (closed || isBusy() || !localAccess()) return;
         dismiss();
         dialog = new AlertDialog.Builder(context).setTitle("Ta bort lokalt utkast?")
                 .setMessage("Detta tar bara bort det lokala utkastet. Ingen server eller mottagare påverkas.")
-                .setNegativeButton("Avbryt", (ignored, which) -> review(draft))
+                .setNegativeButton("Avbryt", (ignored, which) -> review(selected))
                 .setPositiveButton("Ta bort", (ignored, which) -> {
                     if (closed || !localAccess()) return;
                     worker.execute(() -> {
                         try {
-                            DraftAttachments.Result result = attachments.delete(draft);
+                            if (closed || !localAllowed.getAsBoolean()) throw new IllegalStateException();
+                            DraftAttachments.Result result = attachments.delete(selected);
                             ui.queueEvent(() -> { if (!closed) {
-                                refresh(result.drafts); list();
+                                refresh(result.storage); list();
                                 if (result.cleanupFailed) ui.showToast("Utkastet är borttaget men bildkopian kunde inte tas bort");
                             } });
                         } catch (Exception failure) {
@@ -486,11 +478,12 @@ final class LocalPlanner {
         dialog.show();
     }
 
-    private void refresh(List<TmmDraft> loaded) {
-        drafts = loaded;
+    private void refresh(LocalV2Store.Inspection loaded) {
+        storage = loaded;
+        drafts = loaded.snapshot.activeDrafts();
         try {
             if (layer == null) layer = new LocalDraftLayer(map, this::selected);
-            layer.render(loaded);
+            layer.render(drafts);
         } catch (Exception failure) {
             if (layer != null) layer.close();
             layer = null;
@@ -640,9 +633,9 @@ final class LocalPlanner {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
 
-    private boolean isBusy() { return positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy(); }
+    private boolean isBusy() { return storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy(); }
 
-    void cancelSharing() { sharing.stopSending(); preparation.stop(); copyUi.stop(); }
+    void cancelSharing() { storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); }
 
     void disableSharing() { sharing.close(); preparation.cancel(); copyUi.cancel(); }
 
@@ -654,6 +647,7 @@ final class LocalPlanner {
         preparation.close();
         copyUi.close();
         imagesUi.close();
+        storageUi.close();
         worker.shutdown();
         if (layer != null) layer.close();
     }

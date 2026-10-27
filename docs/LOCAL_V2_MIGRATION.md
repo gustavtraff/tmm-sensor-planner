@@ -7,10 +7,10 @@ It reuses the [v2 store's](LOCAL_V2_STORAGE.md) permanent lock, bounded reader,
 projected-frame validation, file-sync and atomic replacement. No new format,
 domain schema, fixture bytes, dependency or activation sidecar is introduced.
 
-**Core only; not called by the app.** Exercise this only on explicitly selected
-synthetic private test directories until every planner/image writer and the app's
-activation/lifecycle handling are converted together. There is no APK version bump,
-automatic upgrade, production activation, reset/restore or image migration here.
+**Original core slice:** #111 added no app caller. The subsequent
+[versionCode 20 candidate](VERSIONED_PLANNER_STORAGE.md) now invokes migration only
+after explicit app confirmation and converts planner/image writers together.
+Signed runtime/phone upgrade acceptance remains pending. There is no automatic upgrade, reset/restore or image-byte migration here.
 
 ## Explicit operation and preservation
 

@@ -162,3 +162,12 @@ order and assigning fresh identity/version 1 with empty history. It never promot
 missing/corrupt input or invents pre-v2 history. DraftStore reuses its strict v1
 decoder internally; its public behavior and writer remain unchanged. The app has
 no migration call or v2 activation yet.
+
+
+## Versioned planner integration — 2026-10-27
+
+[The versionCode 20 candidate](VERSIONED_PLANNER_STORAGE.md) now routes all planner
+and image mutations through LocalV2Store expected states, with explicit upgrade/
+new-dataset choices. It retains the existing directory and image files. DraftStore
+v1 public behavior/writer and fixtures remain unchanged; no mixed writer is used
+in the new app. Signing and actual runtime/phone upgrade acceptance remain pending.
