@@ -143,3 +143,12 @@ DraftStore v1 implementation/fixture, missing-file behavior and image ownership
 remain unchanged. No existing writer is activated against v2, and no migrator,
 file writer, apply transaction or reset is included. Passing fixture/codec tests
 does not establish migration/durability or Android compatibility.
+
+
+## Isolated v2 transaction implementation — 2026-10-27
+
+[LocalV2Store](LOCAL_V2_STORAGE.md) now persists the approved v2 frame in an explicitly
+selected private test directory and commits prepared metadata plus decision evidence
+atomically. It has expected-state save/delete and local-only operation readback.
+This live DraftStore v1 implementation, fixture and Android callers remain unchanged.
+No migration/activation/reset exists; do not mix writers or infer versions from v1.

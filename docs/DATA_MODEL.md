@@ -167,3 +167,11 @@ slot/history values and computes canonical fingerprints in memory. TmmDraft's
 domain schema, existing DraftStore, inbox and outgoing metadata contracts remain
 unchanged. There is no storage activation, migration or application. Counter and
 image-binding evidence is not source authentication or a durable confirmation token.
+
+
+## Isolated v2 file persistence — 2026-10-27
+
+[The core v2 file store](LOCAL_V2_STORAGE.md) now writes the already approved bytes,
+retaining persistent versions/deletions and atomic metadata-only import history.
+No data contract, golden fixture, domain schema, inbox or outgoing version changes.
+Current Android/v1 writers are unchanged; migration/activation remains required.

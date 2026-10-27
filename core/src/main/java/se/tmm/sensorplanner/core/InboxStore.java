@@ -40,6 +40,23 @@ public final class InboxStore {
     /** Missing, unreadable or unsupported storage is an error, never an empty inbox. */
     public synchronized Snapshot load() throws IOException { return locked(this::read); }
 
+    interface LockedSnapshotOperation<T> { T run(Snapshot snapshot) throws IOException; }
+
+    // Import coordination always takes the inbox lock before the local lock; no public lock nesting.
+    <T> T withLockedSnapshot(LockedSnapshotOperation<T> operation) throws IOException {
+        try {
+            return locked(() -> {
+                Snapshot snapshot = read();
+                try { return operation.run(snapshot); }
+                catch (IOException failure) { throw new CoordinatorFailure(failure); }
+            });
+        } catch (CoordinatorFailure failure) { throw failure.io; }
+    }
+    private static final class CoordinatorFailure extends RuntimeException {
+        final IOException io;
+        CoordinatorFailure(IOException io) { this.io = io; }
+    }
+
     /** Returns null only when a valid committed inbox has no matching logical receipt. */
     public synchronized Receipt find(String contextId, TmmDraft incoming) throws IOException {
         String context = context(contextId);
@@ -135,11 +152,11 @@ public final class InboxStore {
             try (FileChannel channel = FileChannel.open(directory.resolve("inbox.lock"),
                     StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
                  FileLock lock = channel.tryLock()) {
-                if (lock == null) throw failure("Inbox is busy; retry explicitly");
+                if (lock == null) throw new BusyFailure();
                 return operation.run();
             }
         } catch (OverlappingFileLockException e) {
-            throw failure("Inbox is busy; retry explicitly");
+            throw new BusyFailure();
         } catch (SafeFailure e) {
             throw e;
         } catch (IOException e) {
@@ -180,7 +197,10 @@ public final class InboxStore {
     }
 
     static IOException failure(String message) { return new SafeFailure(message); }
-    private static final class SafeFailure extends IOException {
+    static final class BusyFailure extends SafeFailure {
+        BusyFailure() { super("Inbox is busy; retry explicitly"); }
+    }
+    private static class SafeFailure extends IOException {
         SafeFailure(String message) { super(message); }
     }
 

@@ -482,3 +482,15 @@ offline envelope checker pass. No schema, fixture, InboxReview or outgoing API w
 changed. No actual application, file writer/migration/activation/reset, Android
 adapter, emulator, Docker, SDK build, device/server/transport or image-library suite
 was run. These are not durable-transaction or ATAK compatibility results.
+
+
+## Isolated local v2 transactions — 2026-10-27
+
+`sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8`.
+[The store evidence](LOCAL_V2_STORAGE.md#verification--2026-10-27) covers atomic
+result/history, Add/re-add/selected/Keep/equal, stale full state/images/deletions,
+concurrency/locks, child-process crash boundaries, injected partial-write/sync/
+replacement/cleanup failures, exact-ID replay/readback and unchanged files at bounds.
+Existing core/inbox/v1/codec/preparation/publication/restart/100-device suites pass.
+No emulator, Docker, Android/SDK build, phone test, image suite or CI wait ran.
+No migration/activation, trusted receive adapter or ATAK compatibility is established.

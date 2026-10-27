@@ -191,3 +191,11 @@ archive command, private distribution boundary, Maven access restriction and
 2.x/3.x tooling discrepancy. The release rules now consume the mapping provided
 by the TAK build plugin and use a TMM-specific repackaging namespace. No service
 upload, standard-host acceptance or release approval is implied by a local build.
+
+
+## Isolated local v2 transaction work — 2026-10-27
+
+[LocalV2Store](LOCAL_V2_STORAGE.md) is SDK-independent and tested by `sh scripts/test.sh`.
+Use only synthetic temporary storage; do not wire it into the active planner until
+the v1 migration and every writer are converted together. No APK version/signing
+change accompanies this unwired slice.
