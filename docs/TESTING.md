@@ -440,3 +440,27 @@ relative document targets and `git diff --check` passed. Only synthetic temporar
 files/fixtures were used. No emulator, Docker container, Android/SDK build, server,
 transport, reset, image-library suite or CI wait was run. Exact format approval,
 Android/filesystem/ATAK compatibility and cleanup activation remain separate gates.
+
+## Approved local v2 codec/fingerprint implementation (#15/D) — 2026-10-27
+
+The owner explicitly approved the exact local v2/TMMR bytes and merged #102's
+independent test material. `JAVA_HOME=<Temurin 17.0.20.1+1> sh scripts/test.sh`
+passed on macOS with `--release 8` and assertions. The independent oracle is kept:
+all production-decoded fields and signed-zero bits match it, re-encoding reproduces
+the fixed frames exactly, and all 18 canonical fingerprint vectors match. Both
+readers reject the re-sealed malformed frame/domain/history corpus, with production
+errors fixed and input bytes preserved.
+
+LocalV2CodecTest additionally verifies immutable list/fingerprint ownership,
+invalid model/history/provenance/image/counter rejection, both 1,000-slot and
+1,000-decision caps together, exact 65,536-byte ASCII/multibyte UTF-8 boundaries,
+malformed text, valid Long.MAX_VALUE stored evidence, and exact 16 MiB encoding/
+decoding versus one byte over. Existing core/inbox/review/v1 storage/publication/
+preparation/100-device checks and the offline four-type envelope checker pass.
+See [the in-memory API and evidence boundary](LOCAL_V2_CODEC.md).
+
+No production v1 DraftStore, domain schema, inbox, outgoing metadata or fixture
+bytes changed. No file writer, migration, activation, apply or reset was added.
+Codec tests do not establish atomic commit/migration durability or SDK/ATAK behavior.
+No emulator, Docker container, Android/SDK build, device/server/transport trial,
+image-library suite or CI wait ran. Only synthetic fixtures/temp data were used.
