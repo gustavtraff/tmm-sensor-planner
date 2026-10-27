@@ -18,6 +18,15 @@ There is no file writer/migrator, activation, apply/reset or Android/transport
 integration. The documented v1 history gap remains. Cleanup activation/ownership
 encoding remains a separate review gate; inbox format 1 is unchanged.
 
+## Preparation follow-up — 2026-10-27
+
+[The SDK-independent import preparation interface](IMPORT_DECISION_PREPARATION.md)
+now provides exact Add/re-add/keep/selected-value previews and one-use preparation
+against supplied snapshots. It binds receipt/store/state/image evidence and
+revalidates fresh inputs. It adds no file writer, migration, activation, application,
+Android or transport, and leaves InboxReview compatible. Preview/Prepared objects
+are not committed decisions; the later transaction must recheck atomically.
+
 ## Adopted user flow and scope
 
 The [owner-approved receiving flow](https://github.com/gustavtraff/tmm-sensor-planner/issues/15)
