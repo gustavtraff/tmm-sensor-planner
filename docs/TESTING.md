@@ -516,3 +516,19 @@ tests, external SDK probes, CivDebug build/lint/app tests/static APK checks and
 CivRelease assembly. No full image suite, CI wait, emulator, Docker, signing upload
 or phone/server test ran. Signed upgrade/marker/provider/lifecycle acceptance is
 still required, and trusted import ingestion remains unimplemented.
+
+## Read-only inbox decision coverage (#15) — 2026-10-27
+
+`sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8` and assertions.
+[InboxDecisionCoverage](INBOX_DECISION_COVERAGE.md) is tested against the unchanged
+independent v2 history fixture for exact receipt/inbox/context/metadata binding,
+current versus historical result versions, labels/UUID separation, multiple retained
+decisions, unmatched history, equal/no-history and empty cases. Local edits, image
+changes, deletion/re-add and old values restored at newer versions lose coverage;
+invalid same-version/image/result combinations fail closed. All receipts/decisions,
+input bytes and immutable outputs are preserved. Existing core/store/migration/
+preparation/publication/100-device and offline envelope checks pass.
+
+This adds no UI, LocalV2Store, format, import-writer or transport changes. No Docker,
+emulator, Android/SDK build, device/server/transport trial or image-library suite
+was run. Coverage remains a supplied-snapshot read model, never write authorization.
