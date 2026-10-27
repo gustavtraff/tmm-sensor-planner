@@ -7,9 +7,10 @@ file persistence and the prepared import transaction using those existing bytes.
 No format, fixture, domain schema, inbox encoding or outgoing protocol changes.
 
 **Not activated in the app.** Use an explicitly selected private test directory.
-The live planner and image adapters still use DraftStore v1. There is no v1
-migrator, activation record, cleanup/reset, production import entry or transport.
-Do not point this store at an existing installation, infer versions from revisions,
+The live planner and image adapters still use DraftStore v1. An explicit
+[core migrator](LOCAL_V2_MIGRATION.md) now exists, but no activation record,
+cleanup/reset, production import entry or transport is implemented.
+Do not point this store at a live installation, infer versions from revisions,
 or initialize it as a fallback for missing/corrupt/v1 data. No APK version bump or
 new signing archive is needed for this unwired core slice.
 
@@ -149,9 +150,9 @@ These are core transaction/process tests, not migration or ATAK acceptance.
 
 Before activation, inventory and migrate every writer together: LocalPlanner's
 creation/form/map-save path and DraftAttachments' attach/replace/remove/delete
-path currently call v1 revision-only writes. Add a real v1-to-v2 migrator and
-interruption tests preserving field/revision/image/order, explicit dataset activation
-and expected-state propagation through all callers. Then connect the optional
+path currently call v1 revision-only writes. The isolated [v1-to-v2 migrator](LOCAL_V2_MIGRATION.md)
+and interruption tests now exist. Add explicit dataset activation and expected-state
+propagation through all callers. Then connect the optional
 review/choice UI to a background transaction with source/lifecycle checks, capacity
 feedback and unambiguous current-versus-historical result handling. Genuine source
 context/transport and signed two-client/phone verification remain separate gates.
