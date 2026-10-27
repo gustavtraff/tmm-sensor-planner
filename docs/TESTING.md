@@ -532,3 +532,41 @@ preparation/publication/100-device and offline envelope checks pass.
 This adds no UI, LocalV2Store, format, import-writer or transport changes. No Docker,
 emulator, Android/SDK build, device/server/transport trial or image-library suite
 was run. Coverage remains a supplied-snapshot read model, never write authorization.
+
+## Inbox coverage UI integration (#15) — 2026-10-27
+
+[The coverage-aware review UI](INBOX_COVERAGE_UI.md) passed 106 targeted host-JVM
+Robolectric cases with Temurin 17.0.20.1+1, Android API 26/35 and the public standalone
+images test harness. Exact selected classes/counts:
+
+| Class | Passed cases |
+|---|---:|
+| InboxCoverageUiTest | 22 |
+| InboxReviewUiTest | 22 |
+| InboxReviewTextTest | 4 |
+| ImportDecisionUiTest | 30 |
+| ImportCommitUiTest | 28 |
+
+Run with JAVA_HOME/ANDROID_HOME/GRADLE_USER_HOME set to the existing local toolchain:
+
+```sh
+./gradlew -p images --no-daemon '-Dorg.gradle.jvmargs=-Xmx1g -Dfile.encoding=UTF-8' testDebugUnitTest \
+  --tests se.tmm.sensorplanner.core.InboxCoverageUiTest \
+  --tests se.tmm.sensorplanner.plugin.local.InboxReviewUiTest \
+  --tests se.tmm.sensorplanner.plugin.local.InboxReviewTextTest \
+  --tests se.tmm.sensorplanner.plugin.local.ImportDecisionUiTest \
+  --tests se.tmm.sensorplanner.core.ImportCommitUiTest
+```
+
+Tests verify current/older/no-match/unavailable coverage, all variants visible,
+source separation, image changes/restored values, known deletion/re-add, later
+SAME_METADATA without forcing another choice, exact Add/update/keep decision
+history versus observations, complete unmatched history with an empty inbox,
+strict snapshot pairing, legacy compatibility/stale callbacks and unchanged
+inbox/local/image bytes while navigating. No decisions are saved by this browser.
+
+`sh scripts/test.sh` and `git diff --check` also passed. Standard library-module
+Gradle deprecation/annotation warnings remain; there were no test failures/errors
+or skipped cases. No Docker/emulator, ATAK SDK app/APK build, signing submission,
+physical-device/server/transport trial or CI wait was run. This is UI-component
+and existing-core verification, not signed ATAK runtime/live-ingress acceptance.

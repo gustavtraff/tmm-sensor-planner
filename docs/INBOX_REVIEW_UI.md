@@ -128,3 +128,13 @@ button, preserves inbox/receipt selection identity and loads actual versioned st
 through its own caller contract. It does not manufacture v2 from this read model,
 activate a production entry or provide an apply action. Real storage/ingress and
 controller lifecycle integration remain later work.
+
+## Decision coverage integration — 2026-10-27
+
+[The coverage-aware UI](INBOX_COVERAGE_UI.md) adds `show(review, coverage)` while
+keeping existing calls compatible. It distinguishes currently covered variants,
+older decisions and unavailable/no-match coverage, preserves every variant and
+exposes both exact-receipt and complete retained decision histories. Observations
+stay separate. Both models must come from the same validated supplied snapshots;
+no new loader, writer, format or transport is introduced. Legacy calls explicitly
+show unavailable decision coverage and clear any older coverage state.
