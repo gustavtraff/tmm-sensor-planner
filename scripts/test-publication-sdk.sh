@@ -15,6 +15,8 @@ printf '%s\n' scripts/java/se/tmm/sensorplanner/tools/DataSyncMetadataProbe.java
     app/src/main/java/se/tmm/sensorplanner/plugin/PublicationProbeFixture.java \
     scripts/java/se/tmm/sensorplanner/plugin/PublicationFixtureCheck.java \
     app/src/main/java/se/tmm/sensorplanner/plugin/publication/PublicationCot.java \
+    app/src/main/java/se/tmm/sensorplanner/plugin/publication/PublicationMapCopy.java \
+    scripts/java/se/tmm/sensorplanner/plugin/publication/PublicationMapCopyCheck.java \
     app/src/main/java/se/tmm/sensorplanner/plugin/publication/PublicationEnvelopeFixtures.java \
     scripts/java/se/tmm/sensorplanner/tools/PublicationEnvelopeVerifier.java \
     scripts/java/se/tmm/sensorplanner/plugin/publication/PublicationEnvelopeSdkCheck.java >> "$build_dir/sources.txt"
@@ -23,6 +25,8 @@ printf '%s\n' scripts/java/se/tmm/sensorplanner/tools/DataSyncMetadataProbe.java
 "$JAVA_HOME/bin/java" -Duser.language=en -Duser.country=US \
     -cp "$build_dir/classes:$sdk_classpath" se.tmm.sensorplanner.tools.PublicationSdkProbe
 for locale in en sv; do
+    "$JAVA_HOME/bin/java" -Duser.language="$locale" -Duser.country=SE \
+        -cp "$build_dir/classes:$sdk_classpath" se.tmm.sensorplanner.plugin.publication.PublicationMapCopyCheck
     "$JAVA_HOME/bin/java" -Duser.language="$locale" -Duser.country=SE \
         -cp "$build_dir/classes:$sdk_classpath" se.tmm.sensorplanner.plugin.publication.PublicationEnvelopeSdkCheck
     "$JAVA_HOME/bin/java" -Duser.language="$locale" -Duser.country=SE \

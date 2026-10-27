@@ -105,3 +105,10 @@ with a local image. Image-exclusion/no-feed/no-send wording was observed and bot
 private snapshots remained byte-identical. This closes the bounded signed-dialog
 check, not every failure/lifecycle case or physical-phone acceptance. Production
 handoff and trusted ingress remain separate; no source change or new ZIP is needed.
+
+## Separate saved-record map-copy candidate — 2026-10-27
+
+[The lab-only map-copy pilot](SAVED_DRAFT_COPY.md) adds its own read/review/fresh
+confirmation action. It cannot consume this private prepared result and leaves
+this memory-only action unchanged. A shared metadata-summary method prevents
+review fields drifting between the two views. New caller runtime needs signed v19.

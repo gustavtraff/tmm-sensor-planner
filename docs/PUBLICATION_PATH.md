@@ -181,6 +181,15 @@ preparation also passed a bounded native-host Cancel/memory-only-result check.
 This supersedes the pending new-tag experiment status above, not the remaining
 real-draft handoff, source-context, changed-copy and recipient-application gates.
 
+## Saved-record handoff candidate — 2026-10-27
+
+[The v19 saved-draft map-copy pilot](SAVED_DRAFT_COPY.md) now connects a fresh saved
+review to the evidenced SDK adapter behind the existing isolated-lab guards.
+An exact existing copy is reused without import; differing UUID copies are blocked.
+The worker/lifecycle permit protects the queued UI operation. Signed v19 runtime
+and the actual production destination/freshness/result boundary remain pending;
+this does not enable an operational Share action or change #15 storage.
+
 ## Remaining gates
 
 [Private app preparation](PRIVATE_PREPARATION_UI.md) now implements the review,
