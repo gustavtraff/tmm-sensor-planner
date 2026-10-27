@@ -1,7 +1,9 @@
 # Independent local v2 proposal fixtures (#15/D)
 
 Status: **exact local v2/TMMR bytes explicitly approved on 2026-10-27**, including
-merged PR #102 test material. There is no implemented migration or file writer. See [the exact frame/fingerprint proposal](../../../docs/LOCAL_V2_FORMAT_PROPOSAL.md).
+merged PR #102 test material. The [core migration](../../../docs/LOCAL_V2_MIGRATION.md)
+now tests actual file conversion against these unchanged expected bytes. See
+[the exact frame/fingerprint proposal](../../../docs/LOCAL_V2_FORMAT_PROPOSAL.md).
 All values/identities/coordinates/images are synthetic. No ATAK, outgoing codec,
 production v2 writer or migrator is used to generate or inspect them. The
 in-memory production codec/fingerprint implementation now matches these same bytes.
@@ -94,7 +96,10 @@ and has zero operations/deleted slots. The new identity is fixed for this fixtur
 a real future migration must generate one. Empty valid v1 expects empty v2 with a
 new identity. The Java test loads v1 using production DraftStore and compares every
 field/revision/image handle and double bits with the expected v2 inspection; it
-never invokes a v2 migrator. The old reader rejects v2 and preserves its bytes.
+never invokes a v2 migrator. A separate LocalV2MigrationTest now executes real
+migration and compares its result against these fixed expected bytes, normalizing
+only the random store identity for that comparison. The old reader rejects v2
+and preserves its bytes.
 
 V1 cannot supply deleted UUIDs, earlier incarnations/state versions, historical
 local image/metadata variants, incoming/losing variants absent from separate inbox

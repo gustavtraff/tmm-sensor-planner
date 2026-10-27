@@ -175,3 +175,12 @@ image-binding evidence is not source authentication or a durable confirmation to
 retaining persistent versions/deletions and atomic metadata-only import history.
 No data contract, golden fixture, domain schema, inbox or outgoing version changes.
 Current Android/v1 writers are unchanged; migration/activation remains required.
+
+
+## Isolated v1-to-v2 migration — 2026-10-27
+
+[The explicit core migrator](LOCAL_V2_MIGRATION.md) now converts the existing
+bytes under lock without changing domain/inbox/outgoing contracts. Local revision
+is preserved independently of initial persistent version 1; decision/deleted
+history starts empty. All existing image handles and field bits/order survive.
+No historical evidence is inferred and no Android caller is activated.

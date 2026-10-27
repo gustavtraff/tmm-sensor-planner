@@ -5,7 +5,8 @@ on 2026-10-27, including the independent test material from merged PR #102.**
 Approval was recorded in the conversation. [The production in-memory codec and
 verification](LOCAL_V2_CODEC.md) now implement these bytes without changing the
 contract. An isolated [core file store and transaction](LOCAL_V2_STORAGE.md) now
-implements persistence; migration, Android v2 activation and reset remain unimplemented.
+implements persistence and [explicit core migration](LOCAL_V2_MIGRATION.md);
+Android v2 activation and reset remain unimplemented.
 The historical proposal filename is retained. [D's adopted logical contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md)
 continues to govern later transaction work. Outgoing metadata, preparation,
 Android and transport remain separate work.
@@ -176,9 +177,10 @@ frame unchanged. Do not treat malformed history as a reason to forget it. Capaci
 warnings/full/unknown reporting and process-restart commit/readback behavior remain
 as specified in D. Fingerprints are not authorization; source trust remains external.
 
-## Expected migration from v1 — fixture, not a migrator
+## Adopted migration from v1
 
-Under the permanent local lock, a future migration must validate all v1 bytes,
+The [isolated core migration](LOCAL_V2_MIGRATION.md) now implements this rule.
+Under the permanent local lock, migration must validate all v1 bytes,
 assign one new opaque store UUID, and copy each active record in order to a slot
 at stateVersion **1**, retaining its original local revision and every field/image
 handle/signed-zero bit/Instant. Start with zero operation records and no deleted
@@ -198,8 +200,8 @@ reviews must be discarded; protection against delete/re-add starts only at v2.
 Empty valid v1 migrates to an empty v2 with a new identity. Missing/corrupt/future
 storage is not an empty migration source. Additional v2 overhead may exceed the
 16 MiB cap even for a valid v1 file: fail before replacement, preserve v1, do not
-truncate fields or delete records to fit. The future migrator still needs atomic
-replacement/fault/restart tests. The legacy reader already rejects version 2; no
+truncate fields or delete records to fit. Atomic replacement/fault/restart tests are recorded in
+[the migration evidence](LOCAL_V2_MIGRATION.md#verification--2026-10-27). The legacy reader already rejects version 2; no
 fallback/rewrite is allowed. Dataset reset/restore/history loss remains a separate
 explicit operation; this frame is not a rollback detector or mission selector.
 

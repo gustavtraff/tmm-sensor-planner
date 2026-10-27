@@ -494,3 +494,15 @@ replacement/cleanup failures, exact-ID replay/readback and unchanged files at bo
 Existing core/inbox/v1/codec/preparation/publication/restart/100-device suites pass.
 No emulator, Docker, Android/SDK build, phone test, image suite or CI wait ran.
 No migration/activation, trusted receive adapter or ATAK compatibility is established.
+
+
+## Isolated v1-to-v2 migration — 2026-10-27
+
+`sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8`.
+[LocalV2MigrationTest evidence](LOCAL_V2_MIGRATION.md#verification--2026-10-27) covers
+actual old-to-new independent fixtures, all-field/image/inbox/lock preservation,
+legacy writer rejection, count/byte boundaries, malformed sources, competing
+migrations, child-process locks/crashes and injected write/sync/rename/cleanup
+failures. Existing core suites pass. No Android/SDK build, emulator, Docker, phone
+test, image-library suite, signing upload or CI wait ran. App migration/activation
+and trusted receive/runtime verification remain separate.

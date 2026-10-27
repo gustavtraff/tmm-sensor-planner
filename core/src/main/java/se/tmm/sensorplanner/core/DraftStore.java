@@ -91,7 +91,6 @@ public final class DraftStore {
     }
 
     private Map<UUID, TmmDraft> read() throws IOException {
-        Map<UUID, TmmDraft> records = new LinkedHashMap<>();
         byte[] bytes;
         try (InputStream file = Files.newInputStream(data)) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -103,10 +102,16 @@ public final class DraftStore {
             }
             bytes = buffer.toByteArray();
         } catch (NoSuchFileException e) {
-            if (Files.notExists(data, LinkOption.NOFOLLOW_LINKS)) return records;
+            if (Files.notExists(data, LinkOption.NOFOLLOW_LINKS)) return new LinkedHashMap<>();
             throw new IOException("Draft storage is unavailable; original data preserved");
         }
-        if (bytes.length < 44) throw invalid();
+        return decodeV1(bytes);
+    }
+
+    // Shared strict v1 parser; migration supplies existing bytes while holding the permanent lock.
+    static Map<UUID, TmmDraft> decodeV1(byte[] bytes) throws IOException {
+        Map<UUID, TmmDraft> records = new LinkedHashMap<>();
+        if (bytes.length < 44 || bytes.length > MAX_BYTES) throw invalid();
         byte[] payload = Arrays.copyOf(bytes, bytes.length - 32);
         if (!MessageDigest.isEqual(digest(payload), Arrays.copyOfRange(bytes, payload.length, bytes.length))) {
             throw invalid();

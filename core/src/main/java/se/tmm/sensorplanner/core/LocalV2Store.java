@@ -7,7 +7,7 @@ import java.security.MessageDigest;
 import java.util.*;
 import static se.tmm.sensorplanner.core.LocalV2.*;
 
-/** Isolated private v2 store. No migration, Android activation, images or transport operations. */
+/** Isolated private v2 store/migration. No Android activation, images or transport operations. */
 public final class LocalV2Store {
     public enum Reason { BUSY, STALE, INVALID, CAPACITY, UNKNOWN }
     public enum Effect { COMMITTED, ALREADY_COMMITTED, ALREADY_EQUAL }
@@ -68,6 +68,20 @@ public final class LocalV2Store {
         });
     }
     public Snapshot load() throws IOException { return locked(this::read); }
+
+    /** Explicit in-place upgrade only. Existing valid v2 is returned unchanged for uncertain-outcome recovery. */
+    public Snapshot migrateV1() throws IOException {
+        return locked(() -> {
+            byte[] bytes = readBytes();
+            if (bytes.length >= 8 && java.nio.ByteBuffer.wrap(bytes).getInt(4) == 2) {
+                return LocalV2Codec.decode(bytes);
+            }
+            List<State> slots = new ArrayList<>();
+            for (TmmDraft draft : DraftStore.decodeV1(bytes).values()) slots.add(State.active(1, draft));
+            Snapshot migrated = new Snapshot(UUID.randomUUID(), slots, Collections.emptyList());
+            write(migrated); return migrated;
+        });
+    }
 
     /** Full expected-state guard, including image association; deleted re-add requires its exact slot. */
     public State save(UUID storeId, State expected, TmmDraft draft) throws IOException {
@@ -198,13 +212,16 @@ public final class LocalV2Store {
         return Files.notExists(path, LinkOption.NOFOLLOW_LINKS) || Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
     }
     private Snapshot read() throws IOException {
+        return LocalV2Codec.decode(readBytes());
+    }
+    private byte[] readBytes() throws IOException {
         try (InputStream input = Files.newInputStream(data, LinkOption.NOFOLLOW_LINKS)) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream(); byte[] chunk = new byte[8192]; int count;
             while ((count = input.read(chunk)) != -1) {
                 if (count > LocalV2Codec.MAX_BYTES - buffer.size()) throw failure(Reason.UNKNOWN);
                 buffer.write(chunk, 0, count);
             }
-            return LocalV2Codec.decode(buffer.toByteArray());
+            return buffer.toByteArray();
         }
     }
     private void write(Snapshot snapshot) throws IOException {

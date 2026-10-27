@@ -5,8 +5,8 @@ local mission cleanup, recorded explicitly in the conversation on 2026-10-25.**
 Exact local v2 byte/fingerprint encoding and #102 fixture material were subsequently
 approved explicitly on 2026-10-27; in-memory implementation is linked below.
 The separate [isolated core store and prepared transaction](LOCAL_V2_STORAGE.md)
-now implement file persistence. Migration, Android activation and cleanup/reset
-remain outside this implementation.
+now implement file persistence. An [isolated core migrator](LOCAL_V2_MIGRATION.md)
+is also implemented. Android activation and cleanup/reset remain separate work.
 Reviewed baseline: main `b69eabd` (#98). A–C, InboxStore format 1 and read-only
 InboxReview remain implemented and unchanged. No Android adapter, outgoing
 metadata/preparation, SDK or transport changes are included.

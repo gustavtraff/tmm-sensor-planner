@@ -152,3 +152,13 @@ selected private test directory and commits prepared metadata plus decision evid
 atomically. It has expected-state save/delete and local-only operation readback.
 This live DraftStore v1 implementation, fixture and Android callers remain unchanged.
 No migration/activation/reset exists; do not mix writers or infer versions from v1.
+
+
+## Isolated v1-to-v2 migration — 2026-10-27
+
+[The isolated core migration](LOCAL_V2_MIGRATION.md) now upgrades a complete valid
+v1 snapshot under the permanent lock, retaining all active fields/revisions/images/
+order and assigning fresh identity/version 1 with empty history. It never promotes
+missing/corrupt input or invents pre-v2 history. DraftStore reuses its strict v1
+decoder internally; its public behavior and writer remain unchanged. The app has
+no migration call or v2 activation yet.
