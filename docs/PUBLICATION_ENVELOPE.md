@@ -115,7 +115,15 @@ Android API 36 stubs and existing Gradle configuration. No SDK CotEvent.parse
 execution is claimed on the plain JVM; the known Android Log stub limitation is
 unchanged. No emulator, Docker, image suite, service upload or CI wait was run.
 
-## Required signed runtime gate
+## Signed runtime follow-up — 2026-10-26
+
+[The actual signed v18 two-client trial](PUBLICATION_ENVELOPE_RUNTIME.md) passed
+all four canaries, exact server/B exports, native Cancel/Done, identical repeats,
+pending-review cold restart/Unload and bounded private-state checks. The procedure
+below is retained for reproduction. The result does not enable real-draft handoff,
+changed-copy publishing, trusted ingress or image delivery.
+
+## Signed runtime procedure
 
 After human merge, prepare a new source ZIP and obtain a signed v18 APK. Keep the
 existing two-client lab exclusive to agent 1. Agent 2's #15 storage/format work
