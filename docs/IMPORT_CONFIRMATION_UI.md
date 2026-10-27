@@ -124,3 +124,12 @@ Next: integrate agent 2's read-only coverage when reviewed, establish the actual
 trusted ingress/context adapter and owner, wire the received-item entry and refresh
 lifecycle, and complete signed two-client/phone acceptance. The versionCode 20
 storage-upgrade runtime gate remains independent. #15 stays open.
+
+
+## Source-path follow-up — 2026-10-27
+
+[The verified SDK ingress surfaces](INGRESS_SOURCE_VERIFICATION.md) identify usable
+signatures and concrete provenance/coverage limits. Connection hints do not yet
+establish selected-feed identity; a native-import runtime observation gate remains
+before a live source owner may inject this endpoint. The existing logger-based
+lab inspector is not promoted to product ingress.

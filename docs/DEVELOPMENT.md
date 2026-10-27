@@ -208,3 +208,12 @@ planner writers](VERSIONED_PLANNER_STORAGE.md). The existing no-backup metadata
 directory keeps its historical name; do not create a second live copy or infer a
 new empty dataset on failure. Older binaries reject v2; do not downgrade a live
 migrated dataset. No source archive or signing upload is made by these tests.
+
+
+## Optional ingress signature check — 2026-10-27
+
+`sh scripts/test-ingress-sdk.sh` checks actual supplied SDK public listener/importer/
+map-event signatures without registering callbacks, constructing a host or starting
+a network. It is included in `scripts/check-sdk.sh`. [Source-path evidence and
+runtime limits](INGRESS_SOURCE_VERIFICATION.md) distinguish these checks from
+trusted feed identity, complete receipt coverage and actual runtime acceptance.
