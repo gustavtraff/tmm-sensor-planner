@@ -22,6 +22,7 @@ printf '%s\n' scripts/java/se/tmm/sensorplanner/tools/PublicationEnvelopeVerifie
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxFormatFixtureTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxStoreTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxReviewTest
+"$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.InboxDecisionCoverageTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.LocalV2FormatFixtureTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.LocalV2CodecTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ImportDecisionPreparationTest
