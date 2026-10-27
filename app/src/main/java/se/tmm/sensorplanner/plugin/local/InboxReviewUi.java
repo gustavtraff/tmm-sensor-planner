@@ -112,7 +112,7 @@ public final class InboxReviewUi {
                 + "\nKällkontexten autentiseras inte av vyn. Ägare är redigerbar metadata, inte verifierad avsändaridentitet.", false));
         Button preview = null;
         if (decisions != null) {
-            preview = new Button(context); preview.setText("Förhandsvisa importval · inget sparas"); preview.setMinHeight(dp(48)); content.addView(preview);
+            preview = new Button(context); preview.setText(decisions.allowsLocalCommit() ? "Granska importval · sparas först efter bekräftelse" : "Förhandsvisa importval · inget sparas"); preview.setMinHeight(dp(48)); content.addView(preview);
         }
         AlertDialog next = new AlertDialog.Builder(context).setTitle("Jämför variant · skrivskyddat").setView(scroll(content))
                 .setNegativeButton("Till varianter", (d, w) -> { if (active(token, d)) variants(group, token); })

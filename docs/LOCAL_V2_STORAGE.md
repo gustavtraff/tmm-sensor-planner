@@ -105,7 +105,10 @@ add the adopted capacity usage/warning UI (including the 80% threshold), preserv
 unsaved edits and explain slot/history exhaustion. This backend does not implement
 that UI or the separately gated mission-cleanup operation.
 
-`readback(expectedStoreId, operationId)` takes **only drafts.lock**, never the inbox
+`readback(prepared)` additionally verifies the full typed immutable command binding;
+a conflicting stored binding returns UNKNOWN. The older
+`readback(expectedStoreId, operationId)` queries identity only. Both take
+**only drafts.lock**, never the inbox
 lock. It never repairs or reapplies anything:
 
 | Status | Meaning |
@@ -158,3 +161,11 @@ runtime acceptance is pending. Next connect the optional
 review/choice UI to a background transaction with source/lifecycle checks, capacity
 feedback and unambiguous current-versus-historical result handling. Genuine source
 context/transport and signed two-client/phone verification remain separate gates.
+
+
+## Optional confirmation adapter — 2026-10-27
+
+[ImportCommitUi](IMPORT_CONFIRMATION_UI.md) now uses the existing transaction and
+Prepared-binding readback in an explicitly injected UI flow. It is not wired to
+a live receiver or trusted source mapping. No format, history, image or transport
+contract changes. Agent 2's decision-coverage read model remains separate.

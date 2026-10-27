@@ -7,6 +7,10 @@ and binding. No schema, storage, migration or synchronization policy changes.
 
 ## Components and caller contract
 
+[The optional local commit follow-up](IMPORT_CONFIRMATION_UI.md) now connects
+explicit confirmation to real v2 transactions when injected. The original
+four-argument constructor retains the memory-only behavior documented below.
+
 `ImportDecisionUi` takes an Android Context, a worker Executor, a pure MGRS
 formatter and a Host. The Host supplies a fast **thread-safe** availability/access/
 source policy, background loading of successfully validated inbox + genuine
@@ -35,7 +39,7 @@ button, no loader and no preparation action.
 **No production toolbar/planner entry, live receiver or activated v2 loader is
 added.** A future owner must supply actual storage/access policy and coordinate
 both controllers' lifecycle. Preview and commit are separate: the current Host
-has no commit method or prepared-result callback, and the private Prepared object
+has no commit method or prepared-result callback in the default mode, and the private Prepared object
 is discarded when the result closes. It is not exposed as durable consent for an
 automatic later write. No version bump or separate signing request is needed for
 this still-unwired component; v19's saved-map-copy runtime gate is unaffected.
@@ -118,3 +122,13 @@ No full image suite, emulator, Docker, signing upload or CI wait was run.
 Actual standard ATAK/phone layout/lifecycle, genuine v2 adapter loading, trusted
 transport, persistence, migration/activation and a user-facing apply action remain
 separate. Agent 2's storage work and the core/read contracts are untouched.
+
+
+## Optional confirmation follow-up — 2026-10-27
+
+The fifth-argument ImportCommitUi endpoint replaces the final memory-only action
+with an explicit local save and adds same-binding local ledger readback for unknown
+outcomes. [The complete caller/verification boundary](IMPORT_CONFIRMATION_UI.md)
+records the concrete stores, current source/access checks, retries and lifecycle.
+Default UI remains read-only/memory-only. No live receiver or production entry is
+added, and agent 2's read-only coverage work/format contracts are untouched.

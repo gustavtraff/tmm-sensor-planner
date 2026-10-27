@@ -12,7 +12,7 @@ import java.util.function.Function;
 import se.tmm.sensorplanner.core.*;
 import se.tmm.sensorplanner.core.ImportDecisionPreparation.Field;
 
-/** Memory-only choice/preview/preparation; deliberately has no commit or prepared-result callback. */
+/** Exact import preview; default is memory-only, with an explicitly injected local commit endpoint. */
 @TargetApi(26)
 public final class ImportDecisionUi {
     public static final class Sources {
@@ -35,6 +35,7 @@ public final class ImportDecisionUi {
     private final Executor worker;
     private final Host host;
     private final Function<Position, String> coordinates;
+    private final ImportCommitUi commits;
     private final Object lifecycle = new Object();
     private final AtomicLong generation = new AtomicLong();
     private volatile boolean closed, busy;
@@ -43,16 +44,21 @@ public final class ImportDecisionUi {
     private AlertDialog dialog;
 
     public ImportDecisionUi(Context context, Executor worker, Host host, Function<Position, String> coordinates) {
+        this(context, worker, host, coordinates, null);
+    }
+    public ImportDecisionUi(Context context, Executor worker, Host host, Function<Position, String> coordinates, ImportCommitUi commits) {
+        this.commits = commits;
         this.context = Objects.requireNonNull(context); this.worker = Objects.requireNonNull(worker);
         this.host = Objects.requireNonNull(host); this.coordinates = Objects.requireNonNull(coordinates);
     }
-    public boolean isBusy() { return busy; }
+    public boolean isBusy() { return busy || commits != null && commits.isBusy(); }
+    public boolean allowsLocalCommit() { return commits != null; }
     /** UI thread: preserve selection identity across the transition out of the read-only browser. */
     public void show(UUID inboxId, InboxStore.Receipt selected) {
         Objects.requireNonNull(inboxId); Objects.requireNonNull(selected);
         final long token;
         synchronized (lifecycle) {
-            if (closed || busy) return;
+            if (closed || isBusy()) return;
             busy = true; token = generation.incrementAndGet();
             if (!host.available()) { failure("Versionsbundet underlag eller källåtkomst saknas. Ingen förhandsvisning har skapats."); return; }
             progress("Läser underlag för importval");
@@ -73,7 +79,7 @@ public final class ImportDecisionUi {
         if (state.presence != LocalV2.Presence.ACTIVE) {
             LinearLayout body = column();
             body.addView(text("UUID: " + receipt.incoming.uid + "\nMottaget ID: " + receipt.incoming.displayId
-                    + "\nEndast förhandsvisning. Inget sparas eller läggs till av detta flöde."));
+                    + (commits == null ? "\nEndast förhandsvisning. Inget sparas eller läggs till av detta flöde." : "\nGranska först. Inget sparas före uttrycklig bekräftelse.")));
             boolean deleted = state.presence == LocalV2.Presence.DELETED;
             CheckBox reAdd = new CheckBox(context);
             if (deleted) {
@@ -160,7 +166,7 @@ public final class ImportDecisionUi {
         LinearLayout body = summary(plan);
         replace(new AlertDialog.Builder(context).setTitle("Exakt importförslag · inget sparas").setView(scroll(body))
                 .setNegativeButton("Avbryt", (d, w) -> { if (dialog == d) cancel(); })
-                .setPositiveButton("Förbered i minnet", (d, w) -> {
+                .setPositiveButton(commits == null ? "Förbered i minnet" : "Spara val lokalt", (d, w) -> {
                     synchronized (lifecycle) {
                         if (!active(token, d) || pending != review) return;
                         pending = null;
@@ -177,6 +183,7 @@ public final class ImportDecisionUi {
             if (!valid(token)) return;
             ImportDecisionPreparation.Prepared result = review.prepare(fresh.inbox, fresh.local);
             post(token, () -> {
+                if (commits != null) { cancel(); commits.commit(result); return; }
                 prepared = result;
                 LinearLayout body = summary(result.plan);
                 body.addView(text("Förberett i minnet. Inget har sparats eller applicerats. Ingen historik eller kvittens har skrivits. "
@@ -189,13 +196,13 @@ public final class ImportDecisionUi {
     }
     private LinearLayout summary(ImportDecisionPreparation.Plan p) {
         LinearLayout body = column();
-        body.addView(text("Endast förhandsvisning/minnesförberedelse – ingen applicering.\nFörslag: " + effect(p.effect)
+        body.addView(text((commits == null ? "Endast förhandsvisning/minnesförberedelse – ingen applicering." : "Granskat lokalt val – sparas först när du bekräftar Spara val lokalt.") + "\nFörslag: " + effect(p.effect)
                 + (p.isReAdd() ? "\nUttrycklig återläggning efter känd lokal radering." : "")
                 + "\nUUID: " + p.receipt.incoming.uid + "\nKällkontext: " + p.receipt.contextId
                 + "\nFörst registrerad lokalt UTC: " + p.receipt.firstObservedAt + "\nMottagnings-ID: " + p.receipt.id
                 + "\nInkorg-ID: " + p.inboxId + "\nLokalt lager-ID: " + p.storeId
                 + "\nGranskad tillståndsversion: " + p.reviewed.version + "\nFöreslagen tillståndsversion: " + p.result.version));
-        if (p.editTime != null) body.addView(text("Föreslagen lokal ändringstid UTC: " + p.editTime + ". Den byts inte vid förberedelse."));
+        if (p.editTime != null) body.addView(text("Föreslagen lokal ändringstid UTC: " + p.editTime + ". Den byts inte vid förberedelse eller sparning."));
         else body.addView(text(p.action == LocalV2.Action.ADD_LOCAL ? "Mottagna skapande-/ändringstider behålls; de är inte lokal författaridentitet." : "Ingen lokal ändringstid föreslås."));
         List<String> selected = new ArrayList<>();
         for (Field f : Field.values()) if ((p.fieldMask & f.mask) != 0) selected.add(fieldName(f));
@@ -265,7 +272,7 @@ public final class ImportDecisionUi {
             }
         });
     }
-    private void progress(String title) { replace(new AlertDialog.Builder(context).setTitle(title).setMessage("Inget sparas eller appliceras.").setNegativeButton("Avbryt", (d, w) -> { if (dialog == d) cancel(); }).create()); }
+    private void progress(String title) { replace(new AlertDialog.Builder(context).setTitle(title).setMessage(commits == null ? "Inget sparas eller appliceras." : "Inget har sparats i detta steg. Ett val sparas först efter uttrycklig bekräftelse och nya kontroller.").setNegativeButton("Avbryt", (d, w) -> { if (dialog == d) cancel(); }).create()); }
     private void failure(String message) { info("Importförslag kunde inte förberedas", message); }
     private void info(String title, String message) {
         replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng", (d, w) -> { if (dialog == d) cancel(); }).create());
@@ -281,7 +288,8 @@ public final class ImportDecisionUi {
     public void cancel() {
         synchronized (lifecycle) { generation.incrementAndGet(); if (pending != null) pending.close(); pending = null; prepared = null; busy = false; }
         if (dialog != null) { dialog.dismiss(); dialog = null; }
+        if (commits != null) commits.cancel();
     }
-    public void stop() { synchronized (lifecycle) { closed = true; generation.incrementAndGet(); if (pending != null) pending.close(); pending = null; prepared = null; } }
+    public void stop() { synchronized (lifecycle) { closed = true; generation.incrementAndGet(); if (pending != null) pending.close(); pending = null; prepared = null; } if (commits != null) commits.stop(); }
     public void close() { stop(); cancel(); }
 }
