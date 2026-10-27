@@ -199,3 +199,12 @@ upload, standard-host acceptance or release approval is implied by a local build
 Use only synthetic temporary storage; do not wire it into the active planner until
 the v1 migration and every writer are converted together. No APK version/signing
 change accompanies this unwired slice.
+
+
+## Versioned planner candidate — 2026-10-27
+
+VersionCode 20 (`0.1.0-versioned-storage.1`) adds [explicit v1 upgrade and versioned
+planner writers](VERSIONED_PLANNER_STORAGE.md). The existing no-backup metadata
+directory keeps its historical name; do not create a second live copy or infer a
+new empty dataset on failure. Older binaries reject v2; do not downgrade a live
+migrated dataset. No source archive or signing upload is made by these tests.

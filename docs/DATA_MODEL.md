@@ -184,3 +184,12 @@ bytes under lock without changing domain/inbox/outgoing contracts. Local revisio
 is preserved independently of initial persistent version 1; decision/deleted
 history starts empty. All existing image handles and field bits/order survive.
 No historical evidence is inferred and no Android caller is activated.
+
+
+## Versioned app selections — 2026-10-27
+
+[The versioned planner candidate](VERSIONED_PLANNER_STORAGE.md) uses immutable
+Selection values from actual v2 snapshots for every create/edit/delete/image write.
+Dataset identity and retained slot versions survive deletion/re-add; revisions
+are not used as a substitute. Format inspection is read-only. No persisted field,
+inbox, domain or outgoing schema changes accompany these caller APIs.

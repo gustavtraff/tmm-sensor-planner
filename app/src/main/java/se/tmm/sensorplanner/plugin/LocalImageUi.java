@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import se.tmm.sensorplanner.core.TmmDraft;
+import se.tmm.sensorplanner.core.LocalV2.Selection;
 import se.tmm.sensorplanner.images.LocalImages;
 import se.tmm.sensorplanner.plugin.images.DraftAttachments;
 
@@ -56,7 +57,7 @@ final class LocalImageUi {
     private final ActivityResultLauncher<Intent> launcher;
     private volatile boolean closed;
     private volatile boolean busy;
-    private TmmDraft pickerTarget;
+    private Selection pickerTarget;
     private AlertDialog dialog;
     private Dialog viewer;
     private boolean viewerLoading;
@@ -80,7 +81,7 @@ final class LocalImageUi {
                 ? ((ActivityResultRegistryOwner) host).getActivityResultRegistry().register(
                     "se.tmm.sensorplanner.image." + UUID.randomUUID(),
                     new ActivityResultContracts.StartActivityForResult(), result -> {
-                        TmmDraft target = pickerTarget;
+                        Selection target = pickerTarget;
                         pickerTarget = null;
                         if (closed || target == null) return;
                         if (result.getResultCode() != Activity.RESULT_OK) {
@@ -99,13 +100,13 @@ final class LocalImageUi {
 
     boolean isBusy() { return busy; }
 
-    void pick(TmmDraft draft) {
+    void pick(Selection selected) {
         if (!begin()) return;
         if (launcher == null) {
             fail("Bildväljaren stöds inte av denna ATAK-installation.");
             return;
         }
-        pickerTarget = draft;
+        pickerTarget = selected;
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("image/*")
                 .putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/jpeg", "image/png"})
@@ -119,7 +120,7 @@ final class LocalImageUi {
         }
     }
 
-    private void prepare(TmmDraft draft, Uri uri) {
+    private void prepare(Selection selected, Uri uri) {
         worker.execute(() -> {
             LocalImages.Pending prepared = null;
             Bitmap bitmap = null;
@@ -142,7 +143,7 @@ final class LocalImageUi {
                 main.post(() -> {
                     if (closed) { preview.recycle(); return; }
                     if (!listener.available()) { releasePending(); preview.recycle(); busy = false; return; }
-                    showPreview(draft, preview);
+                    showPreview(selected, preview);
                 });
             } catch (Exception | OutOfMemoryError failure) {
                 if (bitmap != null) bitmap.recycle();
@@ -173,7 +174,8 @@ final class LocalImageUi {
         });
     }
 
-    private void showPreview(TmmDraft draft, Bitmap bitmap) {
+    private void showPreview(Selection selected, Bitmap bitmap) {
+        TmmDraft draft = selected.draft;
         ImageView image = new ImageView(context);
         image.setContentDescription("Lokal bild för " + draft.displayId);
         image.setAdjustViewBounds(true);
@@ -199,13 +201,13 @@ final class LocalImageUi {
                 .setView(scroll).setNegativeButton("Avbryt", null);
         builder.setPositiveButton("Spara bilden lokalt", (ignored, which) -> {
             if (closed || !listener.available()) return;
-            LocalImages.Pending selected;
-            synchronized (this) { selected = pending; pending = null; }
-            if (selected == null) return;
+            LocalImages.Pending selectedImage;
+            synchronized (this) { selectedImage = pending; pending = null; }
+            if (selectedImage == null) return;
             worker.execute(() -> {
-                try (LocalImages.Pending owned = selected) {
+                try (LocalImages.Pending owned = selectedImage) {
                     if (closed || !listener.available()) throw new IOException();
-                    DraftAttachments.Result result = attachments.attach(draft, owned, Instant.now());
+                    DraftAttachments.Result result = attachments.attach(selected, owned, Instant.now());
                     main.post(() -> complete(result, draft.uid));
                 } catch (Exception failure) {
                     main.post(() -> saveFailed());
@@ -227,7 +229,8 @@ final class LocalImageUi {
         dialog.show();
     }
 
-    void detach(TmmDraft draft) {
+    void detach(Selection selected) {
+        TmmDraft draft = selected.draft;
         if (!begin()) return;
         final boolean[] confirmed = {false};
         dialog = new AlertDialog.Builder(context).setTitle("Ta bort lokal bild?")
@@ -239,7 +242,7 @@ final class LocalImageUi {
                     worker.execute(() -> {
                         try {
                             if (closed || !listener.available()) throw new IOException();
-                            DraftAttachments.Result result = attachments.detach(draft, Instant.now());
+                            DraftAttachments.Result result = attachments.detach(selected, Instant.now());
                             main.post(() -> complete(result, draft.uid));
                         } catch (Exception failure) { main.post(() -> saveFailed()); }
                     });

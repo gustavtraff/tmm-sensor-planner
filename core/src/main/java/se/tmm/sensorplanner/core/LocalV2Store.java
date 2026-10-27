@@ -9,6 +9,19 @@ import static se.tmm.sensorplanner.core.LocalV2.*;
 
 /** Isolated private v2 store/migration. No Android activation, images or transport operations. */
 public final class LocalV2Store {
+    public enum Format { MISSING, V1, V2 }
+    public static final class Inspection {
+        public final Format format;
+        public final Snapshot snapshot;
+        public final int frameBytes;
+        private Inspection(Format format, Snapshot snapshot, int frameBytes) {
+            this.format = format; this.snapshot = snapshot; this.frameBytes = frameBytes;
+        }
+        public Snapshot requireV2() throws IOException {
+            if (snapshot == null) throw failure(Reason.UNKNOWN);
+            return snapshot;
+        }
+    }
     public enum Reason { BUSY, STALE, INVALID, CAPACITY, UNKNOWN }
     public enum Effect { COMMITTED, ALREADY_COMMITTED, ALREADY_EQUAL }
     public enum CommitStatus { COMMITTED, NOT_COMMITTED, UNKNOWN }
@@ -68,6 +81,19 @@ public final class LocalV2Store {
         });
     }
     public Snapshot load() throws IOException { return locked(this::read); }
+
+    /** Read-only format discovery for explicit UI activation; MISSING never authorizes initialization. */
+    public Inspection inspect() throws IOException {
+        return locked(() -> {
+            if (Files.notExists(data, LinkOption.NOFOLLOW_LINKS)) return new Inspection(Format.MISSING, null, 0);
+            byte[] bytes = readBytes();
+            if (bytes.length >= 8 && java.nio.ByteBuffer.wrap(bytes).getInt(4) == 2) {
+                return new Inspection(Format.V2, LocalV2Codec.decode(bytes), bytes.length);
+            }
+            DraftStore.decodeV1(bytes);
+            return new Inspection(Format.V1, null, bytes.length);
+        });
+    }
 
     /** Explicit in-place upgrade only. Existing valid v2 is returned unchanged for uncertain-outcome recovery. */
     public Snapshot migrateV1() throws IOException {

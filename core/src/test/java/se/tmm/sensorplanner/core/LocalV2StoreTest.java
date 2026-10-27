@@ -17,6 +17,7 @@ public final class LocalV2StoreTest {
         if (args.length > 0) { child(args); return; }
         Path root = Files.createTempDirectory("tmm-local-v2-");
         try {
+            inspectionsAndSelections(root.resolve("inspection"));
             transactions(root.resolve("transactions"));
             staleAndNormalWrites(root.resolve("stale"));
             invalidAndCapacity(root.resolve("invalid"));
@@ -64,6 +65,31 @@ public final class LocalV2StoreTest {
         }
         Path file() { return directory.resolve("local/drafts.bin"); }
         State current() throws Exception { return local.load().slots.get(0); }
+    }
+    private static void inspectionsAndSelections(Path directory) throws Exception {
+        LocalV2Store store = new LocalV2Store(directory);
+        assert store.inspect().format == Format.MISSING && store.inspect().snapshot == null;
+        assert !Files.exists(directory.resolve("drafts.bin"));
+        expect(Reason.UNKNOWN, () -> store.inspect().requireV2());
+        byte[] v1 = Base64.getDecoder().decode(new String(Files.readAllBytes(Paths.get("test-fixtures/synthetic/storage/v1.base64")), java.nio.charset.StandardCharsets.US_ASCII).trim());
+        Files.write(directory.resolve("drafts.bin"), v1);
+        assert store.inspect().format == Format.V1 && store.inspect().snapshot == null;
+        assert Arrays.equals(v1, Files.readAllBytes(directory.resolve("drafts.bin")));
+        Snapshot migrated = store.migrateV1(); Inspection inspection = store.inspect();
+        assert inspection.format == Format.V2 && inspection.frameBytes == Files.size(directory.resolve("drafts.bin"));
+        UUID uid = migrated.slots.get(0).uid; Selection captured = migrated.select(uid);
+        assert captured.isCurrent(inspection.snapshot);
+        UUID other = new UUID(9, 999);
+        store.save(migrated.storeId, State.neverSeen(other), sample(other, "other", 1, null));
+        assert captured.isCurrent(store.load());
+        store.save(migrated.storeId, captured.state, edit(captured.draft, captured.draft.comment, "new-image"));
+        assert !captured.isCurrent(store.load());
+        Snapshot saved = store.load();
+        assert !saved.select(uid).isCurrent(new Snapshot(UUID.randomUUID(), saved.slots, saved.decisions));
+        Selection absent = saved.select(new UUID(9, 998));
+        assert absent.draft == null && absent.state.presence == Presence.NEVER_SEEN;
+        try { saved.activeDrafts().clear(); throw new AssertionError("Mutable active list"); }
+        catch (UnsupportedOperationException expected) { }
     }
     private static void transactions(Path root) throws Exception {
         Fixture f = new Fixture(root); InboxStore.Receipt receipt = f.receive("incoming");

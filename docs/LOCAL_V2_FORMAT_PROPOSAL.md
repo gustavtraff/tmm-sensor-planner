@@ -6,7 +6,8 @@ Approval was recorded in the conversation. [The production in-memory codec and
 verification](LOCAL_V2_CODEC.md) now implement these bytes without changing the
 contract. An isolated [core file store and transaction](LOCAL_V2_STORAGE.md) now
 implements persistence and [explicit core migration](LOCAL_V2_MIGRATION.md);
-Android v2 activation and reset remain unimplemented.
+The [versionCode 20 candidate](VERSIONED_PLANNER_STORAGE.md) adds explicit app
+activation; signed runtime acceptance and reset remain separate work.
 The historical proposal filename is retained. [D's adopted logical contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md)
 continues to govern later transaction work. Outgoing metadata, preparation,
 Android and transport remain separate work.

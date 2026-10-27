@@ -27,11 +27,11 @@ public class DraftAttachmentsTest {
     private final Instant now = Instant.EPOCH;
 
     @Test public void attachReplaceDetachAndDeleteCommitBeforeCleanup() throws Exception {
-        DraftStore store = store();
+        LocalV2Store store = store();
         LocalImages images = images();
         DraftAttachments attachments = new DraftAttachments(store, images);
         TmmDraft original = draft();
-        store.save(original);
+        save(store, original);
         TmmDraft first = attach(attachments, images, original);
         assertEquals(original.uid, first.uid);
         assertEquals(original.createdAt, first.createdAt);
@@ -48,119 +48,121 @@ public class DraftAttachmentsTest {
         assertNotNull(new LocalImages(imagePath()).read(first.imageRef));
         TmmDraft replaced = attach(attachments, images, first);
         assertThrows(IOException.class, () -> images.read(first.imageRef));
-        DraftAttachments.Result detached = attachments.detach(replaced, now.plusSeconds(1));
+        DraftAttachments.Result detached = attachments.detach(selection(replaced), now.plusSeconds(1));
         assertFalse(detached.cleanupFailed);
         assertNull(detached.drafts.get(0).imageRef);
         assertThrows(IOException.class, () -> images.read(replaced.imageRef));
-        TmmDraft last = attach(attachments, images, detached.drafts.get(0));
-        assertTrue(attachments.delete(last).drafts.isEmpty());
+        TmmDraft detachedDraft = detached.drafts.get(0); selections.put(detachedDraft, detached.storage.snapshot.select(detachedDraft.uid));
+        TmmDraft last = attach(attachments, images, detachedDraft);
+        assertTrue(attachments.delete(selection(last)).drafts.isEmpty());
         assertThrows(IOException.class, () -> images.read(last.imageRef));
-        assertTrue(new DraftStore(storePath()).load().isEmpty());
+        assertTrue(new LocalV2Store(storePath()).load().activeDrafts().isEmpty());
     }
 
     @Test public void cancelAndStaleMetadataNeverRemoveExistingAttachment() throws Exception {
-        DraftStore store = store();
+        LocalV2Store store = store();
         LocalImages images = images();
         DraftAttachments attachments = new DraftAttachments(store, images);
         TmmDraft original = draft();
-        store.save(original);
+        save(store, original);
         TmmDraft attached = attach(attachments, images, original);
         try (LocalImages.Pending cancelled = pending(images)) { assertNotNull(cancelled.preview()); }
         assertEquals(1, countImages());
         try (LocalImages.Pending stale = pending(images)) {
-            assertThrows(IOException.class, () -> attachments.attach(original, stale, now.plusSeconds(1)));
+            assertThrows(IOException.class, () -> attachments.attach(selection(original), stale, now.plusSeconds(1)));
         }
         assertEquals(2, countImages());
-        assertThrows(IOException.class, () -> attachments.detach(original, now.plusSeconds(1)));
-        assertThrows(IOException.class, () -> attachments.delete(original));
-        assertEquals(attached.imageRef, store.load().get(0).imageRef);
+        assertThrows(IOException.class, () -> attachments.detach(selection(original), now.plusSeconds(1)));
+        assertThrows(IOException.class, () -> attachments.delete(selection(original)));
+        assertEquals(attached.imageRef, store.load().activeDrafts().get(0).imageRef);
         assertNotNull(images.read(attached.imageRef));
     }
 
     @Test public void sharedImageSurvivesReplacementAndDeletionUntilLastDetach() throws Exception {
-        DraftStore store = store();
+        LocalV2Store store = store();
         LocalImages images = images();
         DraftAttachments attachments = new DraftAttachments(store, images);
         TmmDraft first = draft();
-        store.save(first);
+        save(store, first);
         first = attach(attachments, images, first);
         String shared = first.imageRef;
         TmmDraft second = draft();
         second = new TmmDraft(second.uid, second.displayId, second.type, second.status, second.owner,
                 second.createdAt, second.updatedAt, second.deployedAt, second.comment,
                 second.position, second.bearingDeg, shared, 1);
-        store.save(second);
+        save(store, second);
         TmmDraft replaced = attach(attachments, images, first);
         assertNotNull(images.read(shared));
-        attachments.delete(replaced);
+        attachments.delete(selection(replaced));
         assertNotNull(images.read(shared));
-        attachments.detach(second, now.plusSeconds(1));
+        attachments.detach(selection(second), now.plusSeconds(1));
         assertThrows(IOException.class, () -> images.read(shared));
     }
 
     @Test public void deletionOfSharedRecordRetainsRemainingImage() throws Exception {
-        DraftStore store = store();
+        LocalV2Store store = store();
         LocalImages images = images();
         DraftAttachments attachments = new DraftAttachments(store, images);
         TmmDraft first = draft();
-        store.save(first);
+        save(store, first);
         first = attach(attachments, images, first);
         TmmDraft second = draft();
-        store.save(new TmmDraft(second.uid, second.displayId, second.type, second.status, second.owner,
+        save(store, new TmmDraft(second.uid, second.displayId, second.type, second.status, second.owner,
                 second.createdAt, second.updatedAt, null, second.comment, second.position,
                 second.bearingDeg, first.imageRef, 1));
-        attachments.delete(first);
+        attachments.delete(selection(first));
         assertNotNull(images.read(first.imageRef));
-        attachments.delete(store.load().get(0));
+        LocalV2.Selection remaining = store.load().select(second.uid);
+        attachments.delete(remaining);
         String reference = first.imageRef;
         assertThrows(IOException.class, () -> images.read(reference));
     }
 
     @Test public void cleanupFailureReturnsCommittedSnapshotWithoutRollback() throws Exception {
-        DraftStore store = store();
+        LocalV2Store store = store();
         LocalImages images = images();
         DraftAttachments attachments = new DraftAttachments(store, images);
         TmmDraft original = draft();
-        store.save(original);
+        save(store, original);
         TmmDraft attached = attach(attachments, images, original);
         Path old = imagePath().resolve(attached.imageRef);
         Files.delete(old);
         Files.createSymbolicLink(old, imagePath().resolve("synthetic-missing.png"));
-        DraftAttachments.Result result = attachments.detach(attached, now.plusSeconds(1));
+        DraftAttachments.Result result = attachments.detach(selection(attached), now.plusSeconds(1));
         assertTrue(result.cleanupFailed);
         assertNull(result.drafts.get(0).imageRef);
-        assertNull(new DraftStore(storePath()).load().get(0).imageRef);
+        assertNull(new LocalV2Store(storePath()).load().activeDrafts().get(0).imageRef);
         assertTrue(Files.isSymbolicLink(old));
     }
 
     @Test public void ambiguousErrorAfterReplacementPreservesNewAndPreviousImages() throws Exception {
-        DraftStore normal = store();
+        LocalV2Store normal = store();
         LocalImages images = images();
         TmmDraft original = draft();
-        normal.save(original);
+        save(normal, original);
         TmmDraft first = attach(new DraftAttachments(normal, images), images, original);
-        DraftStore failing = new DraftStore(storePath(), (source, destination) -> {
+        LocalV2Store failing = new LocalV2Store(storePath(), (source, destination) -> {
             Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             throw new IOException("Synthetic error after metadata replacement");
         });
         try (LocalImages.Pending replacement = pending(images)) {
             assertThrows(IOException.class, () -> new DraftAttachments(failing, images)
-                    .attach(first, replacement, now.plusSeconds(1)));
+                    .attach(selection(first), replacement, now.plusSeconds(1)));
         }
         assertEquals(2, countImages());
         assertNotNull(images.read(first.imageRef));
-        TmmDraft saved = new DraftStore(storePath()).load().get(0);
+        TmmDraft saved = new LocalV2Store(storePath()).load().activeDrafts().get(0);
         assertNotEquals(first.imageRef, saved.imageRef);
         assertNotNull(images.read(saved.imageRef));
     }
 
     @Test public void failureOnFreshReadAfterSuccessfulSaveRetainsBothImages() throws Exception {
-        DraftStore normal = store();
+        LocalV2Store normal = store();
         LocalImages images = images();
         TmmDraft original = draft();
-        normal.save(original);
+        save(normal, original);
         TmmDraft first = attach(new DraftAttachments(normal, images), images, original);
-        DraftStore failing = new DraftStore(storePath(), (source, destination) -> {
+        LocalV2Store failing = new LocalV2Store(storePath(), (source, destination) -> {
             Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             // The save completed, but the following fresh read cannot open its lock file.
             Files.delete(storePath().resolve("drafts.lock"));
@@ -168,21 +170,55 @@ public class DraftAttachmentsTest {
         });
         try (LocalImages.Pending replacement = pending(images)) {
             assertThrows(IOException.class, () -> new DraftAttachments(failing, images)
-                    .attach(first, replacement, now.plusSeconds(1)));
+                    .attach(selection(first), replacement, now.plusSeconds(1)));
         }
         assertEquals(2, countImages());
         assertNotNull(images.read(first.imageRef));
         Files.delete(storePath().resolve("drafts.lock"));
-        TmmDraft saved = normal.load().get(0);
+        TmmDraft saved = normal.load().activeDrafts().get(0);
         assertNotEquals(first.imageRef, saved.imageRef);
         assertNotNull(new LocalImages(imagePath()).read(saved.imageRef));
     }
 
+    @Test public void identicalDeleteReaddAndNewDatasetRejectOldAttachmentSelection() throws Exception {
+        LocalV2Store store = store(); LocalImages images = images();
+        TmmDraft original = draft(); save(store, original); LocalV2.Selection old = selection(original);
+        LocalV2.State deleted = store.delete(old.storeId, old.state);
+        store.save(old.storeId, deleted, original);
+        DraftAttachments attachments = new DraftAttachments(store, images);
+        try (LocalImages.Pending p = pending(images)) {
+            assertThrows(IOException.class, () -> attachments.attach(old, p, now.plusSeconds(1)));
+        }
+        assertThrows(IOException.class, () -> attachments.delete(old));
+        assertThrows(IOException.class, () -> attachments.detach(old, now.plusSeconds(1)));
+        LocalV2.Snapshot saved = store.load(); LocalV2.Selection previousDataset = saved.select(original.uid);
+        Files.write(storePath().resolve("drafts.bin"), LocalV2Codec.encode(new LocalV2.Snapshot(java.util.UUID.randomUUID(), saved.slots, saved.decisions)));
+        assertThrows(IOException.class, () -> attachments.delete(previousDataset));
+        assertEquals(original.revision, store.load().state(original.uid).draft.revision);
+    }
+
+    @Test public void datasetChangeBeforeCleanupPreservesBothCopies() throws Exception {
+        LocalV2Store normal = store(); LocalImages images = images(); TmmDraft original = draft(); save(normal, original);
+        TmmDraft first = attach(new DraftAttachments(normal, images), images, original);
+        LocalV2Store replaced = new LocalV2Store(storePath(), (source, target) -> {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            LocalV2.Snapshot saved = LocalV2Codec.decode(Files.readAllBytes(target));
+            Files.write(target, LocalV2Codec.encode(new LocalV2.Snapshot(java.util.UUID.randomUUID(), saved.slots, saved.decisions)));
+        });
+        try (LocalImages.Pending pending = pending(images)) {
+            assertThrows(IOException.class, () -> new DraftAttachments(replaced, images).attach(selection(first), pending, now.plusSeconds(1)));
+        }
+        assertEquals(2, countImages()); assertNotNull(images.read(first.imageRef));
+        assertNotNull(images.read(normal.load().state(first.uid).draft.imageRef));
+    }
+
     private TmmDraft attach(DraftAttachments attachments, LocalImages images, TmmDraft draft) throws Exception {
         try (LocalImages.Pending image = pending(images)) {
-            DraftAttachments.Result result = attachments.attach(draft, image, now.plusSeconds(1));
+            DraftAttachments.Result result = attachments.attach(selection(draft), image, now.plusSeconds(1));
             assertFalse(result.cleanupFailed);
-            return result.drafts.stream().filter(d -> d.uid.equals(draft.uid)).findFirst().get();
+            TmmDraft saved = result.drafts.stream().filter(d -> d.uid.equals(draft.uid)).findFirst().get();
+            selections.put(saved, result.storage.snapshot.select(saved.uid));
+            return saved;
         }
     }
 
@@ -201,7 +237,17 @@ public class DraftAttachmentsTest {
     }
     private Path storePath() { return temporary.getRoot().toPath().resolve("drafts"); }
     private Path imagePath() { return temporary.getRoot().toPath().resolve("images"); }
-    private DraftStore store() { return new DraftStore(storePath()); }
+    private final java.util.Map<TmmDraft, LocalV2.Selection> selections = new java.util.IdentityHashMap<>();
+    private LocalV2Store store() throws Exception { LocalV2Store store = new LocalV2Store(storePath()); store.initializeNew(); return store; }
+    private void save(LocalV2Store store, TmmDraft draft) throws Exception {
+        LocalV2.Snapshot snapshot = store.load(); store.save(snapshot.storeId, snapshot.state(draft.uid), draft);
+        selections.put(draft, store.load().select(draft.uid));
+    }
+    private LocalV2.Selection selection(TmmDraft draft) throws Exception {
+        LocalV2.Selection captured = selections.get(draft);
+        if (captured == null) throw new AssertionError("Uncaptured test selection");
+        return captured;
+    }
     private LocalImages images() { return new LocalImages(imagePath()); }
     private long countImages() throws IOException {
         try (java.util.stream.Stream<Path> files = Files.list(imagePath())) { return files.count(); }

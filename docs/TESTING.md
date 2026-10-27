@@ -506,3 +506,13 @@ migrations, child-process locks/crashes and injected write/sync/rename/cleanup
 failures. Existing core suites pass. No Android/SDK build, emulator, Docker, phone
 test, image-library suite, signing upload or CI wait ran. App migration/activation
 and trusted receive/runtime verification remain separate.
+
+
+## VersionCode 20 storage integration — 2026-10-27
+
+[The candidate and evidence boundary](VERSIONED_PLANNER_STORAGE.md) record core
+inspection/selection checks, targeted API-26/35 activation/attachment/publication UI
+tests, external SDK probes, CivDebug build/lint/app tests/static APK checks and
+CivRelease assembly. No full image suite, CI wait, emulator, Docker, signing upload
+or phone/server test ran. Signed upgrade/marker/provider/lifecycle acceptance is
+still required, and trusted import ingestion remains unimplemented.

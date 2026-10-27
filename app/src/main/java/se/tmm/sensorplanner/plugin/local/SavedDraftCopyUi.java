@@ -23,7 +23,7 @@ public final class SavedDraftCopyUi {
         String create(PublicationPreparationReview.Prepared prepared, String label);
     }
     private final Context context;
-    private final DraftStore store;
+    private final LocalV2Store store;
     private final Executor worker;
     private final Host host;
     private final Object lifecycle = new Object();
@@ -34,7 +34,7 @@ public final class SavedDraftCopyUi {
     private Handoff waiting;
     private AlertDialog dialog;
 
-    public SavedDraftCopyUi(Context context, DraftStore store, Executor worker, Host host) {
+    public SavedDraftCopyUi(Context context, LocalV2Store store, Executor worker, Host host) {
         this.context = context; this.store = store; this.worker = worker; this.host = host;
     }
     public boolean isBusy() { return busy; }
@@ -51,13 +51,14 @@ public final class SavedDraftCopyUi {
         worker.execute(() -> {
             try {
                 if (!valid(token)) return;
-                TmmDraft saved = find(uid);
-                if (saved == null) throw new IllegalStateException();
-                post(token, () -> review(saved, token));
+                LocalV2.Selection selected = find(uid);
+                if (selected == null) throw new IllegalStateException();
+                post(token, () -> review(selected, token));
             } catch (Exception unavailable) { post(token, () -> result("Inte skapat: den sparade enheten kunde inte läsas. Granska på nytt.")); }
         });
     }
-    private void review(TmmDraft saved, long token) {
+    private void review(LocalV2.Selection selected, long token) {
+        TmmDraft saved = selected.draft;
         PublicationPreparationReview review = new PublicationPreparationReview(saved);
         synchronized (lifecycle) {
             if (!valid(token)) { review.close(); return; }
@@ -84,13 +85,15 @@ public final class SavedDraftCopyUi {
                     replace(new AlertDialog.Builder(context).setTitle("Kontrollerar sparad enhet")
                             .setMessage("Ingen feed vald. Åtgärden kan avbrytas innan SDK-importen börjar.")
                             .setNegativeButton("Avbryt", (ignored, which) -> cancel()).create());
-                    worker.execute(() -> prepare(review, label, token));
+                    worker.execute(() -> prepare(review, selected, label, token));
                 }).create());
     }
-    private void prepare(PublicationPreparationReview review, String label, long token) {
+    private void prepare(PublicationPreparationReview review, LocalV2.Selection selected, String label, long token) {
         try {
             if (!valid(token)) return;
-            TmmDraft current = find(review.metadata.uid);
+            LocalV2.Snapshot snapshot = store.load();
+            if (!selected.isCurrent(snapshot)) throw new IllegalStateException();
+            TmmDraft current = snapshot.state(review.metadata.uid).draft;
             if (!valid(token)) return;
             PublicationPreparationReview.Prepared prepared = review.prepare(current);
             PublicationCodec.decode(new ByteArrayInputStream(PublicationCodec.encode(prepared)));
@@ -132,10 +135,11 @@ public final class SavedDraftCopyUi {
             return h.outcome == null ? "Inte skapat: UI-åtgärden kunde inte startas. Granska på nytt." : h.outcome;
         }
     }
-    private TmmDraft find(UUID uid) throws java.io.IOException {
-        for (TmmDraft draft : store.load()) if (draft.uid.equals(uid)) return draft;
-        return null;
+    private LocalV2.Selection find(UUID uid) throws java.io.IOException {
+        LocalV2.Selection selected = store.load().select(uid);
+        return selected.draft == null ? null : selected;
     }
+
     private boolean valid(long token) { synchronized (lifecycle) { return !closed && generation == token; } }
     private void post(long token, Runnable action) {
         host.post(() -> {

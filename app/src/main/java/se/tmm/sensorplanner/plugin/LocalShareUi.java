@@ -22,7 +22,7 @@ import se.tmm.sensorplanner.core.*;
 final class LocalShareUi {
     private final Context context;
     private final IHostUIService ui;
-    private final DraftStore store;
+    private final LocalV2Store store;
     private final ExecutorService worker;
     private final BooleanSupplier available;
     private final AtomicLong generation = new AtomicLong();
@@ -32,7 +32,7 @@ final class LocalShareUi {
     private boolean confirmed;
     private AlertDialog dialog;
 
-    LocalShareUi(Context context, IHostUIService ui, DraftStore store, ExecutorService worker, BooleanSupplier available) {
+    LocalShareUi(Context context, IHostUIService ui, LocalV2Store store, ExecutorService worker, BooleanSupplier available) {
         this.context = context; this.ui = ui; this.store = store; this.worker = worker; this.available = available;
     }
 
@@ -51,7 +51,7 @@ final class LocalShareUi {
                 .setNegativeButton("Avbryt", (d, w) -> cancel()).create());
         worker.execute(() -> {
             try {
-                TmmDraft current = find(draft.uid);
+                LocalV2.Selection current = find(draft.uid);
                 if (current == null) throw new IllegalStateException();
                 post(token, () -> choose(current, token));
             } catch (Exception unavailable) {
@@ -60,7 +60,8 @@ final class LocalShareUi {
         });
     }
 
-    private void choose(TmmDraft draft, long token) {
+    private void choose(LocalV2.Selection selection, long token) {
+        TmmDraft draft = selection.draft;
         if (!ShareLabRoute.connected(context)) { result("Inte skickat: labbanslutningen saknas."); return; }
         List<Contact> choices = new ArrayList<>();
         Set<String> seen = new HashSet<>();
@@ -76,12 +77,12 @@ final class LocalShareUi {
                     try {
                         Contact selected = choices.get(which);
                         ShareReview review = new ShareReview(draft, ShareLabRoute.destination(selected.getUID()), selected.getName());
-                        review(review, selected.getUID(), token);
+                        review(review, selection, selected.getUID(), token);
                     } catch (RuntimeException invalid) { result("Inte skickat: mottagarvalet kunde inte verifieras."); }
                 }).setNegativeButton("Avbryt", (d, w) -> cancel()).create());
     }
 
-    private void review(ShareReview review, String uid, long token) {
+    private void review(ShareReview review, LocalV2.Selection selection, String uid, long token) {
         String text = "ENDAST SYNTETISKT ISOLERAT LABB\nMottagare: " + review.destinationLabel
                 + "\nMottagar-UID: " + uid + "\nKanal: endast labbets TAK Server\n\n"
                 + ShareLabWire.summary(review.metadata)
@@ -95,15 +96,17 @@ final class LocalShareUi {
                 .setPositiveButton("Skicka metadata i labbet", (d, w) -> {
                     if (!valid(token) || confirmed) return;
                     confirmed = true;
-                    worker.execute(() -> send(review, uid, token));
+                    worker.execute(() -> send(review, selection, uid, token));
                 }).create());
     }
 
-    private void send(ShareReview review, String uid, long token) {
+    private void send(ShareReview review, LocalV2.Selection selection, String uid, long token) {
         String outcome;
         boolean dispatchStarted = false;
         try {
-            TmmDraft current = find(review.metadata.uid);
+            LocalV2.Snapshot snapshot = store.load();
+            if (!selection.isCurrent(snapshot)) throw new IllegalStateException();
+            TmmDraft current = snapshot.state(review.metadata.uid).draft;
             com.atakmap.coremap.cot.event.CotEvent event = ShareLabWire.create(review.metadata);
             synchronized (lifecycle) {
                 if (!valid(token)) return;
@@ -128,9 +131,9 @@ final class LocalShareUi {
         post(token, () -> result(message));
     }
 
-    private TmmDraft find(UUID uid) throws java.io.IOException {
-        for (TmmDraft draft : store.load()) if (draft.uid.equals(uid)) return draft;
-        return null;
+    private LocalV2.Selection find(UUID uid) throws java.io.IOException {
+        LocalV2.Selection selected = store.load().select(uid);
+        return selected.draft == null ? null : selected;
     }
 
     private boolean valid(long token) { return !closed && generation.get() == token; }
