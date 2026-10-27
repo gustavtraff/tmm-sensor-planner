@@ -179,6 +179,7 @@ public final class LocalV2StoreTest {
                 d.fieldMask, d.editTime, d.outcome, d.afterVersion, d.afterRevision, d.result));
         Files.write(f.file(), LocalV2Codec.encode(new Snapshot(s.storeId, s.slots, records)));
         expect(Reason.INVALID, () -> f.local.commit(f.inbox, bound));
+        assert f.local.readback(bound).status == CommitStatus.UNKNOWN;
         byte[] prior = Files.readAllBytes(f.file());
         Files.write(f.file(), LocalV2Codec.encode(new Snapshot(UUID.randomUUID(), s.slots, Collections.emptyList())));
         expect(Reason.STALE, () -> f.local.commit(f.inbox, bound));

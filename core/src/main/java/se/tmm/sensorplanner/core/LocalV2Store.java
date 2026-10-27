@@ -161,6 +161,17 @@ public final class LocalV2Store {
     }
 
     /** Local-ledger-only evidence; inbox loss never erases a committed decision. No repair or reapply. */
+    public Readback readback(ImportDecisionPreparation.Prepared prepared) {
+        Objects.requireNonNull(prepared, "prepared");
+        Readback found = readback(prepared.plan.storeId, prepared.plan.operationId);
+        Decision binding = decision(prepared.plan);
+        if (found.status == CommitStatus.COMMITTED && (binding == null || !sameDecision(found.decision, binding))) {
+            return new Readback(CommitStatus.UNKNOWN, null, null);
+        }
+        return found;
+    }
+
+    /** Queries an operation identity only; Prepared readback additionally verifies its exact binding. */
     public Readback readback(UUID storeId, UUID operationId) {
         Objects.requireNonNull(storeId, "storeId"); Objects.requireNonNull(operationId, "operationId");
         try {
