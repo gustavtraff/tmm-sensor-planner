@@ -367,6 +367,7 @@ This SDK result is distinct from a service-signed standard-host/physical-phone
 result. No new signing upload, release, operational connection or image sharing
 was performed. The OnePlus camera/provider gate remains open in #49/#7.
 
+
 ## Versioned attachment mutations — 2026-10-27
 
 [Versioned planner integration](VERSIONED_PLANNER_STORAGE.md) replaces revision-only
@@ -375,6 +376,7 @@ through picker and preview. Cleanup requires a fresh same-dataset v2 read and
 current active references; uncertain results preserve copies. Image bytes/quality/
 paths and current originals are unchanged. Real signed phone/provider acceptance
 for this candidate remains pending.
+
 
 ## Image-sharing contract follow-up — proposed 2026-10-28 (#26)
 

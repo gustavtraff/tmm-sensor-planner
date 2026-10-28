@@ -465,6 +465,7 @@ Codec tests do not establish atomic commit/migration durability or SDK/ATAK beha
 No emulator, Docker container, Android/SDK build, device/server/transport trial,
 image-library suite or CI wait ran. Only synthetic fixtures/temp data were used.
 
+
 ## In-memory import-decision preparation (#15/D) — 2026-10-27
 
 `sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8` and assertions.
@@ -482,6 +483,7 @@ changed. No actual application, file writer/migration/activation/reset, Android
 adapter, emulator, Docker, SDK build, device/server/transport or image-library suite
 was run. These are not durable-transaction or ATAK compatibility results.
 
+
 ## Isolated local v2 transactions — 2026-10-27
 
 `sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8`.
@@ -493,6 +495,7 @@ Existing core/inbox/v1/codec/preparation/publication/restart/100-device suites p
 No emulator, Docker, Android/SDK build, phone test, image suite or CI wait ran.
 No migration/activation, trusted receive adapter or ATAK compatibility is established.
 
+
 ## Isolated v1-to-v2 migration — 2026-10-27
 
 `sh scripts/test.sh` passed with Temurin 17.0.20.1+1 / `--release 8`.
@@ -503,6 +506,7 @@ migrations, child-process locks/crashes and injected write/sync/rename/cleanup
 failures. Existing core suites pass. No Android/SDK build, emulator, Docker, phone
 test, image-library suite, signing upload or CI wait ran. App migration/activation
 and trusted receive/runtime verification remain separate.
+
 
 ## VersionCode 20 storage integration — 2026-10-27
 
@@ -566,6 +570,7 @@ Gradle deprecation/annotation warnings remain; there were no test failures/error
 or skipped cases. No Docker/emulator, ATAK SDK app/APK build, signing submission,
 physical-device/server/transport trial or CI wait was run. This is UI-component
 and existing-core verification, not signed ATAK runtime/live-ingress acceptance.
+
 
 ## Image-sharing contract proposal (#26) — 2026-10-28
 

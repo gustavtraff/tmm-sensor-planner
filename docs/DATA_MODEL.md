@@ -137,6 +137,7 @@ remain exclusively in live DraftStore records; historical images are not pinned.
 D, application to local drafts, remains deferred. This is neither a production
 wire schema nor a source-authentication, transport or acknowledgment contract.
 
+
 ## Private application state — D proposal, 2026-10-25
 
 [The proposed D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md) would add local store
@@ -147,6 +148,7 @@ writer or migration exists yet. The owner has now adopted the logical principles
 including capacity feedback and separately confirmed local mission cleanup; exact
 byte-format/fixture and cleanup-activation review still precede their writers. Current domain/time/image rules remain unchanged.
 
+
 ## Exact local v2 byte proposal — 2026-10-26
 
 [LOCAL_V2_FORMAT_PROPOSAL.md](LOCAL_V2_FORMAT_PROPOSAL.md) now gives the proposed
@@ -155,6 +157,7 @@ private snapshot and fingerprint bytes plus independent fixtures. Snapshot versi
 wire schema update. The production model/store/inbox and metadata comparison are
 unchanged; old deletion/application history is unavailable on migration. Exact
 format adoption still precedes any production v2 parser/writer/migrator.
+
 
 ## Approved local v2 byte codec — 2026-10-27
 
@@ -165,12 +168,14 @@ domain schema, existing DraftStore, inbox and outgoing metadata contracts remain
 unchanged. There is no storage activation, migration or application. Counter and
 image-binding evidence is not source authentication or a durable confirmation token.
 
+
 ## Isolated v2 file persistence — 2026-10-27
 
 [The core v2 file store](LOCAL_V2_STORAGE.md) now writes the already approved bytes,
 retaining persistent versions/deletions and atomic metadata-only import history.
 No data contract, golden fixture, domain schema, inbox or outgoing version changes.
 Current Android/v1 writers are unchanged; migration/activation remains required.
+
 
 ## Isolated v1-to-v2 migration — 2026-10-27
 
@@ -180,6 +185,7 @@ is preserved independently of initial persistent version 1; decision/deleted
 history starts empty. All existing image handles and field bits/order survive.
 No historical evidence is inferred and no Android caller is activated.
 
+
 ## Versioned app selections — 2026-10-27
 
 [The versioned planner candidate](VERSIONED_PLANNER_STORAGE.md) uses immutable
@@ -187,6 +193,7 @@ Selection values from actual v2 snapshots for every create/edit/delete/image wri
 Dataset identity and retained slot versions survive deletion/re-add; revisions
 are not used as a substitute. Format inspection is read-only. No persisted field,
 inbox, domain or outgoing schema changes accompany these caller APIs.
+
 
 ## Image-sharing contract follow-up — proposed 2026-10-28 (#26)
 

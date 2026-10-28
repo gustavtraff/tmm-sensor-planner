@@ -153,6 +153,7 @@ or a Mission Package API boolean.
 Data Sync feed publication, standard phone signing/coexistence, operational server
 compatibility and release/distribution approval remain separate gates.
 
+
 ## Reviewed association contract follow-up — proposed 2026-10-28 (#26)
 
 [IMAGE_SHARING_CONTRACT_PROPOSAL.md](IMAGE_SHARING_CONTRACT_PROPOSAL.md) separates
