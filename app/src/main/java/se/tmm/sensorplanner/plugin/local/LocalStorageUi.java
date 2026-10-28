@@ -34,7 +34,7 @@ public final class LocalStorageUi {
         if (busy) { interactive |= showList; return; }
         busy = true; interactive = showList; long token = ++generation;
         worker.execute(() -> {
-            if (!valid(token)) { post(token, () -> { }); return; }
+            if (!valid(token)) { post(token, this::cancel); return; }
             try {
                 LocalV2Store.Inspection state = store.inspect();
                 post(token, () -> {
@@ -55,10 +55,10 @@ public final class LocalStorageUi {
         dialog = new AlertDialog.Builder(context).setTitle(upgrade ? "Uppgradera lokal lagring?" : "Starta utan lokal historik?")
                 .setMessage(text).setNegativeButton("Avbryt", (d, w) -> { if (generation == token) cancel(); })
                 .setPositiveButton(upgrade ? "Uppgradera och öppna" : "Starta utan historik", (d, w) -> {
-                    if (!valid(token)) { post(token, () -> { }); return; }
+                    if (!valid(token)) { post(token, this::cancel); return; }
                     long operation = ++generation;
                     worker.execute(() -> {
-                        if (!valid(operation)) { post(operation, () -> { }); return; }
+                        if (!valid(operation)) { post(operation, this::cancel); return; }
                         try {
                             LocalV2.Snapshot activated = upgrade ? store.migrateV1() : store.initializeNew();
                             LocalV2Store.Inspection loaded = store.inspect();

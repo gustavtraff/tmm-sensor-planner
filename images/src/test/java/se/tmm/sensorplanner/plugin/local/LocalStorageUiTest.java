@@ -85,6 +85,51 @@ public class LocalStorageUiTest {
         available = true; controller.load(true); run(); click(AlertDialog.BUTTON_POSITIVE); available = false; run();
         assertNull(opened); assertFalse(Files.exists(directory.resolve("drafts.bin")));
     }
+    @Test public void transientAccessLossBeforeQueuedReadReleasesBusyAndRequiresNewOpen() throws Exception {
+        controller.load(true);
+        available = false; work.remove().run();
+        available = true; posted.remove().run();
+        assertFalse(controller.isBusy()); assertNull(opened);
+        assertFalse(Files.exists(directory.resolve("drafts.bin")));
+        controller.load(true); run();
+        assertTrue(dialog().isShowing()); assertTrue(controller.isBusy());
+        assertNull(opened); assertFalse(Files.exists(directory.resolve("drafts.bin")));
+    }
+    @Test public void transientAccessLossBeforeQueuedConfirmationDiscardsConsentAndAllowsRetry() throws Exception {
+        legacy(); byte[] before = Files.readAllBytes(directory.resolve("drafts.bin"));
+        controller.load(true); run(); click(AlertDialog.BUTTON_POSITIVE);
+        available = false; work.remove().run();
+        available = true; posted.remove().run();
+        assertFalse(controller.isBusy()); assertNull(opened);
+        assertArrayEquals(before, Files.readAllBytes(directory.resolve("drafts.bin")));
+        controller.load(true); run();
+        assertTrue(dialog().isShowing()); assertNull(opened);
+        assertArrayEquals(before, Files.readAllBytes(directory.resolve("drafts.bin")));
+        click(AlertDialog.BUTTON_POSITIVE); run();
+        assertNotNull(opened); assertEquals(LocalV2Store.Format.V2, opened.format);
+    }
+    @Test public void transientAccessLossBeforeInitializationNeverResumesOldConsent() throws Exception {
+        controller.load(true); run(); AlertDialog old = dialog(); click(AlertDialog.BUTTON_POSITIVE);
+        available = false; work.remove().run();
+        available = true; posted.remove().run();
+        assertFalse(controller.isBusy()); assertNull(opened);
+        assertFalse(Files.exists(directory.resolve("drafts.bin")));
+        controller.load(true); run();
+        old.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        assertTrue(work.isEmpty()); assertTrue(controller.isBusy()); assertTrue(dialog().isShowing());
+        click(AlertDialog.BUTTON_POSITIVE); run();
+        assertNotNull(opened); assertEquals(0, opened.snapshot.slots.size());
+    }
+    @Test public void transientAccessLossAtConfirmationDismissesOldChoiceAndAllowsNewOne() throws Exception {
+        controller.load(true); run();
+        available = false; click(AlertDialog.BUTTON_POSITIVE);
+        available = true; posted.remove().run();
+        assertFalse(controller.isBusy()); assertTrue(work.isEmpty()); assertNull(opened);
+        assertFalse(Files.exists(directory.resolve("drafts.bin")));
+        controller.load(true); run();
+        assertTrue(dialog().isShowing()); assertTrue(controller.isBusy());
+        assertNull(opened); assertFalse(Files.exists(directory.resolve("drafts.bin")));
+    }
     @Test public void corruptSourceHasNoInitializationChoice() throws Exception {
         Files.write(directory.resolve("drafts.bin"), new byte[]{1,2,3}); controller.load(true); run();
         assertNotNull(error); assertNull(opened); assertFalse(controller.isBusy()); assertTrue(work.isEmpty());
