@@ -247,3 +247,12 @@ v1-to-v2 upgrade acceptance did not complete; a fresh-profile stock-host graphic
 control also fails with TMM disabled. This does not supersede earlier bounded
 passing standard-client tests or prove a product root cause. Runtime migration,
 image and restart gates stay open under #7/#15.
+
+## Signed v20 resumed acceptance — 2026-10-28
+
+[The recovered offline emulator trial](EMULATOR_RECOVERY_V20.md) passes explicit
+v1 Cancel/migration, exact preservation of 22 synthetic records and an owned image,
+form/map/image mutations, automatic marker restore and normal unload/reload. The
+stock-host graphics blocker was resolved using ATAK's existing documented EGL
+marker. This is exact signed-v20/standard-5.6.0.25 evidence, not physical or
+connected two-client acceptance or complete #7 closure.

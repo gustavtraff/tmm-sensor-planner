@@ -114,3 +114,12 @@ with the owner's standard 5.6.0.12 app or companion plugins.
 
 Sources: [Android command-line emulator documentation](https://developer.android.com/studio/run/emulator-commandline),
 [hardware acceleration](https://developer.android.com/studio/run/emulator-acceleration).
+
+## Recheck the fallback in every new profile — 2026-10-28
+
+[The signed v20 recovery and acceptance](EMULATOR_RECOVERY_V20.md) reproduced the
+stock-host EGL failure without this marker, then restored rendering and cold
+startup using it in standard ATAK-CIV 5.6.0.25 with `-gpu swangle`. A new AVD or
+bootstrap cleanup must not be assumed to retain the marker. Verify its presence
+and the actual generic-EGL startup log before attributing this failure to TMM.
+The previous v20 graphics blocker is superseded only for that bounded setup.

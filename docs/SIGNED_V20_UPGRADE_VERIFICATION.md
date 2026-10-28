@@ -113,3 +113,11 @@ recovery path. Production sharing/upgrade approval remains with the owner.
 No source changes, builds, core/image suite, CI wait, signing upload or release
 were performed in this resumed acceptance slice. This is a bounded evidence report,
 not a fix for the graphics problem or completion of #15.
+
+## Follow-up — 2026-10-28
+
+[Recovered emulator and signed v20 acceptance](EMULATOR_RECOVERY_V20.md) supplies
+the previously omitted documented EGL prerequisite and actual Cancel/migration,
+edit/map/image, cold restart and unload/reload evidence. The earlier observations
+above are historical; their fresh-profile graphics blocker no longer prevents
+this bounded runtime slice. Physical and connected-client gates remain separate.
