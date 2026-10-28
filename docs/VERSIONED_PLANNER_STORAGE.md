@@ -136,3 +136,7 @@ and connected-client gates were not exercised in that slice.
 ## Signed v20 connected follow-up — 2026-10-28
 
 The [signed-v20 connected trial](CONNECTED_SIGNED20_VERIFICATION.md) now records connected-local consent, exact retention of the existing collection, a new private versioned canary/image/map edit, cold restart/reconnect and retained local deletion, with actual recipient and bounded feed/server/stream observations. These results apply to the returned v20 APK, not the later #121 activation fix or a physical/operational upgrade.
+
+## Signed v20 follow-up — 2026-10-29
+
+[Signed v20 native activation/error controls](SIGNED_V20_STORAGE_FAILURES.md) pass missing-file Cancel/Back, explicit empty initialization and cold reopening, plus unchanged corrupt/future/unreadable/symlink rejection. They do not test the later #121 source fix or nonempty corruption handling.

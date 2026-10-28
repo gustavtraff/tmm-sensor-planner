@@ -337,3 +337,7 @@ contract. The branch restores the candidate to `2.+` and adds an archive-generat
 guard with a wrong-version regression test. Local SDK 3.6.0 success does not verify
 the 2.x Maven route. Authorized Maven preflight and the first service failure's
 cause remain unverified; no additional upload or successful signing is claimed.
+
+## Signed v20 follow-up — 2026-10-29
+
+[The signed-v20 offline comparison](SIGNED_V20_COMPANION_REGRESSION.md) shows Data Sync, HV Reports and Voice loaded in standard 5.6.0.25 with TMM inactive/active/after unload, unchanged observed panels/filters and exact empty TMM storage. Audio, report delivery, connected mixed-companion/privacy and physical compatibility remain open.
