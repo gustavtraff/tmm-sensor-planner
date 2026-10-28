@@ -193,3 +193,13 @@ Selection values from actual v2 snapshots for every create/edit/delete/image wri
 Dataset identity and retained slot versions survive deletion/re-add; revisions
 are not used as a substitute. Format inspection is read-only. No persisted field,
 inbox, domain or outgoing schema changes accompany these caller APIs.
+
+
+## Image-sharing contract follow-up — proposed 2026-10-28 (#26)
+
+[The reviewed image-sharing proposal](IMAGE_SHARING_CONTRACT_PROPOSAL.md) defines
+logical UUID/metadata/content association, exact-byte integrity, pending-versus-local
+adoption and scoped receipt semantics for review. Its new offer/delivery/registry
+and acknowledgment decisions require explicit adoption and exact-format/transport
+verification before implementation. Current publication metadata remains image-free;
+no domain/inbox/local-v2/wire fields or image ownership rules change in this PR.
