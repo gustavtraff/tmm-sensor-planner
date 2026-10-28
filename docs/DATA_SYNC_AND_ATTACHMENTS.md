@@ -152,3 +152,14 @@ or a Mission Package API boolean.
 
 Data Sync feed publication, standard phone signing/coexistence, operational server
 compatibility and release/distribution approval remain separate gates.
+
+
+## Reviewed association contract follow-up — proposed 2026-10-28 (#26)
+
+[IMAGE_SHARING_CONTRACT_PROPOSAL.md](IMAGE_SHARING_CONTRACT_PROPOSAL.md) separates
+metadata receipt, received/verified PNG bytes, durable verified association and
+explicit private image adoption. It maps this historical contact-package evidence
+to its actual limits, defines proposed content/UUID/metadata binding and scoped
+acknowledgment, and supplies synthetic examples/required acceptance. No new transport,
+selected-feed image proof, recipient acknowledgment or runtime result is added.
+The proposal does not authorize a contact-route substitute for selected-feed scope.

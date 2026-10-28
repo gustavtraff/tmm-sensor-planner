@@ -376,3 +376,15 @@ through picker and preview. Cleanup requires a fresh same-dataset v2 read and
 current active references; uncertain results preserve copies. Image bytes/quality/
 paths and current originals are unchanged. Real signed phone/provider acceptance
 for this candidate remains pending.
+
+
+## Image-sharing contract follow-up — proposed 2026-10-28 (#26)
+
+[The image-sharing proposal](IMAGE_SHARING_CONTRACT_PROPOSAL.md) reuses current local
+quality/ownership rules and preserves local images during metadata import. It does
+not implement image sharing. A proposed untrusted clean-PNG receive/adoption path
+must be separate: current prepare input is 10 MiB, while owned PNGs can be 16 MiB;
+owned structural validation is not a sanitizer/association verifier for remote data.
+Do not change current source limits, reinterpret imageRef as remote identity or
+rewrite active images to satisfy the proposed transfer profile. Exact APIs, new
+registry/recovery formats and actual source/transport evidence remain future gates.

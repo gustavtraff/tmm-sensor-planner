@@ -570,3 +570,20 @@ Gradle deprecation/annotation warnings remain; there were no test failures/error
 or skipped cases. No Docker/emulator, ATAK SDK app/APK build, signing submission,
 physical-device/server/transport trial or CI wait was run. This is UI-component
 and existing-core verification, not signed ATAK runtime/live-ingress acceptance.
+
+
+## Image-sharing contract proposal (#26) — 2026-10-28
+
+[The proposal and acceptance matrix](IMAGE_SHARING_CONTRACT_PROPOSAL.md) define
+future offline/storage/two-client/physical evidence for content integrity, exact
+UUID/metadata/source association, replacement/conflicts, explicit local image
+adoption, receipt privacy/authentication and interrupted writes/retries/cleanup.
+Every matrix row is required future acceptance, not a passing test in this PR.
+
+Documentation-only verification: read current contracts/code and #26, computed two
+synthetic 64×64 RGB PNG examples in memory with standard-library helpers (H1 210
+bytes, H2 220 bytes), confirmed their SHA-256 values/decompressed row counts,
+checked relative document targets and `git diff --check`. No existing image/store,
+SDK/account/server was used by the example calculation. No production protocol or
+fixture file was changed. No core/UI/image test suite, Android/SDK build, Docker,
+emulator, signing change or v20/runtime verification ran; agent 1 retains that work.
