@@ -122,3 +122,12 @@ checks and an actual signed v18-to-v20 update install. Native migration acceptan
 remains blocked: the resumed fresh-profile control reproduces a stock-host EGL
 startup failure even with TMM disabled. No migration/marker/image runtime pass is
 inferred from the existing core/host tests. Owned emulators were stopped.
+
+## Signed runtime follow-up — 2026-10-28
+
+[The resumed acceptance](EMULATOR_RECOVERY_V20.md) now passes native v1 Cancel and
+explicit migration, full-field/image preservation, versioned form/map/image edits,
+local deletion, cold-host automatic marker restore and unload/reload in one
+isolated standard 5.6.0.25 emulator. The missing graphics fallback was corrected
+without changing the candidate. Fresh/missing/corrupt activation, physical-phone
+and connected-client gates were not exercised in that slice.
