@@ -141,3 +141,7 @@ the next phone image trial. No claim of full A05 or A08 acceptance follows from 
 ## Current evidence and next gate — 2026-10-22
 
 The owner-reported version 15 offline phone test passed the local workflow; see [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md). It does not close the connected privacy gate. The next priority is the signed standard-binary two-client procedure in [NEXT_STEPS.md](NEXT_STEPS.md#1-verify-connected-private-drafts--4-with-7), using an isolated server and positive controls, before considering an authorized phone online trial.
+
+## Signed v20 connected follow-up — 2026-10-28
+
+The [signed-v20 follow-up](CONNECTED_SIGNED20_VERIFICATION.md) exercises the versioned collection with Data Sync 3.7.4 loaded on both isolated standard clients and auto-publication enabled on the synthetic comparison feed. Exact candidate, positive controls, bounded absence observations, interruption and cleanup limits are recorded separately from the #121 source fix.
