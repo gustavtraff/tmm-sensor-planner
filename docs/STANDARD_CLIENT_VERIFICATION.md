@@ -260,3 +260,7 @@ connected two-client acceptance or complete #7 closure.
 ## Signed v20 connected follow-up — 2026-10-28
 
 The [signed-v20 connected-private regression](CONNECTED_SIGNED20_VERIFICATION.md) records actual Data Sync auto-publication controls on two standard 5.6.0.25 clients, connected-local create/image/move/restart/reconnect/delete, recipient searches and bounded four-feed/server/stream canary scans. It does not include the later #121 source fix, physical/companion-combination acceptance or production integration.
+
+## Signed v20 follow-up — 2026-10-29
+
+[Native v20 storage failure gates](SIGNED_V20_STORAGE_FAILURES.md) cover missing-file consent, corrupt/future/unreadable/symlink rejection and exact empty-frame preservation. [The offline companion regression](SIGNED_V20_COMPANION_REGRESSION.md) compares three companion panels with TMM inactive/active/after unload. These are signed-v20 API-35 observations, separate from candidate v21 and physical/full-workflow gates.

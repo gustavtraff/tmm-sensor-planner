@@ -1,6 +1,27 @@
-# Next steps after offline phone acceptance — 2026-10-22
+# Current verification and next steps — 2026-10-29
 
-## Current implementation gate — 2026-10-25
+1. **Sign and inspect candidate v21.** [The activation-recovery candidate](ACTIVATION_RECOVERY_CANDIDATE.md)
+   includes the merged #120/#121 fix and passed local SDK/debug/release checks.
+   The owner chooses whether to submit the exact reviewed source archive. The
+   unsigned local release is not an installable standard-client signing result.
+2. **Verify the returned v21 update, then a controlled phone regression.** Check
+   signing identity/version and preserve existing v1/v2 data. Recheck activation
+   access loss, migration/Cancel, images and lifecycle. [Signed v20 offline](EMULATOR_RECOVERY_V20.md),
+   [connected-private](CONNECTED_SIGNED20_VERIFICATION.md) and
+   [storage-error](SIGNED_V20_STORAGE_FAILURES.md) results are separate evidence;
+   they do not test the newer source fix. Keep physical 5.6.0.12/OEM and complete
+   report/feed/voice workflows open until actually run.
+3. **Keep integration and images explicit.** No verified callable third-party
+   Data Sync Android API or trusted feed-ingress/application proof is supplied by
+   those privacy checks. #25 owns that integration gate; #26's image proposal
+   remains separate from implementation/transport approval. Do not replace these
+   gates with an operational-feed experiment or private broadcasts.
+
+GitHub Issues are the live backlog. The dated notes below are historical plans;
+they do not reopen closed implementation issues or supersede the current exact
+candidate/runtime records above.
+
+## Historical implementation gate — 2026-10-25
 
 **Signed v16 follow-up:** [the actual SDK-path trial](PUBLICATION_SDK_RUNTIME.md)
 now passes its bounded fixed-PIR gate: one exact host copy, no pre-Done feed
