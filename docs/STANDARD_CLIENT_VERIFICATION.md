@@ -256,3 +256,7 @@ form/map/image mutations, automatic marker restore and normal unload/reload. The
 stock-host graphics blocker was resolved using ATAK's existing documented EGL
 marker. This is exact signed-v20/standard-5.6.0.25 evidence, not physical or
 connected two-client acceptance or complete #7 closure.
+
+## Signed v20 connected follow-up — 2026-10-28
+
+The [signed-v20 connected-private regression](CONNECTED_SIGNED20_VERIFICATION.md) records actual Data Sync auto-publication controls on two standard 5.6.0.25 clients, connected-local create/image/move/restart/reconnect/delete, recipient searches and bounded four-feed/server/stream canary scans. It does not include the later #121 source fix, physical/companion-combination acceptance or production integration.

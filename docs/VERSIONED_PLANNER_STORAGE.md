@@ -132,3 +132,7 @@ local deletion, cold-host automatic marker restore and unload/reload in one
 isolated standard 5.6.0.25 emulator. The missing graphics fallback was corrected
 without changing the candidate. Fresh/missing/corrupt activation, physical-phone
 and connected-client gates were not exercised in that slice.
+
+## Signed v20 connected follow-up — 2026-10-28
+
+The [signed-v20 connected trial](CONNECTED_SIGNED20_VERIFICATION.md) now records connected-local consent, exact retention of the existing collection, a new private versioned canary/image/map edit, cold restart/reconnect and retained local deletion, with actual recipient and bounded feed/server/stream observations. These results apply to the returned v20 APK, not the later #121 activation fix or a physical/operational upgrade.
