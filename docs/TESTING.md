@@ -587,3 +587,16 @@ checked relative document targets and `git diff --check`. No existing image/stor
 SDK/account/server was used by the example calculation. No production protocol or
 fixture file was changed. No core/UI/image test suite, Android/SDK build, Docker,
 emulator, signing change or v20/runtime verification ran; agent 1 retains that work.
+
+## Local activation transient-access regression — #120, 2026-10-28
+
+The targeted `LocalStorageUiTest` suite now covers availability returning between
+a skipped worker operation and delivery of its abort callback: queued reads,
+initialization, migration and the confirmation click itself. The aborted flow
+releases busy state, preserves storage and cannot revive old consent; reopening
+requires a fresh read/choice. All **30 cases** pass on Robolectric API 26/35. The
+two original queued-boundary regressions first failed on both APIs against the
+unchanged controller. No storage-format, golden fixture or transport change was
+made. No full app/SDK build, emulator, Docker, phone test or signing submission
+was performed; the targeted standalone Android-library test build is separate.
+A future signed APK still needs actual host/device regression verification.

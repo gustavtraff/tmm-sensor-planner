@@ -36,8 +36,9 @@ missing. Only valid v2 inspection contains a live v2 snapshot.
 Explicit initialization/upgrade confirmations are one-use. Old callbacks cannot
 activate storage or cancel a later flow. Reads/confirmations queued before Cancel,
 stop or loss of session access cannot start a write. A file operation already
-started may finish atomically after stop; its late UI result is ignored. Nothing
-is serialized as consent or resumed automatically after restart. After uncertain
+started may finish atomically after stop; its late UI result is ignored. An operation skipped while access is unavailable releases its pending UI state
+even if access returns before the abort callback runs; the next opening starts
+a fresh read/choice. Nothing is serialized as consent or resumed automatically after restart. After uncertain
 upgrade, reopening inspects whichever complete format actually committed.
 There is no second activation record: the validated committed frame is authoritative.
 
