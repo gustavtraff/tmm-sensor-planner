@@ -28,11 +28,27 @@ This is preparation for review and signing, not a release or sharing approval.
 
 The existing five source-archive boundary tests pass in their isolated synthetic
 Git repository (`python3 scripts/test-signing-source.py`). They test the archive
-tool, not a final archive of this candidate. The actual submitted commit/archive
-hash, local SDK build/static APK checks, signing-service result and returned-APK
-checks must be recorded separately when performed. No final source ZIP, full
-app/SDK build, emulator, Docker, phone test, signing upload or release was produced
-in this version-preparation slice.
+tool, not the final submitted commit or the remote signing pipeline.
+
+Root independently ran `sh scripts/check-sdk.sh` against the existing external
+5.6.0 SDK with JDK 17 and two Gradle workers: SDK MGRS/publication/ingress probes,
+CivDebug assembly/lint, all three app unit tests and the signed development-APK
+static checker passed. No actual dispatch or source/feed trust is inferred from
+those SDK probes. `:app:assembleCivRelease` including R8 shrinking also passed.
+
+The locally assembled release is **unsigned**. Invoking the signature-enforcing
+checker on it correctly rejected the missing signature; no signature check was
+weakened. Separate aapt/ZIP checks passed its actual version 21/name, package,
+5.6.0.CIV metadata, discovery component, registration, absence of requested plugin
+permissions and private-key/SDK packaging boundaries. Unsigned release SHA-256:
+`1720fe9322139df90c13c76eba911d724d4f0e7aa858858339b31db5d9e8c933`.
+The development signature and unsigned local release do not establish the future
+service signing identity or standard-host loadability.
+
+The actual merged source archive commit/SHA-256 and returned signing result must
+be recorded separately when produced. No v21 emulator/device trial, signing upload
+or release has occurred. The full standalone image-library suite was not rerun
+locally for these version-only changes; required CI remains separate evidence.
 
 ## Remaining human signing and install gates
 
