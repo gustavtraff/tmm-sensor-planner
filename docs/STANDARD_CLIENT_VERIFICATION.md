@@ -238,3 +238,12 @@ human approves merges, any release and operational data sharing.
 ## Current evidence and next gate — 2026-10-22
 
 Service-signed version 15 passed local static artifact checks and the owner-reported offline OnePlus workflow on 2026-10-22. See [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md) for exact hashes, reported host-version uncertainty, camera/zoom/MGRS/mils/lifecycle results and untested gates. This newer physical result does not establish standard-binary connected two-client privacy or companion workflows.
+
+## Signed versionCode 20 — 2026-10-27
+
+[The returned-candidate record](SIGNED_V20_UPGRADE_VERIFICATION.md) identifies the
+artifact/signing hashes and actual successful update install. The intended native
+v1-to-v2 upgrade acceptance did not complete; a fresh-profile stock-host graphics
+control also fails with TMM disabled. This does not supersede earlier bounded
+passing standard-client tests or prove a product root cause. Runtime migration,
+image and restart gates stay open under #7/#15.
