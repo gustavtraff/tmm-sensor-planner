@@ -1,7 +1,15 @@
 # Reviewed image sharing and verified association — proposal (#26)
 
-**Status: proposed for explicit owner review, 2026-10-28. No production
-implementation, new product wire format, adapter or transport is introduced.**
+**Decision update, 2026-10-29:** the owner explicitly approved recommendations
+**A–F and H**, with **Data Sync-feed as the target for G**. A contact transfer does
+not replace that target. This adopts the logical rules and format-review gates;
+exact offer/container/receipt/registry encodings still require review before their
+writers. No operational image-sharing route is approved by this decision.
+
+The original PR #118 proposal below introduced no production implementation, wire
+format, adapter or transport. [The first content-only implementation](IMAGE_TRANSFER_CONTENT.md)
+now provides bounded exact-byte verification and a separate owned-PNG export copy;
+it adds no association, storage writer, network call or image-sharing UI.
 Baseline: main `b37a1ef` (#117), including the approved #14 metadata profile and
 #15 import/local-state contracts. This work does not use the lab or change signing;
 agent 1 retains emulator and signed-v20 verification. F09/F10/F11/F12, N02/N03/N06.
@@ -30,9 +38,10 @@ agent 1 retains emulator and signed-v20 verification. F09/F10/F11/F12, N02/N03/N
   different. [Mission cleanup](LOCAL_MISSION_CLEANUP_PROPOSAL.md) remains an explicitly
   confirmed local action; no automatic reset or remote withdrawal follows from it.
 
-The recommendations below are **new #26 choices**, not already implemented/adopted
-rules. Approval checkpoints are collected near the end rather than inferred from
-this PR's merge or from earlier metadata/image-policy approval.
+The recommendations below were presented as new #26 choices in PR #118. Their
+logical approval is now recorded above and in the decision table below; implementation
+and evidence remain separate. Approval was explicit, not inferred from a PR merge
+or from earlier metadata/image-policy approval.
 
 ## Three independent receipt facts, then a separate local choice
 
@@ -339,9 +348,9 @@ acceptance. New container/receipt/registry writers require prior exact-format an
 migration/ownership review. This PR does none of those implementation steps and
 does not take agent 1's emulator/v20 work or request a signing submission.
 
-## New decisions requiring owner approval before implementation
+## Owner decision record — 2026-10-29
 
-| Decision | Recommended first slice / consequence |
+| Decision | Approved recommendation / consequence |
 |---|---|
 | A. Association identity | Immutable source-scoped associationId + device UUID + exact M + content digest/length, with destination-bound deliveryId. No causal/newest-image counter and no binding by label. |
 | B. Bytes and quality | Exact-byte SHA-256, stricter clean RGB/RGBA PNG profile and accepted 1920/16 MiB quality bounds. Separate export/adoption APIs preserve 10 MiB original input rules; no automatic receive-side transform or active-image rewrite. |
@@ -349,21 +358,24 @@ does not take agent 1's emulator/v20 work or request a signing submission.
 | D. Receipt privacy and meaning | Positive association-stored-for-review evidence only; authenticated intended-peer binding and explicit session feedback consent, default off. No attached-locally disclosure by default, no “all feed users received” claim. |
 | E. Replacement/removal | New offer for replacement, manual choice rather than last-write-wins; no implicit remote deletion/withdrawal in first slice. Metadata-only/null/missing images never clear current attachments. |
 | F. Capacity/retention | Proposed 256 MiB staging budget, 16 pending offers, 256 small history/delivery/receipt records; no silent eviction/expiry. Cleanup must disclose loss of replay/history and exactly which private bytes are removed. |
-| G. Initial route and evidence | Choose contact experiment versus selected-feed requirement explicitly. Neither path is production-authorized; final destination/freshness, source association, safe import and return receipts still need exact SDK/two-client proof. |
+| G. Initial route and evidence | **Data Sync-feed is the target.** A contact experiment cannot replace it. Final destination/freshness, source association, safe import and return receipts still need exact SDK/two-client proof; this is not production authorization. |
 | H. New protocol/storage gates | Keep current metadata/inbox/v2 formats unchanged now. Review exact offer/container/receipt and private registry/recovery bytes/fixtures before their writers; do not disguise these as existing metadata decisions or imageRef values. |
 
-These are the new choices presented for approval. UUID identity, metadata-only image
-preservation, explicit confirmation, existing local quality policy and local-versus-
-remote deletion boundaries above are already adopted and need no renewed approval.
-A future PR must state which of A–H were adopted rather than treating this proposal
-or any successful signing/SDK compilation as operational sharing authorization.
+The owner approved A–F/H and the Data Sync-feed target for G in the conversation
+on 2026-10-29 (Europe/Stockholm). The approval includes keeping feedback off by
+default and reviewing exact formats before their writers. It does not approve an
+unseen storage/wire encoding, automatic image replacement or a transport route.
+Future PRs must distinguish implemented rules and actual evidence from remaining
+gates; successful signing or SDK compilation is not operational authorization.
 
 ## Acceptance matrix — required future evidence, not tests run here
 
 O = offline bounded codec/domain tests; S = private-storage/process/fault tests;
 L = two isolated signed standard clients plus independent recipient/server/traffic
 observations and positive controls before/after; P = physical-phone/provider checks.
-Every row is future acceptance for #26, **not a newly passing result**.
+Every row describes full future acceptance for #26, **not a newly passing system
+result**. [Content-only tests](IMAGE_TRANSFER_CONTENT.md) now cover part of I04/I05;
+they do not satisfy those rows' storage, association, phone or route evidence.
 
 | ID | Scenario | Required observable result | Evidence |
 |---|---|---|---|
@@ -388,7 +400,7 @@ Every row is future acceptance for #26, **not a newly passing result**.
 | I19 | Stock PNG/package receiver import, native background/auto-publication settings | No map-placement tool, unexpected map object, publication into unselected feed or original-byte metadata exposure; stop/reject unsafe route | L |
 | I20 | Upgrade/backward/unknown format and old image/metadata contracts | Existing metadata/inbox/v2 bytes and local image behavior preserved; unknown new image registry fails closed; independent migration/failure fixtures before activation | O/S/P |
 
-## Verification actually performed for this proposal
+## Verification performed for the original PR #118 proposal
 
 Read the repository contracts/code referenced above and #26's issue/recorded scope.
 Computed H1/H2 in memory using only the existing synthetic generator's chunk/image
