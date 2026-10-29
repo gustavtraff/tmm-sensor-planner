@@ -1,5 +1,13 @@
 # Tests and gates
 
+## Returned signed-v21 candidate — 2026-10-29 (#128 / #7)
+
+[Signed-v21 verification](SIGNED_V21_VERIFICATION.md) records the actual standard-host
+update, exact saved-state/image checks and pending initialization/migration access-loss
+recovery. Those bounded native cases do not reproduce every queued-worker timing
+window or establish phone/connected Data Sync acceptance. No unchanged build/core/image
+suite was rerun for this evidence-only change.
+
 ## Image-content boundary — 2026-10-29 (#26 / #126)
 
 [Verified image content](IMAGE_TRANSFER_CONTENT.md) records 58 passing focused
