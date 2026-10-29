@@ -1,5 +1,13 @@
 # Tests and gates
 
+## Image-content boundary — 2026-10-29 (#26 / #126)
+
+[Verified image content](IMAGE_TRANSFER_CONTENT.md) records 58 passing focused
+native-graphics API 26/35 cases and image lint: exact-byte PNG verification, separate
+owned-PNG export and existing local-image regressions. This is in-memory content
+only; no new wire/storage writer, association, transport or sharing UI is activated.
+Data Sync-feed source/recipient evidence and durable readback remain separate gates.
+
 ## Synthetic SDK import candidate — 2026-10-25
 
 [The v16 probe and runtime protocol](PUBLICATION_IMPORT_PROBE.md) separate the

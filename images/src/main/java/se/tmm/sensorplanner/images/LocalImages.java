@@ -139,6 +139,11 @@ public final class LocalImages {
 
     private static byte[] normalize(byte[] source) throws IOException {
         int primaryLength = ImageFormat.primaryLength(source);
+        return normalizeValidated(source, primaryLength);
+    }
+
+    /** Caller must validate the complete source/profile and its byte bound first. */
+    static byte[] normalizeValidated(byte[] source, int primaryLength) throws IOException {
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
         BitmapFactory.decodeByteArray(source, 0, primaryLength, bounds);

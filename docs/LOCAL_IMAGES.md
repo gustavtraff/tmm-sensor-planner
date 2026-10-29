@@ -378,13 +378,15 @@ paths and current originals are unchanged. Real signed phone/provider acceptance
 for this candidate remains pending.
 
 
-## Image-sharing contract follow-up — proposed 2026-10-28 (#26)
+## Image-sharing content follow-up — 2026-10-29 (#26 / #126)
 
-[The image-sharing proposal](IMAGE_SHARING_CONTRACT_PROPOSAL.md) reuses current local
-quality/ownership rules and preserves local images during metadata import. It does
-not implement image sharing. A proposed untrusted clean-PNG receive/adoption path
-must be separate: current prepare input is 10 MiB, while owned PNGs can be 16 MiB;
-owned structural validation is not a sanitizer/association verifier for remote data.
-Do not change current source limits, reinterpret imageRef as remote identity or
-rewrite active images to satisfy the proposed transfer profile. Exact APIs, new
-registry/recovery formats and actual source/transport evidence remain future gates.
+[The image-sharing decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md) adopts the
+owner-approved logical rules and Data Sync-feed target. The first
+[content-only boundary](IMAGE_TRANSFER_CONTENT.md) separately verifies exact received
+PNG bytes and prepares a fresh export copy from an owned PNG. No app caller or
+sharing UI is connected. Original picker input remains 10 MiB; the owned/export
+bound is separately 16 MiB. Local owned structural validation remains more permissive
+than the closed transfer profile. Export never rewrites active images; verification
+never transforms received bytes or proves source/device association. Exact new
+wire/registry formats, writers, durable staging/adoption and actual feed/source /
+recipient evidence remain future gates. Existing imageRef and metadata are unchanged.
