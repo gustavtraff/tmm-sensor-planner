@@ -36,9 +36,12 @@ than treating all candidate/device verification as a reason to reopen fixed bugs
 
 ## Next implementation order
 
-1. **Finish the bounded input PR #131, then the exact #26 formats.** Before new
-   offer/container/receipt or private-registry writers, produce concrete byte formats
-   and independent synthetic fixtures for owner review as required by H. Reuse exact
+1. **Review the bounded input and exact #26 formats.** PR #131 contains the
+   bounded input implementation. [PR #135](https://github.com/gustavtraff/tmm-sensor-planner/pull/135)
+   now supplies the proposed exact offer descriptor and independent fixtures for
+   explicit owner review before its codec. Exact container/receipt/private-registry
+   formats still need their own concrete bytes and fixtures before their writers,
+   as required by H. Reuse exact
    metadata/domain equality, immutable image identity and the approved content profile.
    This format review is still required; approval of A–F/H is not approval of unseen
    bytes. Keep local images and current metadata/inbox/v2 formats unchanged.
