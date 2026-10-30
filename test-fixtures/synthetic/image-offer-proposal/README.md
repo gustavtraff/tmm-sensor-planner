@@ -1,7 +1,8 @@
-# Proposed image-offer descriptors — synthetic, not adopted
+# Owner-approved image-offer v1 descriptors — synthetic fixtures
 
-These are exact-byte candidates for `docs/IMAGE_OFFER_FORMAT_PROPOSAL.md`, not a
-production wire/registry format. The existing PIR metadata is embedded unchanged:
+These pin the exact descriptor version approved on 2026-10-30 in
+`docs/IMAGE_OFFER_FORMAT_PROPOSAL.md`. They are not a production codec or an
+approved container/receipt/registry format. The existing PIR metadata is embedded unchanged:
 `test-fixtures/synthetic/publication/pir-v1.xml` (557 bytes). It contains only synthetic
 positions/text and no image handle, operational account or source authority.
 

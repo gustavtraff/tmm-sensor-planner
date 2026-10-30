@@ -2,9 +2,9 @@
 
 ## Image-offer descriptor proposal — 2026-10-30 (#134 / #26)
 
-[The exact-format candidate](IMAGE_OFFER_FORMAT_PROPOSAL.md) adds independent binary
-fixtures and a test-only Java inspector to `sh scripts/test.sh`. This is not an
-approved or implemented production codec. Parsing a fixture does not establish
+[The owner-approved descriptor format](IMAGE_OFFER_FORMAT_PROPOSAL.md) has independent
+binary fixtures and a test-only Java inspector in `sh scripts/test.sh`. Exact version 1
+was explicitly approved on 2026-10-30; no production codec is implemented here. Parsing a fixture does not establish
 actual PNG safety, trusted source, association, durability or Data Sync delivery.
 
 ## Bounded image stream input — 2026-10-30 (#130 / #26)

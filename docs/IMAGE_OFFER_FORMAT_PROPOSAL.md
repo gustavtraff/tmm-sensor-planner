@@ -1,10 +1,13 @@
-# Image-offer descriptor bytes — proposal for review (#134 / #26)
+# Image-offer descriptor bytes — approved version 1 (#134 / #26)
 
-**Status: proposed, not adopted.** Logical A–F/H and the Data Sync-feed goal G
-are approved in [the image-sharing decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md).
-They do not approve this exact encoding. This PR supplies concrete bytes and an
-independent test-only inspector for the next review gate. It adds no production
-encoder/decoder, registry, image adoption, native import or transport.
+**Status: exact descriptor version 1 explicitly approved by the owner, 2026-10-30.**
+The approval applies to PR #135 at `c3a9b21dd66b21cb86bbc0bd407e0b064762b95e`,
+including the layout, bounds, UUID constraints, unchanged embedded M and CRC rules
+below and both pinned 669-byte fixtures. It permits a separately reviewed production
+codec implementation. Logical A–F/H and the Data Sync-feed goal G remain in
+[the decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md). This PR adds only the
+specification and test-only inspector, no production codec, registry, adoption,
+native import or transport. Container/receipt/registry approval is still separate.
 
 ## Scope and recommendation
 
@@ -129,10 +132,11 @@ compatibility/migration review before activation. Existing formats remain untouc
 
 ## Owner review and remaining gates
 
-Review whether to adopt **this exact descriptor version** (layout, bounds, nonzero
-association/delivery IDs, embedded unchanged M, CRC and fail-closed rules). Merging
-fixture documentation is reviewable evidence, not implicit approval to implement its
-codec. Record an explicit owner format decision before the production codec.
+The owner explicitly approved **this exact descriptor version** in the conversation
+on 2026-10-30. This is an explicit decision, not inferred from merging the proposal.
+A production codec can now implement these bytes in its own scoped implementation
+PR with the independent fixtures and strict malformed-input tests. No codec is
+introduced by this approval-record update.
 
 Exact container, receipt and private registry/recovery formats remain **unapproved**;
 this proposal does not approve unseen bytes for those writers. Trusted Data Sync-feed
