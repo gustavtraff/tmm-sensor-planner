@@ -216,6 +216,29 @@ public class ImageTransferPngTest {
         assertTrue(stream.maxRequest <= 8192); assertFalse(stream.closed);
     }
 
+    @Test public void validImageAtExactMaximumByteBoundaryIsAccepted() throws Exception {
+        // Independent zlib framing: empty stored blocks plus one final four-byte RGB row.
+        byte[] zlib = new byte[ImageTransferPng.MAX_BYTES - 57 - 24];
+        zlib[0] = 0x78; zlib[1] = 1;
+        int blocks = (zlib.length - 15) / 5, offset = 2;
+        assertEquals(0, (zlib.length - 15) % 5);
+        for (int i = 0; i < blocks; i++) {
+            zlib[offset + 3] = (byte)255; zlib[offset + 4] = (byte)255; offset += 5;
+        }
+        zlib[offset++] = 1; zlib[offset++] = 4; zlib[offset++] = 0;
+        zlib[offset++] = (byte)251; zlib[offset++] = (byte)255; offset += 4;
+        Adler32 adler = new Adler32(); adler.update(new byte[4]);
+        ByteBuffer.wrap(zlib, offset, 4).putInt((int)adler.getValue());
+        byte[] png = join(signature(), header(1, 1, 2), chunk("IDAT", new byte[0]),
+                chunk("IDAT", new byte[0]), chunk("IDAT", zlib), chunk("IEND", new byte[0]));
+        assertEquals(ImageTransferPng.MAX_BYTES, png.length);
+        ObservedStream stream = new ObservedStream(png, 8192, false);
+        ImageTransferPng.VerifiedContent result = ImageTransferPng.readAndVerify(stream, identity(png));
+        assertEquals(ImageTransferPng.MAX_BYTES, result.identity.length);
+        assertArrayEquals(hash(png), result.identity.sha256()); assertArrayEquals(png, result.bytes());
+        assertTrue(stream.eofRead); assertFalse(stream.closed);
+    }
+
     @Test public void exactMaximumStillRequiresEofAndRealContentValidation() throws Exception {
         GeneratedStream stream = new GeneratedStream(ImageTransferPng.MAX_BYTES);
         ImageTransferPng.Identity expected = new ImageTransferPng.Identity(new byte[32], ImageTransferPng.MAX_BYTES, 1, 1);

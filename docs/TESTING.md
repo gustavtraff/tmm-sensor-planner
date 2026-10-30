@@ -4,7 +4,7 @@
 
 [The content boundary](IMAGE_TRANSFER_CONTENT.md#stream-input-verification--2026-10-30-130)
 now bounds accumulation while reading streamed bytes, checks exact length and EOF,
-then uses the existing PNG/hash verifier. All 44 focused API 26/35 content cases
+then uses the existing PNG/hash verifier. All 46 focused API 26/35 content cases
 and image lint passed. This adds no source/device association, durable storage, UI
 or Data Sync route. Caller-owned read deadlines and stream closure remain explicit.
 

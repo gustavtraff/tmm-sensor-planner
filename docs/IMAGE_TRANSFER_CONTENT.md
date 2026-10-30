@@ -133,12 +133,12 @@ durability nor end-to-end Data Sync image delivery.
 ## Stream-input verification — 2026-10-30 (#130)
 
 The focused `ImageTransferPngTest` suite and `lintDebug` passed with the pinned
-standalone toolchain: **44 cases**, zero failures/errors/skips across native API
-26/35 (the original 28 plus 16 new stream cases). Lint has zero errors and eight
-existing advisories. The eight new scenarios cover exact one-pixel/golden payloads,
+standalone toolchain: **46 cases**, zero failures/errors/skips across native API
+26/35 (the original 28 plus 18 new stream cases). Lint has zero errors and eight
+existing advisories. The nine new scenarios cover exact one-pixel/golden payloads,
 short/zero-progress reads, EOF/declared-length mismatches, an endless generated
-source stopped after 16 MiB + one actual byte, an exact maximum-length invalid
-source requiring both EOF and content checks, early EOF under a maximum claim,
+source stopped after 16 MiB + one actual byte, an independently framed valid PNG at exactly 16 MiB, an exact maximum-length
+invalid source requiring both EOF and content checks, early EOF under a maximum claim,
 read/interruption/EOF-probe failures, unchanged strict hash/dimension/profile checks,
 caller-owned closure and the safe low-memory category via a synthetic exception.
 These are not measured device memory-pressure, blocked-read deadline or transport
