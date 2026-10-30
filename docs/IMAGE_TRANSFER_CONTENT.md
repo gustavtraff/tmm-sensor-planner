@@ -43,7 +43,7 @@ error category. This does not guarantee that every device has enough memory.
 For complete byte-array input, upstream code must still bound actual bytes before
 allocating it. Prefer `readAndVerify` when the complete payload is exposed as a stream:
 its accumulation grows from at most 8 KiB rather than allocating the entire claimed
-length up front. It leaves the caller's stream open on success and failure; use
+larger length up front. It leaves the caller's stream open on success and failure; use
 try-with-resources at the owning boundary. I/O failures (including interruption and
 a failure during the final EOF probe) propagate without a verified result. Translate
 provider exceptions safely before displaying/logging them.
