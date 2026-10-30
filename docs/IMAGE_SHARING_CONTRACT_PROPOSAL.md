@@ -439,3 +439,12 @@ checked; no core/UI/image suite, production validator, Android/SDK build, Docker
 emulator, two-client transport, signing change or v20 acceptance was run here.
 No new image schema has been put into the product and no operational sharing
 permission is implied by this document or by fixture arithmetic.
+
+
+## Private unassociated stage review — 2026-10-30 (#142)
+
+[The exact stage-layout proposal](IMAGE_STAGE_LAYOUT_PROPOSAL.md) gives a minimal
+private descriptor/PNG directory publication and recovery contract, independent
+fixtures, strict quotas and explicit missing-history limits. It is proposed, not
+adopted. It does not implement storage or approve source/association/receipt
+registries, cleanup/adoption, transport or any unseen writer.

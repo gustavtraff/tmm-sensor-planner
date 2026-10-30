@@ -1,5 +1,13 @@
 # Tests and gates
 
+## Unassociated stage layout proposal — 2026-10-30 (#142 / #26)
+
+[The proposed filesystem layout](IMAGE_STAGE_LAYOUT_PROPOSAL.md) has independent
+synthetic ready/pending directory fixtures and six passing stdlib-only test groups.
+This is not an adopted storage format or a production writer/registry. Whole-record
+loss/history and pending-recovery limitations are explicit; existing tests do not
+prove trusted association or actual Android filesystem durability.
+
 ## Read-only import-source observer preparation — 2026-10-30 (#139 / #25)
 
 [The guarded probe](INGRESS_OBSERVER_PROBE.md) has 14 passing native API26/35 state

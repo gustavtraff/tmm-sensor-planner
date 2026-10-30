@@ -34,6 +34,8 @@ jobs:
         run: python3 scripts/test-signing-source.py
       - name: Generate and verify synthetic attachment fixture
         run: python3 scripts/create-attachment-fixture.py "$RUNNER_TEMP/TMM-IMAGE-PROBE.zip"
+      - name: Inspect proposed private image-stage layout fixtures
+        run: python3 scripts/test-image-stage-proposal.py
   images:
     timeout-minutes: 20
     runs-on: ubuntu-24.04
