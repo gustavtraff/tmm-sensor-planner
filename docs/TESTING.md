@@ -1,5 +1,12 @@
 # Tests and gates
 
+## Descriptor and actual PNG candidate — 2026-10-30 (#138 / #26)
+
+[The pair boundary](RECEIVED_IMAGE_PAYLOAD.md) passed 64 focused native API26/35 cases
+and image lint. Independent descriptor and PNG fixtures verify coherent immutable
+results and safe mismatch/corruption/read failure. This is not source authentication,
+durable association, operator adoption or Data Sync transport evidence.
+
 ## Image descriptor core codec — 2026-10-30 (#136 / #26)
 
 [The approved descriptor codec](IMAGE_OFFER_CODEC.md) passed `sh scripts/test.sh`,

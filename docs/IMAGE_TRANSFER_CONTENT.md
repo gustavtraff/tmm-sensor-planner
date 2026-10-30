@@ -145,3 +145,12 @@ These are not measured device memory-pressure, blocked-read deadline or transpor
 acceptance tests. No new fixture, core/data format, UI, app caller or signed artifact
 changed. No core/full-image suite, SDK build, emulator, Docker, phone/server or CI
 wait was run for this content-only slice.
+
+
+## Descriptor/content pair boundary — 2026-10-30 (#138 / #26)
+
+[ReceivedImagePayload](RECEIVED_IMAGE_PAYLOAD.md) now checks the approved descriptor
+and actual PNG as one immutable in-memory candidate. It does not authenticate the
+metadata/source or persist/adopt an image. Exact retained-M/source and stored-byte
+readback remain required before verified association. Existing local images and
+quality policy remain unchanged.
