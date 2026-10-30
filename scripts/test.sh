@@ -31,6 +31,7 @@ printf '%s\n' scripts/java/se/tmm/sensorplanner/tools/PublicationEnvelopeVerifie
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ShareReviewTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.PublicationPreparationReviewTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.PublicationFormatFixtureTest
+"$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ImageOfferFormatProposalTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.PublicationCodecTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.ShareLabFieldsTest
 "$java_cmd" -ea -cp "$build_dir/classes" se.tmm.sensorplanner.core.DraftStoreTest

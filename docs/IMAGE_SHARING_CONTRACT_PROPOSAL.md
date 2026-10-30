@@ -348,6 +348,13 @@ acceptance. New container/receipt/registry writers require prior exact-format an
 migration/ownership review. This PR does none of those implementation steps and
 does not take agent 1's emulator/v20 work or request a signing submission.
 
+## Exact-format review follow-up — 2026-10-30
+
+[The image-offer descriptor candidate](IMAGE_OFFER_FORMAT_PROPOSAL.md) supplies exact
+bytes, independent synthetic fixtures and a test-only inspector under #134. It is
+**proposed, not adopted**; no production codec, registry, source mapping or transport
+is introduced. Exact container/receipt/registry formats remain separate gates.
+
 ## Owner decision record — 2026-10-29
 
 | Decision | Approved recommendation / consequence |
