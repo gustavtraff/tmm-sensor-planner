@@ -1,5 +1,12 @@
 # Receiving metadata: verified SDK surfaces and source limits — #15/#25
 
+**Candidate follow-up — 2026-10-30:** [the read-only source observer](INGRESS_OBSERVER_PROBE.md)
+now implements the guarded structural-only PUB18 experiment in candidate v22. Local
+state/SDK/build checks pass; no actual native callbacks or trusted source mapping
+have been verified. [Returned v21 evidence](SIGNED_V21_VERIFICATION.md) does not
+cover this new candidate. The original investigation below remains signature/source
+evidence, not a production ingress contract.
+
 Baseline: main `f9845c8` (#113/#114), versionCode 20. The owner assigned receive-path
 and source-context verification while agent 2 independently integrates decision
 coverage into the inbox UI. This investigation adds an optional SDK signature check,

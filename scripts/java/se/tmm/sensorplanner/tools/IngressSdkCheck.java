@@ -8,6 +8,9 @@ import com.atakmap.android.maps.*;
 import com.atakmap.comms.*;
 import com.atakmap.coremap.cot.event.*;
 import java.lang.reflect.Modifier;
+import se.tmm.sensorplanner.core.DeviceType;
+import se.tmm.sensorplanner.plugin.ingress.IngressProbeState;
+import se.tmm.sensorplanner.plugin.publication.PublicationEnvelopeFixtures;
 
 /** Signature checks only: no host construction, callback registration, import, store or dispatch. */
 public final class IngressSdkCheck {
@@ -22,10 +25,18 @@ public final class IngressSdkCheck {
         check(MapEventDispatcher.class, "addMapEventListenerToBase", void.class, String.class, MapEventDispatcher.MapEventDispatchListener.class);
         check(MapEventDispatcher.class, "removeMapEventListenerFromBase", void.class, String.class, MapEventDispatcher.MapEventDispatchListener.class);
         check(MapEvent.class, "getExtras", Bundle.class);
+        check(MapEvent.class, "getType", String.class);
+        check(MapView.class, "getMapEventDispatcher", MapEventDispatcher.class);
+        check(MapItem.class, "getUID", String.class);
         check(MapEvent.class, "getItem", MapItem.class);
         check(CotDetailHandler.class, "toItemMetadata", CommsMapComponent.ImportResult.class, MapItem.class, CotEvent.class, CotDetail.class);
         check(CommsLogger.class, "logReceive", void.class, CotEvent.class, String.class, String.class);
-        System.out.println("Ingress SDK signatures passed. No listener/importer registered, no source/feed trust inferred, no data received or sent.");
+        for (DeviceType type : DeviceType.values()) {
+            if (!IngressProbeState.isCanary(PublicationEnvelopeFixtures.draft(type).uid.toString())) {
+                throw new AssertionError("Ingress observer allowlist differs from actual publication canaries");
+            }
+        }
+        System.out.println("Ingress SDK signatures and observer-canary alignment passed. No listener/importer registered, no source/feed trust inferred, no data received or sent.");
     }
     private static void check(Class<?> owner, String name, Class<?> result, Class<?>... arguments) throws Exception {
         java.lang.reflect.Method method = owner.getMethod(name, arguments);

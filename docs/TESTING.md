@@ -1,5 +1,12 @@
 # Tests and gates
 
+## Read-only import-source observer preparation — 2026-10-30 (#139 / #25)
+
+[The guarded probe](INGRESS_OBSERVER_PROBE.md) has 14 passing native API26/35 state
+cases, actual public SDK signatures/canary alignment, debug/release builds, app
+lint/unit checks and debug APK boundary checks. This is preparation only: no native
+listener or Data Sync source/variant coverage has been exercised on signed v22.
+
 ## Descriptor and actual PNG candidate — 2026-10-30 (#138 / #26)
 
 [The pair boundary](RECEIVED_IMAGE_PAYLOAD.md) passed 64 focused native API26/35 cases

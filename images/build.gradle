@@ -18,6 +18,7 @@ android {
     }
     sourceSets {
         test.java.srcDir '../core/src/main/java'
+        test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/ingress'
         test.resources.srcDir '../test-fixtures/synthetic/image-offer-proposal'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/images'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/local'
