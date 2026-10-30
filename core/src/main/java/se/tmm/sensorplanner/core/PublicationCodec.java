@@ -28,26 +28,35 @@ public final class PublicationCodec {
 
     /** Canonical read-only attribute projection shared by XML and SDK detail construction. */
     public static Map<String, String> fields(PublicationPreparationReview.Prepared prepared) {
-        try {
-            ShareReview.Metadata m = Objects.requireNonNull(prepared, "prepared").metadata;
-            Map<String, String> fields = new LinkedHashMap<>();
-            fields.put("schemaVersion", "1"); fields.put("deviceUid", m.uid.toString());
-            fields.put("displayIdUtf8", text(m.displayId)); fields.put("type", m.type.name());
-            fields.put("status", m.status.name()); fields.put("ownerUtf8", text(m.owner));
-            fields.put("createdAt", m.createdAt.toString()); fields.put("updatedAt", m.updatedAt.toString());
-            fields.put("deployedAt", m.deployedAt == null ? "" : m.deployedAt.toString());
-            fields.put("commentUtf8", text(m.comment)); fields.put("latitude", Double.toString(m.position.latitude));
-            fields.put("longitude", Double.toString(m.position.longitude));
-            fields.put("bearingDeg", m.bearingDeg == null ? "" : m.bearingDeg.toString());
-            fields.put("bearingReference", "true-north"); fields.put("imageIncluded", "false");
-            return Collections.unmodifiableMap(fields);
-        } catch (Exception rejected) { throw new IllegalArgumentException(INVALID); }
+        try { return metadataFields(Objects.requireNonNull(prepared, "prepared").metadata); }
+        catch (Exception rejected) { throw new IllegalArgumentException(INVALID); }
+    }
+
+    private static Map<String, String> metadataFields(ShareReview.Metadata m) throws Exception {
+        Objects.requireNonNull(m, "metadata");
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("schemaVersion", "1"); fields.put("deviceUid", m.uid.toString());
+        fields.put("displayIdUtf8", text(m.displayId)); fields.put("type", m.type.name());
+        fields.put("status", m.status.name()); fields.put("ownerUtf8", text(m.owner));
+        fields.put("createdAt", m.createdAt.toString()); fields.put("updatedAt", m.updatedAt.toString());
+        fields.put("deployedAt", m.deployedAt == null ? "" : m.deployedAt.toString());
+        fields.put("commentUtf8", text(m.comment)); fields.put("latitude", Double.toString(m.position.latitude));
+        fields.put("longitude", Double.toString(m.position.longitude));
+        fields.put("bearingDeg", m.bearingDeg == null ? "" : m.bearingDeg.toString());
+        fields.put("bearingReference", "true-north"); fields.put("imageIncluded", "false");
+        return Collections.unmodifiableMap(fields);
     }
 
     /** Encode the explicit metadata projection of a successful preparation, never the review itself. */
     public static byte[] encode(PublicationPreparationReview.Prepared prepared) {
+        try { return encodeMetadata(Objects.requireNonNull(prepared, "prepared").metadata); }
+        catch (Exception rejected) { throw new IllegalArgumentException(INVALID); }
+    }
+
+    // Reuse exact metadata bytes inside the approved descriptor; this is not a sharing permission.
+    static byte[] encodeMetadata(ShareReview.Metadata metadata) {
         try {
-            Map<String, String> fields = fields(prepared);
+            Map<String, String> fields = metadataFields(metadata);
             // All values are canonical ASCII scalars or Base64, so raw user text never enters XML syntax.
             StringBuilder xml = new StringBuilder("<?xml version='1.0' encoding='utf-8'?>\n<tmmPublication");
             for (Map.Entry<String, String> field : fields.entrySet()) {
