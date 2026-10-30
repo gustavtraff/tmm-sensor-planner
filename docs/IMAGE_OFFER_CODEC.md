@@ -58,7 +58,8 @@ store state or approved golden files were changed. There is no existing image
 registry to migrate. Unknown descriptor versions fail closed. A later descriptor
 version requires a separately reviewed format/compatibility change, not a fallback.
 
-The app has no caller/transport wired to this codec. Exact container, receipt and
+The [in-memory app image boundary](RECEIVED_IMAGE_PAYLOAD.md) now pairs this
+descriptor with actual verified PNG bytes; no UI/transport is wired to that boundary. Exact container, receipt and
 private registry/recovery formats remain unapproved before their writers. Source /
 selected-feed ingress, actual recipient bytes, quotas, crash recovery, manual
 adoption and two-client Data Sync-feed verification remain separate gates. Contact
