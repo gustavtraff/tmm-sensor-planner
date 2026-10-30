@@ -298,3 +298,23 @@ unidentified. Then scope #14's exact reviewed publication-copy creation/confirma
 path and #15's durable receipt/conflicts/withdrawal behavior. Keep private drafts outside
 ordinary map-item publication and retain explicit target/metadata review. This
 evidence changes no app or signing input; no new ZIP is needed.
+
+
+## Image foundations and source-observer candidate — 2026-10-31
+
+The approved image descriptor now has a production codec (PR #137). A coherent
+in-memory receive candidate verifies that descriptor against the actual PNG bytes
+(PR #140); neither establishes source authority or activates image delivery.
+The guarded read-only source observer is now candidate v22 (PR #141).
+[Its exact source archive and extracted-source preflight](SOURCE_OBSERVER_CANDIDATE.md)
+are ready for owner review and possible signing submission. No v22 standard-host
+runtime result or service submission is claimed.
+
+Next: obtain and inspect signed v22, then execute the bounded
+[source-observer protocol](INGRESS_OBSERVER_PROBE.md) in the isolated lab. Keep
+feed/source authority unresolved until actual evidence supports a usable binding.
+In parallel, review the exact private image-stage layout in
+[PR #143](https://github.com/gustavtraff/tmm-sensor-planner/pull/143). The format is a
+proposal, not approval for its writer; its missing-history and provenance limits
+are explicit. No production staging writer, association registry, receipt format,
+image adoption or image Data Sync transfer has been implemented by these changes.
