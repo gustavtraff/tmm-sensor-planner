@@ -1,5 +1,11 @@
 # Activation recovery candidate v21 — #123/#7
 
+**Returned candidate update — 2026-10-29:** [Signed-v21 verification](SIGNED_V21_VERIFICATION.md)
+records actual same-certificate update, preserved v2 state, local image/restart,
+explicit v1 migration and pending-confirmation access-loss recovery in the isolated
+standard host. Queued-worker timing, physical phone and v21 connected gates remain
+separate. The preparation-time statements below are historical.
+
 Prepared 2026-10-29 from main `2387427c72f9bcb5395d081eeeb745d660b11b58`,
 which includes the [#120 lifecycle fix](https://github.com/gustavtraff/tmm-sensor-planner/pull/121).
 This candidate only gives that merged source a distinct Android update identity:

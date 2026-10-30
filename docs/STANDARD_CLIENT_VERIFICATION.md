@@ -1,5 +1,13 @@
 # Signed standard-client verification (#7)
 
+## Returned signed version 21 — 2026-10-29
+
+[Signed-v21 verification](SIGNED_V21_VERIFICATION.md) records an actual update on
+standard 5.6.0.25, exact v2 preservation, local image/restart checks and pending
+initialization/migration confirmation recovery after access loss. Physical 5.6.0.12,
+smaller queued-worker timing windows and connected v21 acceptance remain separate.
+The later image-content API from PR #127 is not in this signed candidate.
+
 ## Signed version 15 connected-private trial — 2026-10-23
 
 The same service-signed version 15 used in the owner-reported offline phone test
