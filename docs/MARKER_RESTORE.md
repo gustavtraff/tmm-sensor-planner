@@ -1,5 +1,12 @@
 # Saved-marker restoration on plugin startup (#50)
 
+**Acceptance update — 2026-10-30:** merged startup restoration has actual SDK /
+standard-host and [owner-reported phone](PHONE_ACCEPTANCE.md) acceptance. The
+[signed-v21 run](SIGNED_V21_VERIFICATION.md) also shows restored markers before
+opening TMM. [Current closure scope and remaining gates](NEXT_STEPS.md#narrow-bug-acceptance-and-closure-scope)
+separate this fixed display bug from broader compatibility/sharing work. Dated
+verification limits below retain their original tested-version meaning.
+
 ## Problem and behavior
 
 Previously, `SensorPlannerPlugin.onStart()` registered tools but did not create

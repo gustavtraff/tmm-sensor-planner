@@ -11,7 +11,11 @@ The returned service-signed versionCode 10 now passes bounded standard ATAK-CIV
 5.6.0.25 preview Cancel/Save, the corrected Swedish size notice and image reopening
 after restart, using a generated 3072 × 4096 JPEG. See [the exact candidate and
 limits](STANDARD_CLIENT_VERIFICATION.md#latest-signed-candidate--2026-10-18);
-the owner’s original phone photo/provider remains an acceptance check.
+the later [owner-reported signed-v15 phone test](PHONE_ACCEPTANCE.md) reports the
+previously failing camera-photo scenario now works. The original container was not
+collected, so its exact historical format diagnosis remains unproven. Narrow #49 /
+#62 closure and remaining candidate/device gates are separated in
+[NEXT_STEPS](NEXT_STEPS.md#narrow-bug-acceptance-and-closure-scope).
 
 The [large image viewer](IMAGE_VIEWER.md) adds read-only zoom/pan and direct
 inspection of stored detail. Pending preview enlargement retains the explicit
