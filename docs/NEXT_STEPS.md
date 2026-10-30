@@ -1,25 +1,89 @@
-# Current verification and next steps — 2026-10-29
+# Current implementation and next steps — 2026-10-30
 
-1. **Sign and inspect candidate v21.** [The activation-recovery candidate](ACTIVATION_RECOVERY_CANDIDATE.md)
-   includes the merged #120/#121 fix and passed local SDK/debug/release checks.
-   The owner chooses whether to submit the exact reviewed source archive. The
-   unsigned local release is not an installable standard-client signing result.
-2. **Verify the returned v21 update, then a controlled phone regression.** Check
-   signing identity/version and preserve existing v1/v2 data. Recheck activation
-   access loss, migration/Cancel, images and lifecycle. [Signed v20 offline](EMULATOR_RECOVERY_V20.md),
-   [connected-private](CONNECTED_SIGNED20_VERIFICATION.md) and
-   [storage-error](SIGNED_V20_STORAGE_FAILURES.md) results are separate evidence;
-   they do not test the newer source fix. Keep physical 5.6.0.12/OEM and complete
-   report/feed/voice workflows open until actually run.
-3. **Keep integration and images explicit.** No verified callable third-party
-   Data Sync Android API or trusted feed-ingress/application proof is supplied by
-   those privacy checks. #25 owns that integration gate; #26's image proposal
-   remains separate from implementation/transport approval. Do not replace these
-   gates with an operational-feed experiment or private broadcasts.
+## Completed work versus open gates
 
-GitHub Issues are the live backlog. The dated notes below are historical plans;
-they do not reopen closed implementation issues or supersede the current exact
-candidate/runtime records above.
+- **V21 signing and bounded offline verification are complete.** The returned
+  [signed candidate](SIGNED_V21_VERIFICATION.md) passed same-certificate update,
+  exact v2 preservation, image/restart, pending-confirmation access-loss recovery,
+  explicit v1 migration and native Unload/Load on standard ATAK 5.6.0.25. Preparation
+  #123 and minimal developer-plugin #3 are completed; SDK provenance remains #2.
+  Do not ask for a new signing ZIP merely to repeat this evidence.
+- **The reported camera, startup-marker and notice bugs have acceptance evidence.**
+  The table below supports closing #49/#50/#62 as narrow fixes. It does not mark all
+  UI/physical compatibility work complete or imply a newly tested phone candidate.
+- **Image sharing is still implementation work under #26.** The owner approved
+  logical A–F/H and the Data Sync-feed target G. [Content verification/export](IMAGE_TRANSFER_CONTENT.md)
+  is merged; #130 / PR #131 adds bounded stream input and focused tests for review.
+  Neither means image delivery, durable association or a working feed adapter.
+- **Metadata sharing/import components exist, but trusted feed ingress remains a
+  gate under #25.** Closed implementation issues #14/#15 are not evidence that an
+  authenticated selected-feed receive path has been integrated. Follow the
+  [source investigation](INGRESS_SOURCE_VERIFICATION.md), not private broadcasts,
+  guessed endpoint/feed equivalence or a silent REST replacement.
+
+## Narrow bug acceptance and closure scope
+
+| Issue | Existing implementation and actual acceptance | What closure does not claim |
+|---|---|---|
+| #49 camera-photo attachment | Primary-JPEG/auxiliary-content and bounded normalization regressions in [LOCAL_IMAGES](LOCAL_IMAGES.md); merged corrections; [owner's signed-v15 phone result](PHONE_ACCEPTANCE.md) reports the previously failing photo scenario and other photos now work | Exact diagnosis of the uncollected historical file/container; every future phone/version/provider |
+| #50 saved markers after restart | [Startup restoration](MARKER_RESTORE.md), signed standard-host restart/unload/error-state evidence and owner's v15 cold-start confirmation; [v21](SIGNED_V21_VERIFICATION.md) also rendered restored local markers before opening TMM | Operational sharing, arbitrary power loss or every lifecycle race |
+| #62 wrong image-copy resource text | Plugin-context resource fix; actual SDK and signed-standard v10 notice/Cancel/Save in [standard-client verification](STANDARD_CLIENT_VERIFICATION.md#latest-signed-candidate--2026-10-18) | A fresh phone quotation of the notice. Its historical 1600 limit is superseded by the approved 1920 policy, not a resource regression |
+
+The old issue bodies/dated records describe earlier failures and pending tests.
+Closing these narrow bugs uses the later merged evidence; it does not silently
+reinterpret earlier failures as passes. Keep explicit remaining checks below rather
+than treating all candidate/device verification as a reason to reopen fixed bugs.
+
+## Next implementation order
+
+1. **Review the bounded input and exact #26 formats.** PR #131 contains the
+   bounded input implementation. [PR #135](https://github.com/gustavtraff/tmm-sensor-planner/pull/135)
+   now supplies the proposed exact offer descriptor and independent fixtures for
+   explicit owner review before its codec. Exact container/receipt/private-registry
+   formats still need their own concrete bytes and fixtures before their writers,
+   as required by H. Reuse exact
+   metadata/domain equality, immutable image identity and the approved content profile.
+   This format review is still required; approval of A–F/H is not approval of unseen
+   bytes. Keep local images and current metadata/inbox/v2 formats unchanged.
+2. **Verify trusted selected-feed provenance under #25.** Observe documented native
+   download/conflict/restart ingress on the isolated supported test combination.
+   Prove which original metadata variant and authenticated source context reach the
+   actual adapter boundary before implementing receive wiring. If the public route
+   cannot establish this, record that concrete limitation and a reviewable route
+   decision; do not infer it from sender status, logs or generic server hints.
+3. **Implement approved image staging/association and explicit adoption.** After exact
+   format review, add bounded private storage/readback/recovery, source + UUID + exact
+   metadata binding, duplicate/identity-conflict checks and manual image replacement.
+   Use meaningful process/failure fixtures. Feedback stays off by default. Neither
+   received metadata nor valid PNG bytes automatically changes a local attachment.
+4. **Integrate and verify the real Data Sync-feed image workflow.** Require supported
+   route evidence, review destination/inclusion/frozen bytes, preserve private drafts,
+   and independently observe actual recipient bytes/association and cancellation on
+   two isolated clients. A contact transfer is not a substitute for the feed goal.
+   No operational-server experiment follows from the earlier lab results.
+
+## Remaining acceptance and owner decisions
+
+- **Current candidate:** phone 5.6.0.12/OEM/provider regression and v21 connected
+  two-client checks remain separate from v20 evidence. Smaller queued-worker /
+  access-return-before-callback timing was not forced in the v21 native run; the
+  deterministic tests and pending-confirmation native cases remain distinct.
+- **Local UI:** #12/#52/#66/#67 retain targeted physical/accessibility/lifecycle
+  follow-ups: TalkBack, active picker/viewer Unload, exact rotated-map selection and
+  applicable phone-size detail/gesture cases. Most feature code is implemented;
+  do not describe MGRS, 6400-mil entry or the 1920-image viewer as missing features.
+- **Provenance/governance:** original SDK archive/source/terms evidence (#2), license /
+  contribution/distribution and authoritative-owner review decisions (#55) require
+  their own evidence or human decisions. Signing and green public CI do not resolve them.
+
+Parallel work can cover exact-format fixtures, a bounded source/SDK investigation,
+and remaining lightweight UI/accessibility checks on separate branches. Keep a
+single owner of emulator/server resources; no two heavy lab runs are needed for
+format/domain work. Human review controls merges, releases and operational sharing.
+
+GitHub Issues are the live backlog. Everything below is a **historical plan**, not
+current instructions or a claim that old implementation gaps remain open. Exact
+candidate/runtime records above take precedence over these dated next-step notes.
 
 ## Historical implementation gate — 2026-10-25
 
