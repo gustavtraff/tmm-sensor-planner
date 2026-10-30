@@ -12,7 +12,7 @@
   The table below supports closing #49/#50/#62 as narrow fixes. It does not mark all
   UI/physical compatibility work complete or imply a newly tested phone candidate.
 - **Image sharing is still implementation work under #26.** The owner approved
-  logical A–F/H and the Data Sync-feed target G. [Content verification/export](IMAGE_TRANSFER_CONTENT.md)
+  logical A–F/H, the Data Sync-feed target G and the exact descriptor version in PR #135. [Content verification/export](IMAGE_TRANSFER_CONTENT.md)
   is merged; #130 / PR #131 adds bounded stream input and focused tests for review.
   Neither means image delivery, durable association or a working feed adapter.
 - **Metadata sharing/import components exist, but trusted feed ingress remains a
@@ -36,15 +36,16 @@ than treating all candidate/device verification as a reason to reopen fixed bugs
 
 ## Next implementation order
 
-1. **Review the bounded input and exact #26 formats.** PR #131 contains the
-   bounded input implementation. [PR #135](https://github.com/gustavtraff/tmm-sensor-planner/pull/135)
-   now supplies the proposed exact offer descriptor and independent fixtures for
-   explicit owner review before its codec. Exact container/receipt/private-registry
+1. **Implement the approved descriptor codec, then review the other #26 formats.**
+   The bounded input implementation is merged in PR #131. The owner explicitly
+   approved [PR #135's exact descriptor](IMAGE_OFFER_FORMAT_PROPOSAL.md) on 2026-10-30;
+   its production codec can now be implemented in a separate reviewed PR against
+   the independent fixtures. Exact container/receipt/private-registry
    formats still need their own concrete bytes and fixtures before their writers,
    as required by H. Reuse exact
    metadata/domain equality, immutable image identity and the approved content profile.
-   This format review is still required; approval of A–F/H is not approval of unseen
-   bytes. Keep local images and current metadata/inbox/v2 formats unchanged.
+   Those remaining format reviews are still required; descriptor approval and
+   A–F/H are not approval of unseen container/receipt/registry bytes. Keep local images and current metadata/inbox/v2 formats unchanged.
 2. **Verify trusted selected-feed provenance under #25.** Observe documented native
    download/conflict/restart ingress on the isolated supported test combination.
    Prove which original metadata variant and authenticated source context reach the

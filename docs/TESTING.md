@@ -1,5 +1,13 @@
 # Tests and gates
 
+## Image-offer descriptor format — 2026-10-30 (#134 / #26)
+
+[The owner-approved descriptor format](IMAGE_OFFER_FORMAT_PROPOSAL.md) has independent
+binary fixtures and a test-only Java inspector in `sh scripts/test.sh`. Exact version 1
+was explicitly approved on 2026-10-30; no production codec is implemented here.
+Parsing a fixture does not establish
+actual PNG safety, trusted source, association, durability or Data Sync delivery.
+
 ## Bounded image stream input — 2026-10-30 (#130 / #26)
 
 [The content boundary](IMAGE_TRANSFER_CONTENT.md#stream-input-verification--2026-10-30-130)
