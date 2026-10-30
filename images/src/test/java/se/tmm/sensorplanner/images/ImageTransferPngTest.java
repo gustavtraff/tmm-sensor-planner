@@ -177,6 +177,166 @@ public class ImageTransferPngTest {
         assertArrayEquals(owned, ImageTransferPng.verify(owned, identity(owned)).bytes());
     }
 
+    @Test public void streamedGoldenBytesSurviveShortAndZeroProgressReads() throws Exception {
+        for (int number = 1; number <= 2; number++) {
+            byte[] bytes = golden(number);
+            for (int fragment : new int[]{1, 7, 8192}) {
+                ObservedStream stream = new ObservedStream(bytes, fragment, true);
+                ImageTransferPng.VerifiedContent result = ImageTransferPng.readAndVerify(stream, identity(bytes));
+                assertArrayEquals(bytes, result.bytes()); assertEquals(bytes.length, stream.offset);
+                assertTrue(stream.eofRead); assertFalse(stream.closed);
+                assertTrue(stream.maxRequest <= Math.min(8192, bytes.length));
+            }
+        }
+        byte[] onePixel = png(1, 1, 2, new byte[4], 6);
+        assertArrayEquals(onePixel, ImageTransferPng.readAndVerify(
+                new ByteArrayInputStream(onePixel), identity(onePixel)).bytes());
+    }
+
+    @Test public void streamedEarlyEofAndDishonestLengthsFailWithoutClosingSource() throws Exception {
+        byte[] bytes = golden(1);
+        for (int size : new int[]{0, 1, bytes.length - 1}) {
+            ObservedStream stream = new ObservedStream(Arrays.copyOf(bytes, size), 7, false);
+            assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(stream, identity(bytes)));
+            assertEquals(size, stream.offset); assertTrue(stream.eofRead); assertFalse(stream.closed);
+        }
+        for (int declared : new int[]{1, bytes.length - 1, bytes.length + 1}) {
+            ObservedStream stream = new ObservedStream(bytes, 7, false);
+            ImageTransferPng.Identity expected = new ImageTransferPng.Identity(hash(bytes), declared, 64, 64);
+            assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(stream, expected));
+            assertEquals(Math.min(bytes.length, declared + 1), stream.offset); assertFalse(stream.closed);
+        }
+    }
+
+    @Test public void oversizedEndlessStreamStopsAtMaximumPlusOneActualBytes() throws Exception {
+        GeneratedStream stream = new GeneratedStream(Long.MAX_VALUE);
+        ImageTransferPng.Identity expected = new ImageTransferPng.Identity(new byte[32], ImageTransferPng.MAX_BYTES, 1, 1);
+        assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(stream, expected));
+        assertEquals(ImageTransferPng.MAX_BYTES + 1L, stream.count);
+        assertTrue(stream.maxRequest <= 8192); assertFalse(stream.closed);
+    }
+
+    @Test public void validImageAtExactMaximumByteBoundaryIsAccepted() throws Exception {
+        // Independent zlib framing: empty stored blocks plus one final four-byte RGB row.
+        byte[] zlib = new byte[ImageTransferPng.MAX_BYTES - 57 - 24];
+        zlib[0] = 0x78; zlib[1] = 1;
+        int blocks = (zlib.length - 15) / 5, offset = 2;
+        assertEquals(0, (zlib.length - 15) % 5);
+        for (int i = 0; i < blocks; i++) {
+            zlib[offset + 3] = (byte)255; zlib[offset + 4] = (byte)255; offset += 5;
+        }
+        zlib[offset++] = 1; zlib[offset++] = 4; zlib[offset++] = 0;
+        zlib[offset++] = (byte)251; zlib[offset++] = (byte)255; offset += 4;
+        Adler32 adler = new Adler32(); adler.update(new byte[4]);
+        ByteBuffer.wrap(zlib, offset, 4).putInt((int)adler.getValue());
+        byte[] png = join(signature(), header(1, 1, 2), chunk("IDAT", new byte[0]),
+                chunk("IDAT", new byte[0]), chunk("IDAT", zlib), chunk("IEND", new byte[0]));
+        assertEquals(ImageTransferPng.MAX_BYTES, png.length);
+        ObservedStream stream = new ObservedStream(png, 8192, false);
+        ImageTransferPng.VerifiedContent result = ImageTransferPng.readAndVerify(stream, identity(png));
+        assertEquals(ImageTransferPng.MAX_BYTES, result.identity.length);
+        assertArrayEquals(hash(png), result.identity.sha256()); assertArrayEquals(png, result.bytes());
+        assertTrue(stream.eofRead); assertFalse(stream.closed);
+    }
+
+    @Test public void exactMaximumStillRequiresEofAndRealContentValidation() throws Exception {
+        GeneratedStream stream = new GeneratedStream(ImageTransferPng.MAX_BYTES);
+        ImageTransferPng.Identity expected = new ImageTransferPng.Identity(new byte[32], ImageTransferPng.MAX_BYTES, 1, 1);
+        assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(stream, expected));
+        assertEquals(ImageTransferPng.MAX_BYTES, stream.count); assertTrue(stream.eofRead);
+        assertFalse(stream.closed);
+        GeneratedStream empty = new GeneratedStream(0);
+        assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(empty, expected));
+        assertEquals(0, empty.count); assertEquals(8192, empty.maxRequest);
+    }
+
+    @Test public void streamReadFailuresAndInterruptionsPropagateWithoutPositiveResult() throws Exception {
+        for (IOException failure : new IOException[]{new IOException("synthetic failure"), new InterruptedIOException("synthetic cancellation")}) {
+            ObservedStream stream = new ObservedStream(golden(1), 7, false) {
+                @Override public int read(byte[] b, int offset, int length) throws IOException {
+                    if (this.offset >= 7) throw failure;
+                    return super.read(b, offset, length);
+                }
+            };
+            IOException actual = assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(stream, identity(golden(1))));
+            assertSame(failure, actual); assertEquals(7, stream.offset); assertFalse(stream.closed);
+        }
+    }
+
+    @Test public void streamEofProbeFailureCannotBecomeSuccessfulVerification() throws Exception {
+        byte[] bytes = golden(1); IOException failure = new IOException("synthetic EOF failure");
+        ObservedStream stream = new ObservedStream(bytes, 8192, false) {
+            @Override public int read() throws IOException { if (offset == bytes.length) throw failure; return super.read(); }
+        };
+        assertSame(failure, assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(stream, identity(bytes))));
+        assertFalse(stream.closed);
+    }
+
+    @Test public void streamCompletionDoesNotBypassHashDimensionsOrClosedProfile() throws Exception {
+        byte[] bytes = golden(1);
+        for (ImageTransferPng.Identity wrong : new ImageTransferPng.Identity[]{
+                new ImageTransferPng.Identity(new byte[32], bytes.length, 64, 64),
+                new ImageTransferPng.Identity(hash(bytes), bytes.length, 63, 64)}) {
+            assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(new ByteArrayInputStream(bytes), wrong));
+        }
+        byte[] metadata = join(signature(), header(64, 64, 2), chunk("tEXt", new byte[]{0}), idat(bytes), chunk("IEND", new byte[0]));
+        assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(new ByteArrayInputStream(metadata), identity(metadata)));
+        ObservedStream stream = new ObservedStream(bytes, 7, false);
+        ImageTransferPng.readAndVerify(stream, identity(bytes)); assertFalse(stream.closed);
+        stream.close(); assertTrue(stream.closed);
+    }
+
+    @Test public void zeroProgressThenEofFailsAndAllocationFailureUsesSafeCategory() throws Exception {
+        InputStream empty = new InputStream() {
+            @Override public int read(byte[] b, int offset, int length) { return 0; }
+            @Override public int read() { return -1; }
+        };
+        assertThrows(IOException.class, () -> ImageTransferPng.readAndVerify(empty, identity(golden(1))));
+        InputStream exhausted = new InputStream() {
+            @Override public int read() { throw new OutOfMemoryError("synthetic allocation failure"); }
+        };
+        ImagePreparationException failure = assertThrows(ImagePreparationException.class,
+                () -> ImageTransferPng.readAndVerify(exhausted, identity(golden(1))));
+        assertEquals(ImagePreparationException.Reason.LOW_MEMORY, failure.reason);
+    }
+
+    private static class ObservedStream extends InputStream {
+        final byte[] bytes; final int fragment; final boolean zeroReads;
+        int offset, maxRequest; boolean closed, eofRead, zeroNext = true;
+        ObservedStream(byte[] bytes, int fragment, boolean zeroReads) {
+            this.bytes = bytes; this.fragment = fragment; this.zeroReads = zeroReads;
+        }
+        @Override public int read(byte[] b, int start, int length) throws IOException {
+            maxRequest = Math.max(maxRequest, length);
+            if (zeroReads && zeroNext) { zeroNext = false; return 0; }
+            zeroNext = true;
+            if (offset == bytes.length) { eofRead = true; return -1; }
+            int count = Math.min(Math.min(length, fragment), bytes.length - offset);
+            System.arraycopy(bytes, offset, b, start, count); offset += count; return count;
+        }
+        @Override public int read() throws IOException {
+            if (offset == bytes.length) { eofRead = true; return -1; }
+            return bytes[offset++] & 255;
+        }
+        @Override public int available() { throw new AssertionError("Do not trust available()"); }
+        @Override public long skip(long count) { throw new AssertionError("Do not skip payload bytes"); }
+        @Override public void mark(int limit) { throw new AssertionError("No mark dependency"); }
+        @Override public void reset() { throw new AssertionError("No reset dependency"); }
+        @Override public void close() { closed = true; }
+    }
+
+    private static final class GeneratedStream extends InputStream {
+        final long limit; long count; int maxRequest; boolean eofRead, closed;
+        GeneratedStream(long limit) { this.limit = limit; }
+        @Override public int read(byte[] bytes, int offset, int length) {
+            maxRequest = Math.max(maxRequest, length);
+            if (count == limit) { eofRead = true; return -1; }
+            int n = (int) Math.min(length, limit - count); Arrays.fill(bytes, offset, offset + n, (byte)0); count += n; return n;
+        }
+        @Override public int read() { if (count == limit) { eofRead = true; return -1; } count++; return 0; }
+        @Override public void close() { closed = true; }
+    }
+
     private static byte[] golden(int number) throws Exception {
         try (InputStream input = ImageTransferPngTest.class.getResourceAsStream("/image-transfer/h" + number + ".png")) {
             assertNotNull(input); ByteArrayOutputStream out = new ByteArrayOutputStream(); byte[] b = new byte[1024];
