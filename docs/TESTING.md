@@ -1,10 +1,19 @@
 # Tests and gates
 
+## Image descriptor core codec — 2026-10-30 (#136 / #26)
+
+[The approved descriptor codec](IMAGE_OFFER_CODEC.md) passed `sh scripts/test.sh`,
+including cross-checks against the independent descriptor oracle/goldens, bounded
+stream and mutation/failure cases, unchanged metadata/storage fixtures and separate
+process checks. This is descriptor data only: no image content/source verification,
+app ingress, persistence or delivery is inferred.
+
 ## Image-offer descriptor format — 2026-10-30 (#134 / #26)
 
 [The owner-approved descriptor format](IMAGE_OFFER_FORMAT_PROPOSAL.md) has independent
 binary fixtures and a test-only Java inspector in `sh scripts/test.sh`. Exact version 1
-was explicitly approved on 2026-10-30; no production codec is implemented here.
+was explicitly approved on 2026-10-30; its [core codec](IMAGE_OFFER_CODEC.md) is now
+implemented separately.
 Parsing a fixture does not establish
 actual PNG safety, trusted source, association, durability or Data Sync delivery.
 

@@ -203,3 +203,12 @@ adoption and scoped receipt semantics for review. Its new offer/delivery/registr
 and acknowledgment decisions require explicit adoption and exact-format/transport
 verification before implementation. Current publication metadata remains image-free;
 no domain/inbox/local-v2/wire fields or image ownership rules change in this PR.
+
+
+## Approved image descriptor codec — 2026-10-30 (#136 / #26)
+
+[ImageOffer/ImageOfferCodec](IMAGE_OFFER_CODEC.md) implement the owner-approved
+separate descriptor-v1 bytes. Existing metadata-format-1, inbox/local-v2, local
+image handles and all older fixtures remain unchanged; no registry migration or
+file writer exists here. Descriptor claims are not verified PNGs, authenticated
+feed/source associations, adoption, acknowledgments or a transport activation.

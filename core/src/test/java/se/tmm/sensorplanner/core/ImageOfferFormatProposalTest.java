@@ -23,6 +23,12 @@ public final class ImageOfferFormatProposalTest {
             byte[] bytes = Files.readAllBytes(Paths.get("test-fixtures/synthetic/image-offer-proposal/offer-h" + i + ".bin"));
             assert bytes.length == 669 && hex(hash(bytes)).equals(hashes[i - 1]);
             Offer offer = inspect(bytes);
+            ImageOffer actual = ImageOfferCodec.decode(new ByteArrayInputStream(bytes));
+            assert actual.associationId.equals(offer.association) && actual.deliveryId.equals(offer.delivery);
+            assert actual.pngLength == offer.length && actual.width == offer.width && actual.height == offer.height;
+            assert Arrays.equals(actual.sha256(), offer.digest);
+            assert InboxCodec.sameMetadata(carrier(actual.metadata), offer.metadata);
+            assert Arrays.equals(ImageOfferCodec.encode(actual), bytes) : "Canonical encoder changed independent golden";
             assert offer.association.equals(UUID.fromString("00000000-0000-4000-8026-00000000010" + i));
             assert offer.delivery.equals(UUID.fromString("00000000-0000-4000-8026-00000000020" + i));
             assert offer.metadata.uid.equals(UUID.fromString("00000000-0000-4000-8014-000000000003"));
@@ -38,7 +44,7 @@ public final class ImageOfferFormatProposalTest {
         }
         invalidFrames(first);
         semanticChecks(first);
-        System.out.println("Image-offer proposal fixtures passed (independent pinned bytes, strict envelope, existing metadata and content measurements only; no production codec/association).");
+        System.out.println("Image-offer proposal fixtures passed (independent pinned bytes, strict envelope, existing metadata and content measurements only; production codec cross-check; no association).");
     }
 
     private static void invalidFrames(byte[] valid) throws Exception {
@@ -62,6 +68,7 @@ public final class ImageOfferFormatProposalTest {
         Arrays.fill(maximum, xml.getBytes(StandardCharsets.UTF_8).length, maximum.length, (byte)' ');
         byte[] frame = withMetadata(valid, maximum);
         assert frame.length == MAX_FRAME && InboxCodec.sameMetadata(inspect(frame).metadata, inspect(valid).metadata);
+        assert ImageOfferCodec.decode(new ByteArrayInputStream(frame)).sameBinding(ImageOfferCodec.decode(new ByteArrayInputStream(valid)));
         rejected(Arrays.copyOf(frame, frame.length + 1));
     }
 
@@ -102,10 +109,15 @@ public final class ImageOfferFormatProposalTest {
             return new Offer(association,delivery,metadata,length,width,height,digest);
         } catch (RuntimeException invalid) { throw new IOException("Rejected proposed image offer"); }
     }
+    private static TmmDraft carrier(ShareReview.Metadata m) {
+        return new TmmDraft(m.uid,m.displayId,m.type,m.status,m.owner,m.createdAt,m.updatedAt,
+                m.deployedAt,m.comment,m.position,m.bearingDeg,null,1);
+    }
     private static UUID uuid(ByteBuffer b) { return new UUID(b.getLong(),b.getLong()); }
     private static void require(boolean condition) throws IOException { if (!condition) throw new IOException("Rejected proposed image offer"); }
     private static void rejected(byte[] bytes) throws Exception {
         try { inspect(bytes); throw new AssertionError("Accepted invalid proposed envelope"); } catch (IOException expected) { }
+        try { ImageOfferCodec.decode(new ByteArrayInputStream(bytes)); throw new AssertionError("Production codec accepted invalid envelope"); } catch (IOException expected) { }
     }
     private static byte[] withMetadata(byte[] original, byte[] metadata) {
         byte[] result = Arrays.copyOf(original,112+metadata.length);

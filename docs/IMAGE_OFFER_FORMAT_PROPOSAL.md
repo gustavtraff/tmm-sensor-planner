@@ -6,8 +6,9 @@ including the layout, bounds, UUID constraints, unchanged embedded M and CRC rul
 below and both pinned 669-byte fixtures. It permits a separately reviewed production
 codec implementation. Logical A–F/H and the Data Sync-feed goal G remain in
 [the decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md). This PR adds only the
-specification and test-only inspector, no production codec, registry, adoption,
-native import or transport. Container/receipt/registry approval is still separate.
+specification and test-only inspector in PR #135. The subsequent
+[Java-core codec](IMAGE_OFFER_CODEC.md) implements this approved descriptor only;
+no registry, adoption, native import or transport is introduced. Container/receipt/registry approval is still separate.
 
 ## Scope and recommendation
 
@@ -80,7 +81,7 @@ never interpret it as a retrieval instruction or source authority.
    author or channel; endpoint hints and equal display IDs remain insufficient.
    Durable byte readback and recoverable association records are still required.
 
-The current test oracle is deliberately not that production reader: it inspects
+The independent test oracle remains separate from the [production codec](IMAGE_OFFER_CODEC.md): it inspects
 bounded fixture arrays, reuses only the existing M codec and does not touch stores,
 network, source authority or Android decoders. Do not expose/copy it into ingress
 before this format and the actual input boundary are reviewed.
@@ -125,8 +126,8 @@ length/version/dimensions, missing/trailing bytes, malformed metadata and the ex
 maximum descriptor size. A descriptor with a false digest remains shape-valid but
 fails the independent actual-PNG measurement check; parsing is not verification.
 
-No persisted image registry exists to migrate. This version is **not accepted by
-current production code**. Unknown future versions must fail closed without rewriting
+No persisted image registry exists to migrate. The [core codec](IMAGE_OFFER_CODEC.md)
+now accepts this descriptor version in memory, with no app/transport activation. Unknown future versions must fail closed without rewriting
 metadata/inbox/local-v2 or resetting history; a later encoding change needs independent
 compatibility/migration review before activation. Existing formats remain untouched.
 
@@ -135,8 +136,9 @@ compatibility/migration review before activation. Existing formats remain untouc
 The owner explicitly approved **this exact descriptor version** in the conversation
 on 2026-10-30. This is an explicit decision, not inferred from merging the proposal.
 A production codec can now implement these bytes in its own scoped implementation
-PR with the independent fixtures and strict malformed-input tests. No codec is
-introduced by this approval-record update.
+PR with the independent fixtures and strict malformed-input tests. That
+[implementation is now recorded separately](IMAGE_OFFER_CODEC.md); the original
+approval-record PR did not introduce it.
 
 Exact container, receipt and private registry/recovery formats remain **unapproved**;
 this proposal does not approve unseen bytes for those writers. Trusted Data Sync-feed
