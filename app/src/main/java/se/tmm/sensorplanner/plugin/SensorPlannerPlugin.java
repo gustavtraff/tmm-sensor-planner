@@ -36,6 +36,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     private PublicationImportProbe publicationProbe;
     private PublicationEnvelopeProbe envelopeProbe;
     private AlertDialog labMenu;
+    private IngressObservationProbe ingressProbe;
 
     public SensorPlannerPlugin(IServiceController services) {
         Objects.requireNonNull(services, "services");
@@ -76,12 +77,13 @@ public final class SensorPlannerPlugin implements IPlugin {
                             if (labMenu != null) labMenu.dismiss();
                             labMenu = new AlertDialog.Builder(MapView.getMapView().getContext())
                                     .setTitle("Välj isolerat labbprov")
-                                    .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov", "Produktionsformat · syntetiskt prov"}, (d, which) -> {
+                                    .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov", "Produktionsformat · syntetiskt prov", "Källkontext · syntetisk observation"}, (d, which) -> {
                                         if (!started || !labAllowed()) return;
                                         try {
                                             if (which == 0) openCotLab();
                                             else if (which == 1) openPublicationLab();
-                                            else openEnvelopeLab();
+                                            else if (which == 2) openEnvelopeLab();
+                                            else openIngressProbe();
                                         } catch (RuntimeException unavailable) {
                                             hostUi.showToast("Labbprovet kunde inte startas");
                                         }
@@ -90,6 +92,12 @@ public final class SensorPlannerPlugin implements IPlugin {
                         });
                     }
                 }).build();
+    }
+
+    private void openIngressProbe() {
+        if (Build.VERSION.SDK_INT < 26 || !started || !labAllowed()) return;
+        if (ingressProbe == null) ingressProbe = new IngressObservationProbe(MapView.getMapView(), hostUi, this::labAllowed);
+        ingressProbe.show();
     }
 
     private void openCotLab() {
@@ -168,6 +176,7 @@ public final class SensorPlannerPlugin implements IPlugin {
                             if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
                             if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
                             if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
+                            if (ingressProbe != null) { ingressProbe.close(); ingressProbe = null; }
                             try { openPlanner(true); }
                             catch (Exception unavailable) { hostUi.showToast("Det lokala testet kunde inte startas"); }
                         }).create();
@@ -193,6 +202,9 @@ public final class SensorPlannerPlugin implements IPlugin {
     public void onStop() {
         if (started) {
             started = false;
+            IngressObservationProbe stoppingIngress = ingressProbe;
+            ingressProbe = null;
+            if (stoppingIngress != null) { stoppingIngress.stop(); hostUi.queueEvent(stoppingIngress::close); }
             localSession.reset();
             AlertDialog stoppingConsent = trialConsent;
             trialConsent = null;

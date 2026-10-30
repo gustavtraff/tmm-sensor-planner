@@ -36,17 +36,19 @@ than treating all candidate/device verification as a reason to reopen fixed bugs
 
 ## Next implementation order
 
-1. **Implement the approved descriptor codec, then review the other #26 formats.**
+1. **Review the remaining #26 storage/container/receipt formats before their writers.**
    The bounded input implementation is merged in PR #131. The owner explicitly
    approved [PR #135's exact descriptor](IMAGE_OFFER_FORMAT_PROPOSAL.md) on 2026-10-30;
-   its production codec can now be implemented in a separate reviewed PR against
-   the independent fixtures. Exact container/receipt/private-registry
+   its [codec](IMAGE_OFFER_CODEC.md) and [actual-content pair boundary](RECEIVED_IMAGE_PAYLOAD.md)
+   are now implemented/tested without a UI/transport caller. Exact container/receipt/private-registry
    formats still need their own concrete bytes and fixtures before their writers,
    as required by H. Reuse exact
    metadata/domain equality, immutable image identity and the approved content profile.
    Those remaining format reviews are still required; descriptor approval and
    A–F/H are not approval of unseen container/receipt/registry bytes. Keep local images and current metadata/inbox/v2 formats unchanged.
-2. **Verify trusted selected-feed provenance under #25.** Observe documented native
+2. **Verify trusted selected-feed provenance under #25.** [Candidate v22](SOURCE_OBSERVER_CANDIDATE.md)
+   prepares the guarded read-only import observer and its exact runtime protocol.
+   After reviewed signing/returned-APK inspection, observe documented native
    download/conflict/restart ingress on the isolated supported test combination.
    Prove which original metadata variant and authenticated source context reach the
    actual adapter boundary before implementing receive wiring. If the public route
