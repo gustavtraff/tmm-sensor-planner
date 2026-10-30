@@ -1,4 +1,4 @@
-# Verified image content boundary (#26 / #126)
+# Verified image content boundary (#26 / #126 / #130)
 
 The owner approved PR #118's logical recommendations A–F/H on 2026-10-29,
 with **Data Sync-feed as the target for G**. The [decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md#owner-decision-record--2026-10-29)
@@ -24,20 +24,39 @@ dependency, file writer, SDK call, app caller or UI entry point.
   the expected SHA-256, length, width and height, and returns a defensive copy with
   the verified content identity. It never sanitizes, resizes or re-encodes received
   bytes. A mismatch fails; it cannot retain an expected identity for changed bytes.
+- `readAndVerify(payloadStream, expectedIdentity)` reads one complete image payload
+  through EOF, accumulating at most the expected length (itself <=16 MiB), with
+  bulk reads of at most 8192 bytes. It rejects early EOF and reads **at most one
+  extra byte** to reject longer/endless sources without draining them. Short reads
+  are supported; a zero bulk read falls back to one single-byte read instead of
+  spinning. Only complete exact-length content reaches the same strict verifier.
+  No `available`, mark/reset, skip, filename or claimed MIME type is trusted.
 - `Identity` and `VerifiedContent` defensively copy byte arrays. Identity is a
   content measurement, not a device UUID, source authority, image offer, delivery
   identity or persisted record. Its constructor alone does not verify bytes.
 
-Both methods return in-memory content only and may throw a safe image-preparation
-error. Invalid content cannot change any draft or local image through this API.
+All preparation/verification methods return in-memory content only and may throw
+a safe image-preparation error. Invalid content cannot change any draft or local image through this API.
 Out-of-memory failures during preparation/verification use the existing low-memory
 error category. This does not guarantee that every device has enough memory.
 
-The input is already a complete byte array. A future ingress reader must bound
-actual bytes **while reading**, before allocating that array; descriptor length
-alone is insufficient. Do not call this API on the UI thread or concurrently process
-unbounded payloads. It does not enforce the proposed aggregate staging/history
-quotas or protect an earlier network/container allocation.
+For complete byte-array input, upstream code must still bound actual bytes before
+allocating it. Prefer `readAndVerify` when the complete payload is exposed as a stream:
+its accumulation grows from at most 8 KiB rather than allocating the entire claimed
+larger length up front. It leaves the caller's stream open on success and failure; use
+try-with-resources at the owning boundary. I/O failures (including interruption and
+a failure during the final EOF probe) propagate without a verified result. Translate
+provider exceptions safely before displaying/logging them.
+
+The stream must represent exactly **one completed payload**, not a live connection
+containing subsequent frames or an indefinite producer. EOF validation consumes at
+most one extra byte on a rejected oversized frame; discard that frame rather than
+continuing from the consumed position. Read deadlines, cancellation/unblocking and
+closing the source belong to the transport/provider owner. This synchronous API
+cannot time out a blocked provider read. Never use it on the UI thread or start
+unbounded concurrent verifications. It does not enforce aggregate staging/history
+quotas or protect an earlier network/container/decompression allocation. It is not
+a new container parser, storage writer or network integration.
 
 ## Closed receive profile
 
@@ -109,3 +128,20 @@ No full image suite, core suite, ATAK/SDK build, physical-phone test, emulator,
 Docker, network transfer, persistence fault test or signing submission was run for
 this content-only slice. The focused tests establish neither association/storage
 durability nor end-to-end Data Sync image delivery.
+
+
+## Stream-input verification — 2026-10-30 (#130)
+
+The focused `ImageTransferPngTest` suite and `lintDebug` passed with the pinned
+standalone toolchain: **46 cases**, zero failures/errors/skips across native API
+26/35 (the original 28 plus 18 new stream cases). Lint has zero errors and eight
+existing advisories. The nine new scenarios cover exact one-pixel/golden payloads,
+short/zero-progress reads, EOF/declared-length mismatches, an endless generated
+source stopped after 16 MiB + one actual byte, an independently framed valid PNG at exactly 16 MiB, an exact maximum-length
+invalid source requiring both EOF and content checks, early EOF under a maximum claim,
+read/interruption/EOF-probe failures, unchanged strict hash/dimension/profile checks,
+caller-owned closure and the safe low-memory category via a synthetic exception.
+These are not measured device memory-pressure, blocked-read deadline or transport
+acceptance tests. No new fixture, core/data format, UI, app caller or signed artifact
+changed. No core/full-image suite, SDK build, emulator, Docker, phone/server or CI
+wait was run for this content-only slice.

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -78,6 +79,32 @@ public final class ImageTransferPng {
         if (payload.length > MAX_BYTES || payload.length != expected.length) throw ImageFormat.invalid();
         try {
             return checked(payload.clone(), expected);
+        } catch (OutOfMemoryError exhausted) {
+            throw new ImagePreparationException(ImagePreparationException.Reason.LOW_MEMORY);
+        }
+    }
+
+    /** Read one complete payload through EOF; caller retains stream ownership and read deadlines. */
+    public static VerifiedContent readAndVerify(InputStream payload, Identity expected) throws IOException {
+        Objects.requireNonNull(payload, "payload"); Objects.requireNonNull(expected, "expected");
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream(Math.min(expected.length, 8192));
+            byte[] buffer = new byte[Math.min(expected.length, 8192)];
+            while (bytes.size() < expected.length) {
+                int count = payload.read(buffer, 0, Math.min(buffer.length, expected.length - bytes.size()));
+                if (count < 0) throw ImageFormat.invalid();
+                if (count == 0) {
+                    // A provider returning zero must not cause an unbounded busy loop.
+                    int single = payload.read();
+                    if (single < 0) throw ImageFormat.invalid();
+                    bytes.write(single);
+                } else {
+                    bytes.write(buffer, 0, count);
+                }
+            }
+            // Read at most one extra byte, never drain an oversized or endless source.
+            if (payload.read() != -1) throw ImageFormat.invalid();
+            return checked(bytes.toByteArray(), expected);
         } catch (OutOfMemoryError exhausted) {
             throw new ImagePreparationException(ImagePreparationException.Reason.LOW_MEMORY);
         }
