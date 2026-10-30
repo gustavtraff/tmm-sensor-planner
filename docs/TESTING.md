@@ -1,5 +1,13 @@
 # Tests and gates
 
+## Bounded image stream input — 2026-10-30 (#130 / #26)
+
+[The content boundary](IMAGE_TRANSFER_CONTENT.md#stream-input-verification--2026-10-30-130)
+now checks actual streamed bytes before complete-payload allocation, exact length
+and EOF, then the existing PNG/hash verifier. All 44 focused API 26/35 content cases
+and image lint passed. This adds no source/device association, durable storage, UI
+or Data Sync route. Caller-owned read deadlines and stream closure remain explicit.
+
 ## Returned signed-v21 candidate — 2026-10-29 (#128 / #7)
 
 [Signed-v21 verification](SIGNED_V21_VERIFICATION.md) records the actual standard-host
