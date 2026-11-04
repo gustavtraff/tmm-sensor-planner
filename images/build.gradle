@@ -24,12 +24,20 @@ android {
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/images'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/local'
         androidTest.java.srcDir '../core/src/main/java'
+        androidTest.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/images'
         androidTest.assets.srcDir '../test-fixtures/synthetic/publication'
     }
     testOptions {
         unitTests.includeAndroidResources = true
     }
 }
+
+def stageProbeAssets = tasks.register('prepareImageStageProbeAssets', Sync) {
+    from('../test-fixtures/synthetic/image-offer-proposal') { include 'offer-h1.bin', 'offer-h2.bin' }
+    from('src/test/resources/image-transfer') { include 'h1.png', 'h2.png' }
+    into layout.buildDirectory.dir('generated/imageStageProbeAssets')
+}
+android.sourceSets.androidTest.assets.srcDir(stageProbeAssets.map { it.destinationDir })
 
 dependencies {
     implementation 'androidx.exifinterface:exifinterface:1.4.2'
