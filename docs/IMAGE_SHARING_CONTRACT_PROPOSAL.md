@@ -445,6 +445,8 @@ permission is implied by this document or by fixture arithmetic.
 
 [The exact stage-layout proposal](IMAGE_STAGE_LAYOUT_PROPOSAL.md) gives a minimal
 private descriptor/PNG directory publication and recovery contract, independent
-fixtures, strict quotas and explicit missing-history limits. It is proposed, not
-adopted. It does not implement storage or approve source/association/receipt
-registries, cleanup/adoption, transport or any unseen writer.
+fixtures, strict quotas and explicit missing-history limits. The owner explicitly
+approved this exact stage-v1 layout after PR #143; the decision is recorded on
+2026-11-04. [The scoped writer](IMAGE_STAGE_STORAGE.md) implements unassociated
+staging only. Source/association/receipt registries, cleanup/adoption and transport
+remain separate review gates.
