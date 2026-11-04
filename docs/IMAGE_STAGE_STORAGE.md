@@ -197,3 +197,23 @@ native runtime, ATAK's shared UID/lifecycle, physical/OEM storage pressure, a fu
 disk, unsupported atomic-move filesystem, power failure or old-backup rollback.
 It provides no trusted source/feed association, receipt, image adoption or Data Sync
 image-delivery evidence. Those gates remain separate.
+
+
+## Clean native-probe packaging correction — 2026-11-05 (#157)
+
+A subsequent fresh worktree exposed a build-graph defect: registering a mapped
+Sync task provider as a legacy asset source did not reliably schedule the four-file
+producer. The earlier native APK contained the correct generated fixtures and its
+actual runtime results remain valid, but prior incremental output hid the missing
+clean-build dependency. A new clean APK omitted those assets and failed the probe
+before its first pair could be read; this was not a camera or production-stage fault.
+
+The pinned AGP merge/lint consumers now explicitly depend on the selected producer.
+`clean assembleDebugAndroidTest lintDebug` passed, and a separate bounded ZIP check
+verified all four expected asset paths, unique entries, lengths and exact independent
+fixture bytes. Offline synthetic controls reject missing, changed, duplicated and
+oversized entries. Required core/images CI now runs those controls and the actual
+APK byte check. No default test-data download, cached asset folder or manual copy
+is needed. Recheck the pinned consumer names when changing AGP; the packaging check
+must keep failing if fixture production breaks. These are test assets only and
+remain outside the production app source set.
