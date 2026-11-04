@@ -1,4 +1,27 @@
-# Initial backlog
+# Backlog and remaining work
+
+## Current implementation and remaining gates — 2026-11-05
+
+Live GitHub Issues track current task status; project-plan decisions still take
+precedence. The table and notes under Historical setup below preserve earlier planning; they must not be read as current missing
+implementation. [Phone feedback](PHONE_ACCEPTANCE.md) already confirms the bounded
+local workflow; newer signed-lab results are linked from the relevant feature docs.
+
+| Area / open parent | Implemented or observed | Next concrete gate |
+|---|---|---|
+| Image sharing #26 | Approved descriptor codec, strict PNG/pair verification and private unassociated stage-v1 writer; fault/concurrency/core checks, actual six-point Android process-kill and guest-reboot/Full-HD evidence | Source/exact-M proof; reviewed association/receipt formats, explicit cleanup/adoption and supported feed image route; no actual Data Sync image transfer yet |
+| Data Sync #25 | Bounded two-client metadata/feed, reconnect, conflict and removal experiments; guarded read-only source-observer candidate | Returned signed v23 plus controlled standard-host source/variant observation. Public hints cannot establish authority; a callable supported integration contract remains unresolved |
+| Local UI #12/#52/#66/#67 | Map/forms, MGRS/map placement, 6400-mil details, camera normalization, 1920-edge storage and zoom viewer implemented; bounded owner phone acceptance recorded | Remaining targeted accessibility, active-dialog Unload, exact rotated-map/field and compatibility gates; do not describe the features as unimplemented |
+| Governance #55 | Protected required core/images checks, owner workflow and contribution guidance; #152 adds required abrupt-worker regression and standalone probe compilation | License/contribution terms, separate automation identity, Gradle/security scanning and isolated SDK status publishing remain separate decisions/work |
+| SDK #2 | Supplied SDK inspected/fingerprinted; toolchain pinned and repeated local builds plus bounded signed-host evidence available | Original SDK archive provenance/checksum and distribution-term evidence remain missing; no fabricated provenance or license conclusion |
+
+Candidate v23 is documented in [the signing handoff](STAGE_FOUNDATION_CANDIDATE.md).
+It enables no new image ingress, association, adoption, receipt or transport caller.
+The immediate signing/lab step serves #25's source evidence; it is not an operational
+phone/server rollout. Follow [NEXT_STEPS.md](NEXT_STEPS.md) for the sequence and
+retain original source/ZIP/APK hashes when recording evidence.
+
+## Historical setup and planning notes
 
 GitHub Issues and milestones were created on 2026-10-12.
 The bootstrap PR is linked to [#1 – project setup](https://github.com/gustavtraff/tmm-sensor-planner/issues/1).

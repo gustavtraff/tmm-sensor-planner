@@ -1,0 +1,58 @@
+# Source-observer and stage-foundation candidate v23 (#154 / #25 / #26)
+
+| Field | Candidate |
+|---|---|
+| Package | `se.tmm.sensorplanner.plugin`, unchanged |
+| versionCode / name | **23** / `0.1.0-stage-foundation.1` |
+| ATAK API | `5.6.0.CIV`, unchanged |
+| Active lab addition since signed v21 | Explicit guarded read-only source observer from v22; no startup listener |
+| Image storage | Approved private unassociated stage-v1 foundation, with no UI/ingress caller |
+| Existing state | Local/inbox/v2 and active-image formats unchanged; no automatic stage initialization |
+
+This combines the [unchanged source-observer preparation](INGRESS_OBSERVER_PROBE.md)
+with the implemented [descriptor/payload boundary](RECEIVED_IMAGE_PAYLOAD.md) and
+[private stage](IMAGE_STAGE_STORAGE.md). The latter has focused fault/concurrency
+tests, actual Android process-kill/guest-reboot and synthetic Full-HD readback
+evidence. Those standalone results do not establish loaded-ATAK/OEM behavior.
+No trusted source/feed authority, association/receipt registry, cleanup/adoption,
+background image fetch or Data Sync image transfer is activated.
+
+The distinct version supersedes the prepared v22 source recommendation. Earlier
+ZIPs and their hashes remain immutable. This session found no returned signed
+v22/v23 APK locally and established no standard-host observer result. Keep SDK/local build,
+restricted Maven access, service build/signing and actual runtime proof separate.
+
+## Review and owner handoff
+
+Prepare the exact reviewed merged source with the existing
+[archive boundary procedure](SIGNING_SOURCE.md). Record its commit and ZIP SHA-256;
+build a clean extraction through the supplied local SDK route before handoff.
+That preflight does not establish restricted Maven/service acceptance. The archive
+and local APKs stay private; no upload or release is performed by preparation.
+
+1. Submit the exact reviewed source ZIP to the third-party service if desired.
+2. Keep the complete returned download under the established TAK resources path.
+   Inspect actual package/version/API/signature, discovery, permissions and packaging,
+   and compare signer continuity before updating the isolated lab. Stop on mismatch;
+   do not uninstall to bypass it or install a local debug APK over a service-signed one.
+3. Run [the existing source-observer controls](INGRESS_OBSERVER_PROBE.md) with fixed
+   synthetic PUB18 canaries, known loopback route and independent native feed/variant
+   observations. A hint classification or matching UUID is not a source namespace.
+4. Decide the next #25/#26 source/association step from that evidence. Phone/operational
+   online use and actual image sharing require their own acceptance; source signing
+   alone activates neither.
+
+Current backlog and the active sequence are summarized in [BACKLOG](BACKLOG.md)
+and [NEXT_STEPS](NEXT_STEPS.md). Exact local build/archive results are recorded
+separately once those artifacts exist, without rewriting older evidence.
+
+
+## Local preparation verification — 2026-11-05
+
+Supplied-SDK 5.6.0.24 debug/release assembly, debug lint and all three existing app
+unit tests passed (167 executed tasks; lint zero errors/57 warnings). The actual
+debug APK's versionCode 23/name, signature/discovery/API/no-permission/packaging
+boundaries passed. The source-archive boundary suite passed all five tests. Local
+release remains unsigned; no service build, standard-host load, live observer or
+image-feed trial was performed. The source archive's clean-extraction preflight
+and exact hashes follow separately after reviewed merge.

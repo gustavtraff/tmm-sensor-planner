@@ -1,5 +1,10 @@
 # Source-observer candidate v22 — #139 / #25
 
+**Historical v22 record.** [Candidate v23](STAGE_FOUNDATION_CANDIDATE.md) supersedes
+this source submission recommendation with the same guarded observer plus the
+approved storage foundations. Keep the v22 archive/hash unchanged; its historical
+preflight is not a v23 or standard-host result.
+
 | Field | Candidate |
 |---|---|
 | Package | `se.tmm.sensorplanner.plugin` |
