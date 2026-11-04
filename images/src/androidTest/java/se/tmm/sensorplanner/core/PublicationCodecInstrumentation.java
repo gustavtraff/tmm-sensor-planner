@@ -14,9 +14,14 @@ import javax.xml.parsers.SAXParserFactory;
 /** Standalone synthetic parser probe; neither starts ATAK nor opens its storage. */
 @TargetApi(26)
 public final class PublicationCodecInstrumentation extends Instrumentation {
-    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments); start(); }
+    private Bundle arguments;
+    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments); this.arguments=arguments; start(); }
 
     @Override public void onStart() {
+        if (arguments != null && "image-stage".equals(arguments.getString("probe"))) {
+            se.tmm.sensorplanner.plugin.images.ImageStageProbe.run(this, arguments);
+            return;
+        }
         Bundle result = new Bundle();
         try {
             check(Build.VERSION.SDK_INT >= 26);

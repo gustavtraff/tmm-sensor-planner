@@ -1,5 +1,15 @@
 # Tests and gates
 
+## Native Android image-stage acceptance — 2026-11-05 (#150)
+
+[Standalone native storage results](IMAGE_STAGE_STORAGE.md#standalone-native-android-acceptance--2026-11-05-150)
+cover all six actual process-kill milestones and original-ID readback, then read-only
+verification after Android guest reboot. Real sparse quota, symlink/unknown-marker
+and synthetic 1920×1080 controls also passed. The original native parser probe
+remains passing. This used one offline API-35 emulator and no ATAK/server; it does
+not prove physical/OEM, loaded-host or source/transport behavior. The emulator and
+its dedicated ADB server were stopped after the bounded run.
+
 ## Abrupt image-stage worker recovery — 2026-11-04 (#148)
 
 `python3 scripts/test-image-stage-restart.py` explicitly runs a controlled worker

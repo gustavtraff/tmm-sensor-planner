@@ -114,3 +114,86 @@ This strengthens development-host process recovery evidence, not Android-filesys
 ATAK process, full-disk, unsupported-filesystem, power-loss or rollback acceptance.
 It changes no production code or format and provides no source/association/receipt
 or Data Sync result.
+
+
+## Standalone native Android acceptance — 2026-11-05 (#150)
+
+A new dedicated headless AOSP **Android 15 / API 35 / arm64-v8a** emulator ran one
+standalone debug instrumentation APK, package `se.tmm.sensorplanner.images.test`.
+It had no requested permissions, ATAK, accounts, server/client credentials or server. Airplane
+mode was on, Wi-Fi/data off and the route table empty before each probe. Only one
+1.5-GiB/two-core emulator was used; no Docker or computer-use automation was needed.
+APK SHA-256: `2e0edfe0e5dd5348cc6adbf0ba1e4792e9658881bae9703f1be816a96b94cc0a`.
+
+The harness compiled the **actual app storage/payload classes** into the standalone
+instrumentation APK and used the independent H1/H2 descriptor/PNG fixtures. It did
+not substitute a fake filesystem, codec or PNG decoder. Each run first committed
+H1; during H2's real stage attempt the selected milestone signalled a positive
+control and killed its own Android process while it held the stage lock. A new
+process verified the original receiver-generated IDs and actual on-disk bytes.
+
+| Interruption point | Fresh-process result | Repeat after Android guest reboot |
+|---|---|---|
+| Pending directory created | Ready H1; empty pending H2; new writes blocked | PASS |
+| Descriptor synced | Ready H1; descriptor-only pending H2; new writes blocked | PASS |
+| PNG synced | Ready H1; complete pending H2; new writes blocked | PASS |
+| Pending pair independently verified | Ready H1; complete pending H2; no automatic promotion | PASS |
+| Atomic directory rename completed | Both exact pairs ready; original H2 outcome reconciled READY | PASS |
+| Ready readback completed, before caller response | Both exact pairs ready; original H2 outcome reconciled READY | PASS |
+
+Every row passed both immediately and after **`adb reboot` of the Android guest**.
+The latter pass used only the original run ID/read path: no APK reinstall, new
+stage write, root reset or pending cleanup. Actual file locking, file sync,
+NOFOLLOW checks and atomic directory rename worked for these native filesystem
+operations; the killed process released its lock. An explicit held-lock control
+also returned BUSY. Each complete file matched its fixture; incomplete files were
+absent as expected and never rendered as a received image.
+
+Additional native controls passed once, then were checked read-only after reboot:
+
+- Sixteen sparse pending PNG files plus marker at exactly 256 MiB logical size
+  were counted; adding one byte failed with CAPACITY while retaining the files.
+- A symlink replacing a ready PNG failed with INVALID_STATE; the link and separate
+  synthetic target were retained. An unsupported `TMMISTG2` marker was not reset.
+- A deterministic high-entropy **1920×1080** image was exported into the closed PNG
+  profile, paired with a new coherent descriptor and staged. Its output exceeded
+  1 MiB. Actual readback and the reboot pass retained dimensions, length and exact
+  SHA-256 against a separate test-only frozen control. This is a synthetic standalone
+  memory/filesystem check, not phone-camera/provider or loaded-ATAK heap acceptance.
+- The existing native publication parser probe still passed: four independent
+  metadata fixtures, exact re-encoding and its malformed controls on Android Expat.
+
+### Repeat with explicit synthetic target
+
+With the pinned public Android toolchain and an explicitly isolated offline emulator:
+
+```sh
+./gradlew -p images --no-daemon assembleDebugAndroidTest lintDebug
+python3 scripts/test-image-stage-android-guards.py
+python3 scripts/test-image-stage-android.py --serial emulator-5584 --adb-port 5039   --kill-after PNG_SYNCED --check-filesystem
+```
+
+The controller rejects physical serials, non-emulator runtime, API <26, non-airplane
+state, a nonempty route table, wrong APK package or requested permissions before
+installation. Its offline guard tests pass without Android tools or any device.
+Select each of the six fixed `--kill-after` values for the matrix. Save its synthetic
+run ID, reboot the guest, recheck isolation, then repeat without installing/writing:
+
+```sh
+python3 scripts/test-image-stage-android.py --serial emulator-5584 --adb-port 5039   --run-id ORIGINAL_SYNTHETIC_RUN_UUID --read-only
+# For the run that created the filesystem/Full-HD controls, also pass --verify-filesystem.
+```
+
+Native build and image lint passed (zero lint errors/six warnings). The final run
+used only synthetic app-owned namespaces. After readback, the standalone test APK
+was uninstalled and the owned emulator/dedicated ADB server stopped. Private logs,
+run IDs and the six-row result matrix remain outside Git; no screenshot/raw log or
+image was published. The plugin version and production runtime implementation were unchanged. Build/test
+inputs changed, so this is not a byte-identical signing archive; no signing submission
+was performed.
+
+This proves the bounded **standalone API-35** filesystem/process cases, not API-26
+native runtime, ATAK's shared UID/lifecycle, physical/OEM storage pressure, a full
+disk, unsupported atomic-move filesystem, power failure or old-backup rollback.
+It provides no trusted source/feed association, receipt, image adoption or Data Sync
+image-delivery evidence. Those gates remain separate.
