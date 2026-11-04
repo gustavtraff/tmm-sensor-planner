@@ -1,6 +1,7 @@
 # Proposed private image-stage v1 layouts — synthetic only
 
-Not adopted, not a production store. See `docs/IMAGE_STAGE_LAYOUT_PROPOSAL.md` for
+The layout was explicitly owner-approved after PR #143. These are independent
+fixtures, not a production store. See `docs/IMAGE_STAGE_LAYOUT_PROPOSAL.md` for
 exact names/marker/quota/recovery semantics and explicit history limitations.
 
 Each fixture has an exact eight-byte `TMMISTG1` marker and an empty `stage.lock`.

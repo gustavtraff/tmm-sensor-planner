@@ -1,5 +1,18 @@
 # Tests and gates
 
+## Private unassociated image stage — 2026-11-04 (#146 / #26)
+
+[Stage-v1 storage](IMAGE_STAGE_STORAGE.md) implements the owner-approved layout
+against the existing independent fixtures. Focused native API 26/35 tests cover
+exact pair readback, recreated store instances, explicit initialization, all write
+milestones, ambiguous rename outcomes, corruption, partial data, canonical offer
+spelling, quotas, no implicit eviction/promotion and exclusive locks. A separate
+plain JVM holds the actual OS lock as an independent-process exclusion control.
+Actual Android-filesystem/process-kill/power-loss acceptance is still pending;
+recreating a store in Robolectric is not that evidence. No UI or ingress caller,
+association, acknowledgment, image adoption or transport is activated.
+
+
 ## Unassociated stage layout proposal — 2026-10-30 (#142 / #26)
 
 [The proposed filesystem layout](IMAGE_STAGE_LAYOUT_PROPOSAL.md) has independent

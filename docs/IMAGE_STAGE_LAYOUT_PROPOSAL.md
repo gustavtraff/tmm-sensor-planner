@@ -1,9 +1,12 @@
 # Private unassociated image-pair staging — exact layout proposal (#142 / #26)
 
-**Status: proposed, not adopted.** Logical B–F/H and descriptor v1 are approved;
-this exact private directory/marker/recovery layout still needs explicit owner
-review before a writer. This PR adds synthetic fixtures and a test-only inspector,
-not a production store, automatic initialization, association, adoption or cleanup.
+**Status: owner-approved for a scoped writer.** After PR #143, the owner explicitly
+approved this exact stage-v1 format in the conversation. That decision is recorded
+here on 2026-11-04. It approves the layout and stated recovery/history limits, not
+source authority, an association/receipt registry, cleanup UI, adoption or transport.
+The original proposal supplied synthetic fixtures and a test-only inspector.
+[The storage implementation](IMAGE_STAGE_STORAGE.md) records the subsequent writer
+and its actual verification separately.
 
 ## Purpose and deliberately limited guarantee
 
@@ -146,11 +149,11 @@ file hashes remain unchanged by inspection. Public core CI runs this isolated te
 No production writer/store, source authentication, native host, SDK/image build,
 phone/server, signing, association or delivery experiment was performed for this PR.
 
-## Owner decision requested before implementation
+## Approved implementation boundary
 
-Adopt or revise **this exact unassociated stage-v1 layout and recovery limits**:
+The owner approved **this exact unassociated stage-v1 layout and recovery limits**:
 marker, private names, canonical offer/exact PNG, lock/atomic publish, 16-entry /256 MiB
 actual-byte limits, pending blocks writes/no auto recovery, explicit initialization
-and the whole-record/history limitation above. Merge is not implicit approval.
-Approval would permit a scoped store implementation only, not cleanup UI, source /
+and the whole-record/history limitation above. The explicit conversation decision,
+not the proposal merge, permits a scoped store implementation only, not cleanup UI, source /
 association/receipt registry, transport, automatic image adoption or operational use.
