@@ -16,7 +16,7 @@ def worker(workspace, phase):
     env.update(TMM_STAGE_RESTART_ROOT=str(workspace), TMM_STAGE_RESTART_PHASE=phase)
     command = [str(ROOT / 'gradlew'), '-p', str(ROOT / 'images'), '--offline', '--no-daemon',
                '--max-workers=2', '-Dorg.gradle.jvmargs=-Xmx1536m', 'testDebugUnitTest',
-               '--tests', CLASS]
+               '--rerun', '--tests', CLASS]
     process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, text=True, start_new_session=True)
     try:
