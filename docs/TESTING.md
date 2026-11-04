@@ -1,5 +1,13 @@
 # Tests and gates
 
+## Abrupt image-stage worker recovery — 2026-11-04 (#148)
+
+`python3 scripts/test-image-stage-restart.py` explicitly runs a controlled worker
+halt followed by a fresh-worker exact ready/pending readback. It passed locally;
+[the result and limits](IMAGE_STAGE_STORAGE.md#abrupt-worker-restart--2026-11-04-148)
+are separate from recreated-instance tests and Android-native acceptance. The one
+opt-in JUnit scenario is skipped in ordinary CI; no abrupt halt is activated there.
+
 ## Private unassociated image stage — 2026-11-04 (#146 / #26)
 
 [Stage-v1 storage](IMAGE_STAGE_STORAGE.md) implements the owner-approved layout

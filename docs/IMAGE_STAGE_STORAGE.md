@@ -90,3 +90,27 @@ passed (167 executed tasks). App lint had zero errors and 57 warnings. The debug
 APK passed actual signature/discovery/API/permission/packaging checks. Local release
 remains unsigned; no SDK method was introduced. These results do not establish
 standard-host runtime compatibility or a native Android filesystem/restart result.
+
+
+## Abrupt worker restart — 2026-11-04 (#148)
+
+`python3 scripts/test-image-stage-restart.py` passed locally using two separate
+API-26 native-graphics Robolectric workers and the actual development filesystem.
+The first committed H1, synced H2 into pending, recorded the test-only original
+local IDs, then abruptly halted its own JVM with exit 73 while the OS lock was held.
+The controller observed that expected failure; it did not treat it as a passed test.
+A fresh worker then verified exact H1 ready bytes, exact H2 pending bytes, the
+1776-byte total, known READY/PENDING reconciliation and blocked fresh admission.
+No pending pair was promoted or deleted. The OS released the dead worker's lock.
+
+The harness owns only a fresh temporary synthetic namespace and its child processes;
+phase logs and controls are private and removed afterward. Normal image CI skips
+this single opt-in scenario because its deliberate worker halt is unsuitable for an
+ordinary suite run. Run the script explicitly with the pinned JDK/toolchain and
+cached image-test dependencies; it has bounded worker timeouts and checks the final
+one-case XML result. It needs no SDK host, emulator, Docker, server or computer use.
+
+This strengthens development-host process recovery evidence, not Android-filesystem,
+ATAK process, full-disk, unsupported-filesystem, power-loss or rollback acceptance.
+It changes no production code or format and provides no source/association/receipt
+or Data Sync result.
