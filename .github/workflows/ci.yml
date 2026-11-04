@@ -36,6 +36,8 @@ jobs:
         run: python3 scripts/create-attachment-fixture.py "$RUNNER_TEMP/TMM-IMAGE-PROBE.zip"
       - name: Inspect proposed private image-stage layout fixtures
         run: python3 scripts/test-image-stage-proposal.py
+      - name: Check native-probe target guards without a device
+        run: python3 scripts/test-image-stage-android-guards.py
   images:
     timeout-minutes: 20
     runs-on: ubuntu-24.04
@@ -49,7 +51,11 @@ jobs:
           cmdline-tools-version: '12266719'
           packages: 'platforms;android-36 build-tools;35.0.0'
           log-accepted-android-sdk-licenses: false
-      - name: Test and lint isolated local image library
+      - name: Test and lint image library and compile standalone probes
         run: |
           export JAVA_HOME="$JAVA_HOME_17_X64"
-          ./gradlew -p images --no-daemon testDebugUnitTest lintDebug
+          ./gradlew -p images --no-daemon testDebugUnitTest lintDebug assembleDebugAndroidTest
+      - name: Verify image stage after abrupt worker exit
+        run: |
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          python3 scripts/test-image-stage-restart.py

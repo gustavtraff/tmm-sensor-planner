@@ -80,6 +80,23 @@ explain the difference between review routing and enforcement.
 
 ### CI coverage and next steps
 
+**Image-stage coverage update — 2026-11-05 (#152):** the existing required `core`
+job additionally tests the standalone native controller's target/isolation guards
+without any SDK/device. The required `images` job compiles the standalone Android
+instrumentation APK, then runs the controlled-halt/fresh-worker recovery script
+after its normal suite and lint. The deliberate first-worker exit is an expected
+positive control inside the script, not an ignored job failure; the fresh worker
+must actually pass. The ordinary suite skips that one opt-in scenario, and the
+separate mandatory step executes it. Each worker phase explicitly reruns its test
+task: environment-only phase changes must not reuse an up-to-date result. Repeating
+the controller without another build was checked locally. Public CI still uses only public Android/image
+dependencies: no ATAK SDK, server, emulator, account or signing input is supplied.
+Compiling the probe does not run its Android-native cases. Actual bounded local
+API-35 results remain in [the storage evidence](IMAGE_STAGE_STORAGE.md).
+Job names, actions/pins, permissions, triggers and 10/20-minute timeouts are unchanged;
+no live repository setting was changed. This adds failure-recovery regression
+coverage, not release or source/feed/transport authority.
+
 Public CI has useful independent `core` and `images` jobs. The latter runs native
 Android image/coordinator tests and lint without ATAK. The core job also covers
 storage compatibility, 100-device scenarios, safe auth-helper behavior, signing
