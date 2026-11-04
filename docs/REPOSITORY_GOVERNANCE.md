@@ -89,8 +89,7 @@ positive control inside the script, not an ignored job failure; the fresh worker
 must actually pass. The ordinary suite skips that one opt-in scenario, and the
 separate mandatory step executes it. Each worker phase explicitly reruns its test
 task: environment-only phase changes must not reuse an up-to-date result. Repeating
-the controller without another build was checked locally. Public CI still uses only public Android/image
-dependencies. Failed unit tests retain full exception chains so dependency-fetch
+the controller without another build was checked locally. Failed unit tests retain full exception chains so dependency-fetch
 failures can be distinguished from product assertions; test failures are not retried
 or suppressed. Public CI still uses only public Android/image
 dependencies: no ATAK SDK, server, emulator, account or signing input is supplied.
