@@ -79,7 +79,7 @@ captures and are not included in the source archive or public tests.
 
 The installed development APK SHA-256 is
 `196c544fc58b2c14f5209436a948cebd9a6ab2f236fce9ebde248dcf44658c86`.
-Full helper/image tests pass **389 cases, zero failures/errors, one skip**; app
+Full helper/image tests report **389 cases, zero failures/errors, one skip**; app
 checks pass three unit cases, debug/release assembly and lint. SDK ingress
 compile/reflection and standalone fixture APK boundaries pass. These are distinct
 from the native controls below.
@@ -101,12 +101,60 @@ On the final installed APK:
 | Continuous slow body | 12-second deadline result; fixture observes client close |
 | Explicit Android Cancel during slow body | Dialog closes; no result reappears after waiting beyond the deadline; fixture observes client close |
 
-These fixtures establish client-side rejection. They do not establish real mission
-role/group authorization, negative header enforcement or cross-feed source scope.
+API tunnel removal produces a fixed HTTP-stage failure. Restoring only that tunnel
+and performing a new explicit read again returns 9 events / 4 valid / 4 exact
+canaries. This is API-route loss/recovery with the CoT stream still connected,
+not a complete native Data Sync subscription reconnect or automatic retry test.
+
+The fixture also compares the presented client-certificate fingerprint against
+known private lab certificates and records only a fixed label. The SDK presents
+**client-a**, proving selected-profile credential use in this setup without copying
+certificate/key bytes into plugin state.
+
+Independent real-server permission controls use both client-a and client-b: each
+reads the existing permitted mission overview/CoT with HTTP200, then receives HTTP403
+from a newly created invite-only mission's GUID CoT route. This is an actual server
+permission refusal with positive controls, not a native Android role-switch test.
+The creation parameter creatorUid does not itself prove authenticated ownership;
+even the creating client was refused and no owner-role grant is inferred.
+
+A separate attempted two-mission same-UUID fixture does **not** pass its setup:
+API membership calls return 200, but the observed missions contain no UIDs and
+CoT is empty. Both a new stream-injected UUID and an existing cached canary fail
+the setup's positive condition. No cross-feed variant result is inferred, and no
+cause is assigned from API status alone. Only the three newly created synthetic
+missions are soft-deleted using the lab administrator; subsequent GETs return410.
+This does not erase event history or claim deletion of every synthetic copy.
+Existing selected/image feeds and their payloads are not edited.
+
+Client-side fixture rejection and independent permission controls do not establish
+native permission switching, negative header enforcement or cross-feed source scope.
 The configured profile's credential bytes are never copied into plugin code/state.
 
 Standard
-service-signed v25 loading, actual mission-role denial, cross-feed same-UUID/source
+service-signed v25 loading, native mission-role switching, cross-feed same-UUID/source
 binding and production Fetch-to-inbox integration remain separate gates. The
 [snapshot-first decision](MISSION_READ_PROPOSAL.md#owner-decision-snapshot-first-product-semantics--2026-11-05)
 does not convert these test counts into source authority or a delivery receipt.
+
+## Handoff and remaining delivery
+
+All four actual returned canary envelopes also pass the independent existing raw-
+XML publication checker, separately from SDK matching. On the final installed APK,
+the original image overview again returns 0 UIDs / 2 resources, and metadata overview
+returns 9 UIDs / 0 resources after the negative tests. No Java fatal entry is found.
+The complete before/after private TMM file inventory and hashes are identical.
+That fresh profile contains only the empty draft-lock file; it is not acceptance
+of migration or preservation of a populated signed-v24 dataset.
+
+The task-owned SDK emulator, dedicated ADB and TLS fixture are stopped. Java lab
+roles receive TERM; PostgreSQL reports a clean fast shutdown before the container
+wrappers stop. Other containers and retained standard-client profiles are untouched.
+Private watchdogs are cancelled only after owned-resource shutdown is verified.
+
+Next delivery is [#171](https://github.com/gustavtraff/tmm-sensor-planner/issues/171):
+connect an evidenced selected-feed snapshot source to the existing inbox/review/
+application components, then prove the two-client edit-and-publish-back workflow.
+Resolve the unsuccessful same-UUID membership control and exact source meaning
+first; do not mistake this count-only lab UI for the product Fetch workflow.
+Keep image sharing #26 behind that first useful metadata delivery.
