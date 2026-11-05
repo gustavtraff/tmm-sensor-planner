@@ -1,5 +1,14 @@
 # Tests and gates
 
+## Reviewed stage discard — 2026-11-05 (#156)
+
+[The inactive maintenance backend](IMAGE_STAGE_MAINTENANCE.md) has 14 passing focused
+API26/35 cases in addition to 30 stage regressions. Actual standalone API35 tests
+cover explicit successful discard plus all four controlled removal-process kills,
+then original-state readback after guest reboot. Selected data remains pending or
+absent as actually observed; the unselected ready pair stays intact. No end-user UI,
+active-image change, source authority or image-feed transport is activated.
+
 ## Native Android image-stage acceptance — 2026-11-05 (#150)
 
 [Standalone native storage results](IMAGE_STAGE_STORAGE.md#standalone-native-android-acceptance--2026-11-05-150)

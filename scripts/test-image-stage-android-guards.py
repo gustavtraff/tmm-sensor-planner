@@ -24,7 +24,10 @@ class AndroidProbeGuards(unittest.TestCase):
                      ['--serial', 'emulator-5584', '--run-id', '00000000-0000-0000-0000-000000000000'],
                      ['--serial', 'emulator-5584', '--run-id', 'invalid'],
                      ['--serial', 'emulator-5584', '--read-only', '--run-id', run_id, '--check-filesystem'],
-                     ['--serial', 'emulator-5584', '--verify-filesystem']]:
+                     ['--serial', 'emulator-5584', '--verify-filesystem'],
+                     ['--serial', 'emulator-5584', '--discard', '--kill-after', 'PNG_SYNCED'],
+                     ['--serial', 'emulator-5584', '--kill-after', 'DISCARD_OFFER_REMOVED'],
+                     ['--serial', 'emulator-5584', '--discard', '--check-filesystem']]:
             with self.subTest(args=args), mock.patch.dict(os.environ, {}, clear=True), \
                     mock.patch.object(sys, 'argv', ['probe', *args]), mock.patch.object(subprocess, 'run') as command, \
                     contextlib.redirect_stderr(io.StringIO()):

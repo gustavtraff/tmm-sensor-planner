@@ -23,7 +23,8 @@ public final class ImageStageStore {
     private final Faults faults;
 
     enum Point { ROOT_CREATED, MARKER_SYNCED, PENDING_CREATED, OFFER_SYNCED,
-        PNG_SYNCED, PENDING_VERIFIED, RENAMED, READY_VERIFIED }
+        PNG_SYNCED, PENDING_VERIFIED, RENAMED, READY_VERIFIED,
+        DISCARD_MARKED_PENDING, DISCARD_OFFER_REMOVED, DISCARD_PNG_REMOVED, DISCARD_DIRECTORY_REMOVED }
     interface Faults { void at(Point point) throws IOException; }
     private interface Work<T> { T run() throws IOException; }
 
@@ -53,6 +54,26 @@ public final class ImageStageStore {
             this.logicalBytes = bytes;
         }
         public boolean recoveryRequired() { return !pending.isEmpty(); }
+    }
+
+    /** Review of one unassociated entry only; no standing consent, source authority or active-image identity. */
+    public static final class DiscardPlan {
+        public final UUID id;
+        public final boolean pending;
+        public final int fileCount;
+        public final long logicalBytes;
+        private final Path root;
+        private final byte[] offer, png;
+        private final AtomicBoolean attempted = new AtomicBoolean();
+        private DiscardPlan(Path root, UUID id, boolean pending, byte[] offer, byte[] png) {
+            this.root = root; this.id = id; this.pending = pending; this.offer = offer; this.png = png;
+            fileCount = (offer == null ? 0 : 1) + (png == null ? 0 : 1);
+            logicalBytes = (offer == null ? 0L : offer.length) + (png == null ? 0L : png.length);
+        }
+        /** Preview these exact frozen ready bytes, never a later store read; partial pending is not an image. */
+        public ReceivedImagePayload readyPayload() throws IOException {
+            return pending ? null : ReceivedImagePayload.read(new ByteArrayInputStream(offer), new ByteArrayInputStream(png));
+        }
     }
 
     public ImageStageStore(Path root) { this(root, point -> { }); }
@@ -147,6 +168,61 @@ public final class ImageStageStore {
         Objects.requireNonNull(expected, "expected");
         return safe(() -> reconcile(new Prepared(originalId,
                 ImageOfferCodec.encode(expected.offer), expected.image.bytes())));
+    }
+
+    /** Freeze one bounded valid ready/pending entry for explicit local review; never deletes or resumes it. */
+    public DiscardPlan prepareDiscard(UUID id) throws IOException {
+        requireId(id);
+        return locked(() -> {
+            DiscardPlan plan = captureDiscard(id);
+            if (plan == null) throw fail(Code.NOT_FOUND);
+            return plan;
+        });
+    }
+
+    /** Explicit one-shot confirmation for an unassociated entry. Future association/UI callers need separate review. */
+    public Inspection discard(DiscardPlan plan) throws IOException {
+        Objects.requireNonNull(plan, "plan");
+        if (!plan.attempted.compareAndSet(false, true)) throw fail(Code.ALREADY_ATTEMPTED);
+        if (!root.equals(plan.root)) throw fail(Code.CONFLICT);
+        return locked(() -> {
+            DiscardPlan actual = captureDiscard(plan.id);
+            if (actual == null || plan.pending != actual.pending
+                    || !Arrays.equals(plan.offer, actual.offer) || !Arrays.equals(plan.png, actual.png)) {
+                throw fail(Code.CONFLICT);
+            }
+            Path pending = root.resolve("pending-" + plan.id);
+            if (!plan.pending) {
+                if (!Files.notExists(pending, NO_LINKS)) throw fail(Code.CONFLICT);
+                Files.move(root.resolve("ready-" + plan.id), pending, StandardCopyOption.ATOMIC_MOVE);
+            }
+            faults.at(Point.DISCARD_MARKED_PENDING);
+            if (plan.offer != null) {
+                Files.delete(pending.resolve("offer.bin"));
+                faults.at(Point.DISCARD_OFFER_REMOVED);
+            }
+            if (plan.png != null) {
+                Files.delete(pending.resolve("image.png"));
+                faults.at(Point.DISCARD_PNG_REMOVED);
+            }
+            Files.delete(pending);
+            faults.at(Point.DISCARD_DIRECTORY_REMOVED);
+            Inspection after = inspectLocked();
+            if (after.ready.contains(plan.id) || after.pending.contains(plan.id)) throw fail(Code.CONFLICT);
+            return after;
+        });
+    }
+
+    private DiscardPlan captureDiscard(UUID id) throws IOException {
+        Inspection state = inspectLocked();
+        boolean pending = state.pending.contains(id);
+        if (!pending && !state.ready.contains(id)) return null;
+        Path directory = root.resolve((pending ? "pending-" : "ready-") + id);
+        Set<String> names = new HashSet<>();
+        for (Path file : entries(directory, 2)) names.add(file.getFileName().toString());
+        byte[] offer = names.contains("offer.bin") ? readBounded(directory.resolve("offer.bin"), MAX_OFFER) : null;
+        byte[] png = names.contains("image.png") ? readBounded(directory.resolve("image.png"), MAX_PNG) : null;
+        return new DiscardPlan(root, id, pending, offer, png);
     }
 
     private Inspection inspectLocked() throws IOException {
