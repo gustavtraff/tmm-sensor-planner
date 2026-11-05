@@ -6,6 +6,8 @@ import com.atakmap.android.cot.importer.CotImporterManager;
 import com.atakmap.android.importexport.CotEventImporter;
 import com.atakmap.android.maps.*;
 import com.atakmap.comms.*;
+import com.atakmap.comms.http.TakHttpClient;
+import com.atakmap.comms.http.TakHttpResponse;
 import com.atakmap.coremap.cot.event.*;
 import java.lang.reflect.Modifier;
 import se.tmm.sensorplanner.core.DeviceType;
@@ -31,17 +33,32 @@ public final class IngressSdkCheck {
         check(MapEvent.class, "getItem", MapItem.class);
         check(CotDetailHandler.class, "toItemMetadata", CommsMapComponent.ImportResult.class, MapItem.class, CotEvent.class, CotDetail.class);
         check(CommsLogger.class, "logReceive", void.class, CotEvent.class, String.class, String.class);
+        if (!Modifier.isStatic(check(TakHttpClient.class, "GetHttpClient", TakHttpClient.class,
+                String.class, NetConnectString.class).getModifiers())
+                || !Modifier.isStatic(check(NetConnectString.class, "fromString", NetConnectString.class,
+                String.class).getModifiers())) {
+            throw new AssertionError("Mission read factory is not static");
+        }
+        check(TakHttpClient.class, "execute", TakHttpResponse.class, org.apache.http.client.methods.HttpRequestBase.class);
+        check(TakHttpClient.class, "getUrl", String.class, String.class);
+        check(TakHttpClient.class, "shutdown", void.class);
+        check(TakHttpResponse.class, "getBody", java.io.InputStream.class);
+        check(TakHttpResponse.class, "getLength", long.class);
+        check(TakHttpResponse.class, "getStatusCode", int.class);
+        check(TakHttpResponse.class, "close", void.class);
+        org.apache.http.client.methods.HttpGet.class.getConstructor(java.net.URI.class);
         for (DeviceType type : DeviceType.values()) {
             if (!IngressProbeState.isCanary(PublicationEnvelopeFixtures.draft(type).uid.toString())) {
                 throw new AssertionError("Ingress observer allowlist differs from actual publication canaries");
             }
         }
-        System.out.println("Ingress SDK signatures and observer-canary alignment passed. No listener/importer registered, no source/feed trust inferred, no data received or sent.");
+        System.out.println("Ingress/Mission-read SDK signatures and observer-canary alignment passed. No HTTP client/request constructed, no listener/importer registered, no source/feed trust inferred, no data received or sent.");
     }
-    private static void check(Class<?> owner, String name, Class<?> result, Class<?>... arguments) throws Exception {
+    private static java.lang.reflect.Method check(Class<?> owner, String name, Class<?> result, Class<?>... arguments) throws Exception {
         java.lang.reflect.Method method = owner.getMethod(name, arguments);
         if (method.getReturnType() != result || !Modifier.isPublic(method.getModifiers())) {
             throw new AssertionError("Ingress SDK signature changed; review the API boundary");
         }
+        return method;
     }
 }

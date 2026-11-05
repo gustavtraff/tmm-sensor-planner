@@ -1,5 +1,10 @@
 # Receiving metadata: verified SDK surfaces and source limits — #15/#25
 
+**Next decision:** [the selected-feed receive proposal](MISSION_READ_PROPOSAL.md)
+under #164 records a passing compile/reflection preflight for the actual SDK HTTP
+surface. It proposes an isolated GET-only experiment, not an accepted product
+adapter or a trusted source/inbox writer.
+
 **Candidate follow-up — 2026-10-30:** [the read-only source observer](INGRESS_OBSERVER_PROBE.md)
 now implements the guarded structural-only PUB18 experiment in candidate v22. Local
 state/SDK/build checks pass; no actual native callbacks or trusted source mapping
