@@ -1,6 +1,11 @@
 package se.tmm.sensorplanner.plugin.ingress;
 
 import android.annotation.TargetApi;
+import android.util.JsonReader;
+import android.util.JsonToken;
+import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,18 +68,27 @@ public final class MissionReadInput {
     private static void requireActive(BooleanSupplier active) throws IOException {
         if(Thread.currentThread().isInterrupted()||!active.getAsBoolean())throw new IOException();
     }
-    private static void boundStructure(String text) throws IOException {
-        int depth=0,stringLength=0;boolean quoted=false,escaped=false;
-        for(int i=0;i<text.length();i++){
-            char c=text.charAt(i);
-            if(quoted){
-                if(++stringLength>4096)throw new IOException();
-                if(escaped)escaped=false;else if(c=='\\')escaped=true;else if(c=='"')quoted=false;
-            }else if(c=='"'){quoted=true;stringLength=0;}
-            else if(c=='\'')throw new IOException();
-            else if(c=='{'||c=='['){if(++depth>16)throw new IOException();}
-            else if(c=='}'||c==']'){if(--depth<0)throw new IOException();}
+    static void boundStructure(String text) throws IOException {
+        try(JsonReader reader=new JsonReader(new StringReader(text))){
+            reader.setLenient(false);jsonValue(reader,0);
+            if(reader.peek()!=JsonToken.END_DOCUMENT)throw new IOException();
         }
-        if(quoted||depth!=0)throw new IOException();
+    }
+    private static void jsonValue(JsonReader reader,int depth)throws IOException {
+        if(depth>16)throw new IOException();
+        switch(reader.peek()){
+            case BEGIN_OBJECT:
+                if(depth==16)throw new IOException();reader.beginObject();Set<String> names=new HashSet<>();
+                while(reader.hasNext()){
+                    String name=reader.nextName();if(name.length()>128||!names.add(name))throw new IOException();jsonValue(reader,depth+1);
+                }
+                reader.endObject();break;
+            case BEGIN_ARRAY:
+                if(depth==16)throw new IOException();reader.beginArray();while(reader.hasNext())jsonValue(reader,depth+1);reader.endArray();break;
+            case STRING: case NUMBER: if(reader.nextString().length()>4096)throw new IOException();break;
+            case BOOLEAN: reader.nextBoolean();break;
+            case NULL: reader.nextNull();break;
+            default: throw new IOException();
+        }
     }
 }

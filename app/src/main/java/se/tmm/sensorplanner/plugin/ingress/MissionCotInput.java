@@ -23,23 +23,30 @@ public final class MissionCotInput {
     }
     public static Batch read(InputStream input,BooleanSupplier active)throws IOException {
         try {
-            String xml=MissionReadInput.readText(input,active);
-            if(xml.contains("<!DOCTYPE")||xml.startsWith("\ufeff"))throw new IOException();
-            if(xml.startsWith("<?xml")){
-                int end=xml.indexOf("?>");
-                if(end<0||!DECLARATION.matcher(xml.substring(0,end+2)).matches())throw new IOException();
-                xml=xml.substring(end+2);
-            }
+            String xml=xmlText(input,active);
             Handler handler=new Handler(active);
-            SAXParserFactory factory=SAXParserFactory.newInstance();factory.setNamespaceAware(true);factory.setValidating(false);
-            XMLReader reader=factory.newSAXParser().getXMLReader();
-            reader.setProperty("http://xml.org/sax/properties/lexical-handler",handler);
-            reader.setContentHandler(handler);reader.setErrorHandler(handler);reader.setEntityResolver(handler);
+            XMLReader reader=reader(handler);
             reader.parse(new InputSource(new StringReader(xml)));
             if(!handler.complete||!active.getAsBoolean())throw new IOException();
             return new Batch(handler.events,handler.canaries);
         }catch(Exception invalid){throw new IOException("Lab metadata response could not be verified");}
         catch(javax.xml.parsers.FactoryConfigurationError invalid){throw new IOException("Lab XML reader unavailable");}
+    }
+    static String xmlText(InputStream input,BooleanSupplier active)throws IOException {
+        String xml=MissionReadInput.readText(input,active);
+        if(xml.contains("<!DOCTYPE")||xml.startsWith("\ufeff"))throw new IOException();
+        if(xml.startsWith("<?xml")){
+            int end=xml.indexOf("?>");
+            if(end<0||!DECLARATION.matcher(xml.substring(0,end+2)).matches())throw new IOException();
+            xml=xml.substring(end+2);
+        }
+        return xml;
+    }
+    static XMLReader reader(DefaultHandler2 handler)throws Exception {
+        SAXParserFactory factory=SAXParserFactory.newInstance();factory.setNamespaceAware(true);factory.setValidating(false);
+        XMLReader reader=factory.newSAXParser().getXMLReader();
+        reader.setProperty("http://xml.org/sax/properties/lexical-handler",handler);
+        reader.setContentHandler(handler);reader.setErrorHandler(handler);reader.setEntityResolver(handler);return reader;
     }
     private static final class Handler extends DefaultHandler2 {
         final BooleanSupplier active;

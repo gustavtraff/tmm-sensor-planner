@@ -17,6 +17,7 @@ INPUTS = (
     'app/build.gradle', 'app/lint.xml', 'app/src/main',
     'core/src/main', 'core/src/test', 'images/build.gradle',
     'images/settings.gradle', 'images/gradle.properties', 'images/src',
+    'test-fixtures/synthetic/publication-envelope',
 )
 REQUIRED = ('gradlew', 'gradle/wrapper/gradle-wrapper.jar', 'app/build.gradle',
             'app/src/main/AndroidManifest.xml', 'app/src/main/assets/plugin.xml')

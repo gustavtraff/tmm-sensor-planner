@@ -36,6 +36,7 @@ import se.tmm.sensorplanner.plugin.local.BearingDirectionView;
 import se.tmm.sensorplanner.plugin.local.PublicationPreparationUi;
 import se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi;
 import se.tmm.sensorplanner.plugin.local.LocalStorageUi;
+import se.tmm.sensorplanner.plugin.local.SnapshotInboxUi;
 import se.tmm.sensorplanner.core.LocalV2.Selection;
 import se.tmm.sensorplanner.plugin.publication.PublicationMapCopy;
 
@@ -58,6 +59,7 @@ final class LocalPlanner {
     private final LocalShareUi sharing;
     private final PublicationPreparationUi preparation;
     private final SavedDraftCopyUi copyUi;
+    private final SnapshotInboxUi inboxUi;
     private LocalDraftLayer layer;
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
@@ -115,6 +117,14 @@ final class LocalPlanner {
                 return mapCopy.create(prepared, label);
             }
         });
+        inboxUi = new SnapshotInboxUi(context, store, new java.io.File(context.getNoBackupFilesDir(),
+                "se.tmm.sensorplanner/metadata-inbox-v1").toPath(), worker, new SnapshotInboxUi.Host() {
+            @Override public void post(Runnable action) { ui.queueEvent(action); }
+            @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
+            @Override public boolean labAvailable() { return copyAllowed.getAsBoolean(); }
+            @Override public void changed() { storageUi.load(false); }
+        }, new MissionSnapshotHttp(copyAllowed), LocalPlanner::positionText);
+
     }
 
     private String metadataSummary(ShareReview.Metadata m) {
@@ -169,10 +179,13 @@ final class LocalPlanner {
         String[] rows = new String[drafts.size()];
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
+        LinearLayout inboxActions = column(); inboxActions.addView(label(LocalStorageUi.warning(storage)));
+        inboxActions.addView(button("Mottagna metadata", () -> { dismiss(); inboxUi.show(); }));
+        if (labAllowed.getAsBoolean()) inboxActions.addView(button("Hämta metadata · labb", () -> { dismiss(); inboxUi.fetch(); }));
         dialog = new AlertDialog.Builder(context).setTitle("TMM – lokala utkast (" + rows.length + ")"
                         + (labAllowed.getAsBoolean() ? "" : " · testläge"))
                 .setItems(rows, (ignored, index) -> review(listed.select(listed.activeDrafts().get(index).uid)))
-                .setView(label(LocalStorageUi.warning(storage)))
+                .setView(inboxActions)
                 .setPositiveButton("Skapa enhet", (ignored, which) -> form(null))
                 .setNeutralButton("Uppdatera", (ignored, which) -> { dismiss(); show(); })
                 .setNegativeButton("Stäng", null).create();
@@ -633,16 +646,17 @@ final class LocalPlanner {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
 
-    private boolean isBusy() { return storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy(); }
+    private boolean isBusy() { return storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || inboxUi.isBusy(); }
 
-    void cancelSharing() { storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); }
+    void cancelSharing() { inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); }
 
-    void disableSharing() { sharing.close(); preparation.cancel(); copyUi.cancel(); }
+    void disableSharing() { inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); }
 
     void close() {
         closed = true;
         if (positionPicker != null) { positionPicker.close(); positionPicker = null; }
         dismiss();
+        inboxUi.close();
         sharing.close();
         preparation.close();
         copyUi.close();
