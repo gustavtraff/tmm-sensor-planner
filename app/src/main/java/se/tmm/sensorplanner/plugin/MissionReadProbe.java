@@ -20,6 +20,11 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpConnectionParams;
 import se.tmm.sensorplanner.plugin.ingress.MissionReadInput;
 import se.tmm.sensorplanner.plugin.ingress.MissionReadAttempt;
+import se.tmm.sensorplanner.plugin.ingress.MissionCotInput;
+import se.tmm.sensorplanner.plugin.publication.PublicationCot;
+import se.tmm.sensorplanner.plugin.publication.PublicationEnvelopeFixtures;
+import com.atakmap.coremap.cot.event.CotEvent;
+import se.tmm.sensorplanner.core.*;
 
 /** Explicit GET-only lab experiment; never grants source authority or writes received data. */
 @TargetApi(26)
@@ -47,22 +52,22 @@ final class MissionReadProbe {
         if(job!=null){ui.showToast("Ett läsprov pågår. Avbryt det först.");return;}
         dismiss();
         dialog=new AlertDialog.Builder(map.getContext()).setTitle("Mission API · endast läsning i labb")
-                .setItems(new String[]{MissionReadInput.Feed.METADATA.name,MissionReadInput.Feed.IMAGES.name},(d,n)->review(MissionReadInput.Feed.values()[n]))
+                .setItems(new String[]{MissionReadInput.Feed.METADATA.name,MissionReadInput.Feed.IMAGES.name,"Metadata · fasta fyra TMM-enheter"},(d,n)->review(n==2?MissionReadInput.Feed.METADATA:MissionReadInput.Feed.values()[n],n==2))
                 .setNegativeButton("Stäng",null).create();dialog.show();
     }
-    private void review(MissionReadInput.Feed feed){
+    private void review(MissionReadInput.Feed feed,boolean metadata){
         if(!permitted()||job!=null)return;dismiss();
         dialog=new AlertDialog.Builder(map.getContext()).setTitle("Granska syntetiskt läsprov")
                 .setMessage("Endast GET till isolerade labbservern 127.0.0.1:8443.\nFeed: "+feed.name
-                        +"\nVärdens klientcertifikat används utan nyckelkopior. Högst 64 KiB; resultat godtas inom 12 sekunder. "
-                        +"Endast antal poster och kontroll av namn/GUID-form visas. Inga data sparas, importeras eller skickas till andra klienter. "
-                        +"Detta verifierar inte källa, historik, metadata eller bildkoppling.")
-                .setNegativeButton("Avbryt",null).setPositiveButton("Läs labböversikt",(d,w)->start(feed)).create();dialog.show();
+                        +(metadata?"\nGUID-bunden CoT-snapshot för fasta syntetiska enheter. Inte historik eller produktimport.":"")+"\nVärdens klientcertifikat används utan nyckelkopior. Högst 64 KiB; resultat godtas inom 12 sekunder. "
+                        +"Endast kontrollantal visas. I metadataprovet valideras alla 15 fält för fyra fasta TMM-enheter. Inga data sparas, importeras eller skickas till andra klienter. "
+                        +"Ingen betrodd källregistrering, fullständig historik eller bildkoppling verifieras.")
+                .setNegativeButton("Avbryt",null).setPositiveButton(metadata?"Läs metadata i labb":"Läs labböversikt",(d,w)->start(feed,metadata)).create();dialog.show();
     }
-    private void start(MissionReadInput.Feed feed){
+    private void start(MissionReadInput.Feed feed,boolean metadata){
         if(!permitted()||job!=null)return;
         MissionReadAttempt task=new MissionReadAttempt(System.nanoTime());job=task;
-        dismiss();dialog=new AlertDialog.Builder(map.getContext()).setTitle("Läser labböversikt")
+        dismiss();dialog=new AlertDialog.Builder(map.getContext()).setTitle(metadata?"Läser labbmetadata":"Läser labböversikt")
                 .setMessage("Inga utkast eller bilder ändras.").setNegativeButton("Avbryt",(d,w)->cancel()).create();
         dialog.setOnCancelListener(d->cancel());dialog.setCanceledOnTouchOutside(false);dialog.show();
         try{
@@ -70,11 +75,11 @@ final class MissionReadProbe {
             task.bindGuard(timer.scheduleAtFixedRate(()->ui.queueEvent(()->{
                 if(job==task&&!permitted())finishCancelled(task,"Labbvillkoren ändrades. Inget resultat godtas.");
             }),250,250,TimeUnit.MILLISECONDS));
-            task.bindWorker(worker.submit(()->read(task,feed)));
+            task.bindWorker(worker.submit(()->read(task,feed,metadata)));
         }catch(RejectedExecutionException busy){finishCancelled(task,"Föregående läsning avslutas fortfarande. Starta ett nytt prov senare.");}
     }
-    private void read(MissionReadAttempt task,MissionReadInput.Feed feed){
-        HttpGet request=null;TakHttpClient client=null;TakHttpResponse response=null;String message="Läsningen kunde inte verifieras. Ingen källa är registrerad.";
+    private void read(MissionReadAttempt task,MissionReadInput.Feed feed,boolean metadata){
+        String stage="TLS";HttpGet request=null;TakHttpClient client=null;TakHttpResponse response=null;String message="Läsningen kunde inte verifieras. Ingen källa är registrerad.";
         try{
             requireActive(task);
             if(!defaultHttpProvider())throw new IOException();
@@ -83,10 +88,11 @@ final class MissionReadProbe {
                     NetConnectString.fromString(ShareLabRoute.STREAM),false);
             if(sockets==null)throw new IOException();
             client=new TakHttpClient(BASE+"/Marti",sockets,5000,5000);
-            URI expected=URI.create(BASE+"/Marti/api/missions/"+feed.name);
-            if(!expected.equals(URI.create(client.getUrl("/api/missions/"+feed.name))))throw new IOException();
+            String path=metadata?"/api/missions/guid/93ad6bb9-e00e-4d08-bb2f-887867f3950d/cot":"/api/missions/"+feed.name;
+            URI expected=URI.create(BASE+"/Marti"+path);
+            if(!expected.equals(URI.create(client.getUrl(path))))throw new IOException();
             request=new HttpGet(expected);task.bindAbort(request::abort);
-            request.setHeader("Accept","application/json");request.setHeader("Accept-Encoding","identity");
+            request.setHeader("Accept",metadata?"application/xml":"application/json");request.setHeader("Accept-Encoding","identity");
             HttpClientParams.setRedirecting(request.getParams(),false);
             HttpClientParams.setAuthenticating(request.getParams(),false);
             HttpConnectionParams.setConnectionTimeout(request.getParams(),5000);
@@ -94,16 +100,32 @@ final class MissionReadProbe {
             request.getParams().setIntParameter(CoreConnectionPNames.MAX_HEADER_COUNT,32);
             request.getParams().setIntParameter(CoreConnectionPNames.MAX_LINE_LENGTH,4096);
             requireActive(task);if(!defaultHttpProvider())throw new IOException();
-            response=client.execute(request,false);requireActive(task);
-            String type=response.getContentType(),encoding=response.getHeaderString("Content-Encoding");
-            if(response.getStatusCode()!=200||type==null||!type.toLowerCase(java.util.Locale.ROOT).matches("application/json(?:\\s*;\\s*charset=utf-8)?")
+            stage="HTTP";response=client.execute(request,false);requireActive(task);
+            stage="HEADERS";String type=response.getContentType(),encoding=response.getHeaderString("Content-Encoding");
+            if(response.getStatusCode()!=200||type==null||!type.toLowerCase(java.util.Locale.ROOT).matches((metadata?"application/xml":"application/json")+"(?:\\s*;\\s*charset=utf-8)?")
                     ||(encoding!=null&&!encoding.isEmpty()&&!encoding.equalsIgnoreCase("identity"))
                     ||response.getLength()>MissionReadInput.MAX_BYTES)throw new IOException();
-            MissionReadInput.Summary result=MissionReadInput.read(feed,response.getBody(),()->!closed&&task.active(System.nanoTime()));
+            stage="BODY";
+            if(metadata){
+                MissionCotInput.Batch batch=MissionCotInput.read(response.getBody(),()->!closed&&task.active(System.nanoTime()));
+                int exact=0;
+                for(String xml:batch.canaries){
+                    requireActive(task);CotEvent event=CotEvent.parse(xml);
+                    ShareReview.Metadata values=PublicationCot.read(event);
+                    TmmDraft fixture=PublicationEnvelopeFixtures.draft(values.type);
+                    if(PublicationCot.matches(event,new PublicationPreparationReview(fixture).prepare(fixture)))exact++;
+                }
+                if(batch.canaries.size()!=4)throw new IOException();
+                message="Metadatasnapshot läst via fast labb-GUID.\nCoT-poster: "+batch.events+" · TMM-kontroller: "+batch.canaries.size()
+                        +"\nAlla 15 metadatafält validerade. Exakt grundvariant: "+exact+" av 4."
+                        +"\nIngen historik, källregistrering, import eller kvittens. Inget sparat.";
+            }else{
+                MissionReadInput.Summary result=MissionReadInput.read(feed,response.getBody(),()->!closed&&task.active(System.nanoTime()));
+                message="Labböversikt läst: namn och GUID-form kontrollerade.\nUID-poster: "+result.uids+" · resursposter: "+result.resources
+                        +"\nEndast strukturräkning. Ingen källa, originalvariant, mottagningskvittens eller bildkoppling verifierad. Inget sparat.";
+            }
             requireActive(task);
-            message="Labböversikt läst: namn och GUID-form kontrollerade.\nUID-poster: "+result.uids+" · resursposter: "+result.resources
-                    +"\nEndast strukturräkning. Ingen källa, originalvariant, mottagningskvittens eller bildkoppling verifierad. Inget sparat.";
-        }catch(Exception unavailable){/* Raw provider/network errors can contain private profile information. */}
+        }catch(Exception unavailable){message="Läsningen kunde inte verifieras ("+stage+"). Ingen källa är registrerad.";}
         finally{
             try{if(request!=null)request.abort();}catch(RuntimeException ignored){}
             try{if(response!=null)response.close();}catch(RuntimeException unavailable){message="Avslutningen kunde inte verifieras. Inget resultat godtas.";}

@@ -8,6 +8,21 @@ The owner asked to continue after the native source/image experiments. This
 concretizes the next decision and checks actual SDK signatures. Merging this
 preparation does not accept a new architecture or source/storage format.
 
+## Owner decision: snapshot-first product semantics — 2026-11-05
+
+After clarification, the owner explicitly approved delivering current snapshots
+first. An explicit Fetch reads the selected feed's current data. Preserve each
+observed metadata variant in the review inbox; differing metadata never silently
+overwrites local edits. Absence from a response never deletes local records.
+Changes made and superseded between fetches may be absent from local history.
+Complete server history remains a separate investigation, not a promised feature.
+
+This accepts the first receive workflow's semantics, not an unseen storage format
+or unverified source mapping. Establish configured-server identity plus stable
+mission GUID, permission behavior and coherent metadata before wiring InboxStore.
+Keep existing inbox, decision and local-v2 contracts. The bounded lab reader has no
+writer; [candidate v25](MISSION_METADATA_LAB.md) verifies actual metadata next.
+
 ## Recommended next bounded implementation
 
 1. Implement an explicit, GET-only **isolated-lab prototype**, using the configured
