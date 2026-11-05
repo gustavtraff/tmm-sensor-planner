@@ -6,6 +6,11 @@ Investigation date: 2026-10-16. Target: ATAK-CIV API 5.6.0, supplied SDK full bu
 
 ## Follow-up — 2026-10-23
 
+**Later native feed evidence, 2026-11-05:** [the #162 trial](DATA_SYNC_IMAGE_FEED_TRIAL.md)
+uses standard 5.6.0.25 / Data Sync 3.7.4, not the older contact route below. Its
+generated Full HD PNG reaches the selected feed and actual server/recipient intact.
+TMM device/metadata/source association and a supported product API remain separate.
+
 [DATA_SYNC_INTEGRATION.md](DATA_SYNC_INTEGRATION.md) now identifies bundled Data
 Sync user manuals, exact-SDK export/detail surfaces and pinned official server
 Mission API sources. These give concrete user-workflow/server candidates, not a
