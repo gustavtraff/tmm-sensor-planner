@@ -8,6 +8,7 @@ import com.atakmap.android.maps.*;
 import com.atakmap.comms.*;
 import com.atakmap.comms.http.TakHttpClient;
 import com.atakmap.comms.http.TakHttpResponse;
+import com.atakmap.net.CertificateManager;
 import com.atakmap.coremap.cot.event.*;
 import java.lang.reflect.Modifier;
 import se.tmm.sensorplanner.core.DeviceType;
@@ -40,6 +41,13 @@ public final class IngressSdkCheck {
             throw new AssertionError("Mission read factory is not static");
         }
         check(TakHttpClient.class, "execute", TakHttpResponse.class, org.apache.http.client.methods.HttpRequestBase.class);
+        check(TakHttpClient.class, "execute", TakHttpResponse.class, org.apache.http.client.methods.HttpRequestBase.class,boolean.class);
+        check(CertificateManager.class,"getSockFactory",CertificateManager.ExtendedSSLSocketFactory.class,
+                boolean.class,NetConnectString.class,boolean.class);
+        TakHttpClient.class.getConstructor(String.class,org.apache.http.conn.ssl.SSLSocketFactory.class,int.class,int.class);
+        check(CommsProviderFactory.class,"isDefault",boolean.class);
+        check(CommsProviderFactory.class,"getProvider",CommsProvider.class);
+        check(CommsProvider.class,"hasFeature",boolean.class,CommsProvider.CommsFeature.class);
         check(TakHttpClient.class, "getUrl", String.class, String.class);
         check(TakHttpClient.class, "shutdown", void.class);
         check(TakHttpResponse.class, "getBody", java.io.InputStream.class);

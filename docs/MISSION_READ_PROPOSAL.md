@@ -1,6 +1,9 @@
 # Selected-feed receive prototype — proposed, #164 / #25
 
-**Status: proposed; no product HTTP adapter is approved or activated.**
+**Owner decision, 2026-11-05:** the bounded GET-only isolated-lab prototype is
+approved. [Candidate v24](MISSION_READ_LAB.md) implements that scope. A production
+HTTP receive adapter, source/inbox writer and new image format are not approved
+or activated by this decision.
 The owner asked to continue after the native source/image experiments. This
 concretizes the next decision and checks actual SDK signatures. Merging this
 preparation does not accept a new architecture or source/storage format.
@@ -29,7 +32,8 @@ The alternative is to continue requesting a version-applicable supported native
 Data Sync developer contract. The [native observer findings](SIGNED_V23_SOURCE_VERIFICATION.md)
 do not establish one. The [existing investigation](DATA_SYNC_INTEGRATION.md)
 identifies pinned official Mission API source, permission constraints and the
-separate architecture gate. #164 remains open for that human decision.
+separate architecture gate. #164 remains open for runtime evidence and any later
+product/snapshot-semantics decision.
 
 Image container/association/receipt formats and their writers remain separately
 gated. A later image association must match trusted source plus exact retained
