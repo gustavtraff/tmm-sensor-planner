@@ -92,7 +92,57 @@ plugin or uninstall to bypass a mismatch. In isolated synthetic clients check:
    late results and do not automatically resume. Before/after positive controls work.
 4. Local draft/image bytes stay exact; only task-owned lab resources are stopped.
 
-No native v24 runtime acceptance is claimed by these source/build results. Stable
+These source/build checks alone do not establish native acceptance. Stable
 mission GUID scope, original metadata/history, two-feed same-UUID separation and
 recovery remain subsequent experiments; no snapshot-import semantics are silently
 adopted. Image registry/container/receipt format writers remain separately gated.
+
+## Bounded SDK-developer-host experiment — 2026-11-05
+
+One new headless Android15/API35 arm64 guest uses SDK developer ATAK-CIV 5.6.0.24,
+not the standard 5.6.0.25 clients. Retained standard-client profiles are untouched.
+The supplied SDK app fingerprint remains the one recorded in DEVELOPMENT.md.
+Native compatible-plugin Load accepts the final development-signed v24; tested
+debug APK SHA-256 is
+`01ec963a411a8487589eb94335364724587007e235c69c4391672ed90d3ca99d`.
+This is not a service signature or standard-host installation result.
+
+The guest has a socket network with no peer, radios off/airplane mode, guest
+IPv4/IPv6 non-loopback OUTPUT drops and only explicit lab 8089/8443 ADB tunnels.
+It imports the existing synthetic profile through native Local SD → Copy, using
+the previously approved test-only EULA/permissions. No operational data/account,
+phone, private-plugin API or TLS trust override is introduced. Existing isolated
+TAK Server 5.8-RELEASE-92 and its private CA/profile are reused.
+
+- Native review Cancel returns without starting the reader in the observed UI;
+  no independent per-request server absence window was measured for this Cancel.
+- Explicit image-feed read succeeds through the actual configured-host TLS client:
+  **0 UID posts / 2 resources**, exact name/GUID-shape checks, count-only result.
+  A separate CA/hostname-validating authenticated server GET gives the same counts.
+- Explicit metadata-feed read returns the generic unverified result. An independent
+  GET returns 9 UIDs / 0 resources and a 2,850-byte overview with canonical GUID,
+  shallow structure and bounded strings. This is an **unsuccessful control**;
+  transport/status/response handling has not been isolated as its cause. It is not
+  evidence that the feed is absent, that access is denied or that its payload is bad.
+- A temporary fixed-stage diagnostic build cannot be installed: Android's package
+  service returns `Broken pipe (32)`. That diagnostic is not tested or retained in
+  this candidate. The reviewed code is restored and exact final debug/release,
+  lint and app checks rebuilt. Do not attribute the earlier failed read to that
+  later package-service failure without evidence.
+- The held TMM-private baseline file remains byte-identical after the controls;
+  directory additions were not independently enumerated at shutdown. The reader
+  has no draft/image write caller. This fresh profile does
+  not test preservation of a populated signed v23 dataset. The final checked crash
+  buffer contains zero Java fatal entries; airplane mode is still enabled.
+
+Wrong-host/CA rejection, redirects, authorization denial, live slow-body deadline /
+cancel/unload behavior and standard-host v24 loading remain unrun. A synthetic
+wrong-host certificate was prepared privately but never served; no negative TLS
+pass is inferred from preparation. The host-helper bounds/race tests remain
+separate deterministic evidence, not those native timing cases.
+
+The test emulator/dedicated ADB are stopped. Lab Java roles receive TERM and
+PostgreSQL completes a clean fast shutdown before container wrappers stop. Raw
+profiles, certs, UI, logs and response bodies stay ignored outside Git. A private
+owned-session deadline guard is cancelled after verified manual cleanup. #164
+remains open for the failed metadata control and complete source/runtime evidence.
