@@ -21,6 +21,10 @@ import se.tmm.sensorplanner.images.ImageTransferPng;
 public final class ImageStageProbe {
     private ImageStageProbe() { }
     public static void run(Instrumentation instrumentation, Bundle arguments) {
+        if(arguments.getString("phase","").startsWith("discard-")) {
+            ImageStageDiscardProbe.run(instrumentation,arguments);
+            return;
+        }
         Bundle result=new Bundle();
         try {
             check(Build.VERSION.SDK_INT>=26);
@@ -34,7 +38,7 @@ public final class ImageStageProbe {
                 ImageStageStore.Prepared ready=ImageStageStore.prepare(payload(instrumentation,1)),pending=ImageStageStore.prepare(payload(instrumentation,2));
                 store.stage(ready);
                 ImageStageStore.Point selected=ImageStageStore.Point.valueOf(arguments.getString("killAfter","PNG_SYNCED"));
-                check(selected!=ImageStageStore.Point.ROOT_CREATED && selected!=ImageStageStore.Point.MARKER_SYNCED);
+                check(EnumSet.range(ImageStageStore.Point.PENDING_CREATED,ImageStageStore.Point.READY_VERIFIED).contains(selected));
                 byte[] state=(ready.id+"\n"+pending.id+"\n"+selected.name()+"\n").getBytes(StandardCharsets.US_ASCII);
                 ImageStageStore interrupted=new ImageStageStore(root,point->{
                     if(point==selected) {

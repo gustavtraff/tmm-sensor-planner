@@ -75,8 +75,7 @@ public class ImageStageStoreTest {
     }
 
     @Test public void faultsRetainPendingOrReadyAndNeverPermitBlindRetry() throws Exception {
-        for (ImageStageStore.Point point : ImageStageStore.Point.values()) {
-            if (point == ImageStageStore.Point.ROOT_CREATED || point == ImageStageStore.Point.MARKER_SYNCED) continue;
+        for (ImageStageStore.Point point : EnumSet.range(ImageStageStore.Point.PENDING_CREATED, ImageStageStore.Point.READY_VERIFIED)) {
             Path root = absent(); new ImageStageStore(root).initializeNew();
             ImageStageStore.Prepared operation = ImageStageStore.prepare(payload(1));
             ImageStageStore failing = new ImageStageStore(root, p -> {

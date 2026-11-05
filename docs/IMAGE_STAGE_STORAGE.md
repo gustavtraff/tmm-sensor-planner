@@ -45,7 +45,10 @@ cannot retry after any result; retain/reconcile it. A lock/capacity error before
 write can leave no candidate. Failure during a write leaves pending; failure after
 rename may leave ready. A readback failure never reports known completion and
 never deletes either candidate file. Synthetic allocation failures use the existing
-safe low-memory category. There is no deletion, cleanup, auto-resume or eviction API.
+safe low-memory category. The original write slice had no deletion API. The separately
+reviewed [explicit unassociated-entry discard backend](IMAGE_STAGE_MAINTENANCE.md)
+adds one-shot local confirmation; no cleanup UI, auto-resume, eviction or association
+integration is activated.
 
 ## Exact limits and remaining guarantees
 

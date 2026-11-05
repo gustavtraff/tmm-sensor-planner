@@ -10,6 +10,8 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = 'se.tmm.sensorplanner.images.test'
+STAGE_POINTS = ['PENDING_CREATED', 'OFFER_SYNCED', 'PNG_SYNCED', 'PENDING_VERIFIED', 'RENAMED', 'READY_VERIFIED']
+DISCARD_POINTS = ['DISCARD_MARKED_PENDING', 'DISCARD_OFFER_REMOVED', 'DISCARD_PNG_REMOVED', 'DISCARD_DIRECTORY_REMOVED']
 
 
 def main():
@@ -18,7 +20,8 @@ def main():
     parser.add_argument('--adb-port', type=int, default=5037)
     parser.add_argument('--run-id', help='Original synthetic run UUID for an explicit repeat read')
     parser.add_argument('--read-only', action='store_true', help='Read the original run after restart; do not install or write')
-    parser.add_argument('--kill-after', choices=['PENDING_CREATED', 'OFFER_SYNCED', 'PNG_SYNCED', 'PENDING_VERIFIED', 'RENAMED', 'READY_VERIFIED'], default='PNG_SYNCED')
+    parser.add_argument('--kill-after', choices=STAGE_POINTS + DISCARD_POINTS)
+    parser.add_argument('--discard', action='store_true', help='Run the explicit-discard backend probe on fresh synthetic entries')
     parser.add_argument('--check-filesystem', action='store_true', help='Also mutate new synthetic quota/symlink/marker fixtures')
     parser.add_argument('--verify-filesystem', action='store_true', help='Reopen previously created filesystem/Full-HD controls without writing')
     args = parser.parse_args()
@@ -30,6 +33,11 @@ def main():
         parser.error('Filesystem mutation is incompatible with --read-only')
     if args.verify_filesystem and not args.read_only:
         parser.error('--verify-filesystem requires --read-only')
+    args.kill_after = args.kill_after or ('DISCARD_MARKED_PENDING' if args.discard else 'PNG_SYNCED')
+    if args.kill_after not in (DISCARD_POINTS if args.discard else STAGE_POINTS):
+        parser.error('Select an interruption point belonging to the requested operation')
+    if args.discard and (args.check_filesystem or args.verify_filesystem):
+        parser.error('Filesystem mutation controls belong to the stage probe')
     run_id = args.run_id or str(uuid.uuid4())
     try:
         parsed = uuid.UUID(run_id)
@@ -68,6 +76,8 @@ def main():
     component = PACKAGE + '/se.tmm.sensorplanner.core.PublicationCodecInstrumentation'
     try:
         def phase(name):
+            if args.discard:
+                name = 'discard-' + name
             return shell('am', 'instrument', '-w', '-r', '-e', 'probe', 'image-stage', '-e', 'runId', run_id,
                          '-e', 'killAfter', args.kill_after, '-e', 'phase', name, component)
         if not args.read_only:
@@ -77,6 +87,10 @@ def main():
         reopened = phase('read')
         if 'INSTRUMENTATION_RESULT: result=PASS' not in reopened or 'INSTRUMENTATION_CODE: -1' not in reopened:
             raise RuntimeError('Native fresh-process readback failed:\n' + reopened[-8000:])
+        if args.discard and not args.read_only:
+            succeeded = phase('success')
+            if 'INSTRUMENTATION_RESULT: result=PASS' not in succeeded or 'INSTRUMENTATION_CODE: -1' not in succeeded:
+                raise RuntimeError('Native explicit discard success control failed:\n' + succeeded[-8000:])
         if args.check_filesystem:
             checked = phase('filesystem')
             if 'INSTRUMENTATION_RESULT: result=PASS' not in checked or 'INSTRUMENTATION_CODE: -1' not in checked:

@@ -157,3 +157,12 @@ actual-byte limits, pending blocks writes/no auto recovery, explicit initializat
 and the whole-record/history limitation above. The explicit conversation decision,
 not the proposal merge, permits a scoped store implementation only, not cleanup UI, source /
 association/receipt registry, transport, automatic image adoption or operational use.
+
+
+## Separate maintenance backend review — 2026-11-05 (#156)
+
+[Explicit one-entry discard](IMAGE_STAGE_MAINTENANCE.md) makes the accepted local
+retention policy concrete on this unchanged layout. Ready is marked pending before
+unlinking; interrupted removal remains an incomplete operation and is never resumed
+on open. It adds no marker/field/journal, cleanup UI, live ingress or association
+activation. The original separate-review gate before end-user integration remains.
