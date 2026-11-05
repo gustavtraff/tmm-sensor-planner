@@ -121,8 +121,18 @@ even the creating client was refused and no owner-role grant is inferred.
 A separate attempted two-mission same-UUID fixture does **not** pass its setup:
 API membership calls return 200, but the observed missions contain no UIDs and
 CoT is empty. Both a new stream-injected UUID and an existing cached canary fail
-the setup's positive condition. No cross-feed variant result is inferred, and no
-cause is assigned from API status alone. Only the three newly created synthetic
+the setup's positive condition. API status alone cannot diagnose this.
+
+Inspection of retained messaging logs after shutdown then identifies two distinct
+controls: new-UID API brokering is dropped because its empty creator/client has no
+mission subscription; the existing PUB18 canary's attempts to enter the two new
+missions are explicitly rejected by StrictUidMissionMemebershipFilter. Both logged
+refusals match the exact tested canary and newly created mission GUIDs. Inspection
+of the supplied filter bytecode confirms it refuses an existing mission UID when
+the requested mission is outside that UID's current membership. Thus the lab's
+strict-membership policy prevents these cross-mission additions. This is evidence
+of that policy's refusal, **not** successful independent payload variants in two
+feeds, a correctly subscribed new-UID control, or proof of another server's policy. Only the three newly created synthetic
 missions are soft-deleted using the lab administrator; subsequent GETs return410.
 This does not erase event history or claim deletion of every synthetic copy.
 Existing selected/image feeds and their payloads are not edited.
@@ -155,6 +165,6 @@ Private watchdogs are cancelled only after owned-resource shutdown is verified.
 Next delivery is [#171](https://github.com/gustavtraff/tmm-sensor-planner/issues/171):
 connect an evidenced selected-feed snapshot source to the existing inbox/review/
 application components, then prove the two-client edit-and-publish-back workflow.
-Resolve the unsuccessful same-UUID membership control and exact source meaning
-first; do not mistake this count-only lab UI for the product Fetch workflow.
+Complete the correctly subscribed new-UID membership control, record the strict-
+membership policy and resolve exact source meaning first; do not mistake this count-only lab UI for the product Fetch workflow.
 Keep image sharing #26 behind that first useful metadata delivery.
