@@ -7,7 +7,10 @@ set -eu
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 build_dir=$(mktemp -d "${TMPDIR:-/tmp}/tmm-ingress-sdk.XXXXXX")
 trap 'rm -rf "$build_dir"' EXIT HUP INT TERM
-sdk_classpath="$TMM_ATAK_SDK_DIR/main.jar:$ANDROID_HOME/platforms/android-36/android.jar"
+# The inspected HTTP signatures reference Android's optional Apache legacy API.
+legacy_http="$ANDROID_HOME/platforms/android-36/optional/org.apache.http.legacy.jar"
+test -f "$legacy_http" || { echo "Missing Android 36 optional Apache HTTP stubs" >&2; exit 1; }
+sdk_classpath="$TMM_ATAK_SDK_DIR/main.jar:$ANDROID_HOME/platforms/android-36/android.jar:$legacy_http"
 find "$repo_dir/core/src/main/java" -name '*.java' -print > "$build_dir/sources.txt"
 printf '%s\n' "$repo_dir/scripts/java/se/tmm/sensorplanner/tools/IngressSdkCheck.java" \
     "$repo_dir/app/src/main/java/se/tmm/sensorplanner/plugin/ingress/IngressProbeState.java" \
