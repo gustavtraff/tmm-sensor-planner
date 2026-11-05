@@ -3,7 +3,9 @@
 This implements the next bounded probe in [the source investigation](INGRESS_SOURCE_VERIFICATION.md).
 It observes the public `MapEvent.ITEM_IMPORTED` base-listener surface; it does not
 register an importer, change routing, use a logger as ingress, stage/apply an inbox
-or infer a trusted source context. **No native runtime result is claimed yet.**
+or infer a trusted source context. **[The bounded signed v23 result](SIGNED_V23_SOURCE_VERIFICATION.md)
+now records actual local/native-feed callbacks and lifecycle controls.** It does
+not establish complete original-variant coverage or trusted feed identity.
 
 ## Activation and exact scope
 
@@ -68,7 +70,11 @@ map import; losing conflict candidates may be absent. Current MapItems/re-export
 are not an original-input stream. Never report a complete selected-feed source
 contract from these counters alone. No automatic continuation after restart/unload.
 
-## Required signed two-client experiment (not run)
+## Signed two-client experiment protocol
+
+The [v23 result](SIGNED_V23_SOURCE_VERIFICATION.md) distinguishes completed checks
+from unsuccessful live/update/second-feed controls. The matrix below remains the
+complete acceptance target; do not read one passing callback as completion.
 
 Use the existing isolated standard 5.6.0.25 / Data Sync 3.7.4 / lab-server setup,
 synthetic records only, egress blocking and verified loopback routing. Verify the

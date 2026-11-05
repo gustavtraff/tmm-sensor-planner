@@ -1,5 +1,10 @@
 # Source-observer and stage-foundation candidate v23 (#154 / #25 / #26)
 
+**Returned artifact, 2026-11-05:** [signed v23 verification](SIGNED_V23_SOURCE_VERIFICATION.md)
+records signer continuity, preserved update bytes, actual native import observations
+and lifecycle controls. Trusted feed/original-variant ingress and image sharing
+remain unverified; the preparation record below is not operational acceptance.
+
 | Field | Candidate |
 |---|---|
 | Package | `se.tmm.sensorplanner.plugin`, unchanged |
