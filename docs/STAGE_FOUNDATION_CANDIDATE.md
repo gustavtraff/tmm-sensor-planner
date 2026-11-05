@@ -66,3 +66,38 @@ and actual debug APK checks (168 tasks: 36 executed/132 up to date). Actual vers
 23/name were re-read from the APK. The four standalone probe assets are absent from
 the production debug APK; they belong only to the separate instrumentation app.
 No standard-host, phone, source/feed or service-signing result is inferred.
+
+
+## Exact reviewed source archive — 2026-11-05 (#154)
+
+| Field | Recorded result |
+|---|---|
+| Source commit | `4e0ae4347df33ac006c8c967099029c9f48f11eb` (merged PR #155) |
+| ZIP | `TMM-Sensor-Planner-source-main-4e0ae43.zip` |
+| ZIP SHA-256 | `88cb24581a9262a749d81644d68ed78d555b94beaf62cb89675298843d7d3289` |
+| Archive shape | 206 entries; one `TMM-Sensor-Planner/` root; executable wrapper mode verified |
+| Archive boundary tests | Five tests passed; no SDK/configuration/signing material added |
+| Exact extracted-source build | Offline supplied-SDK `:app:assembleCivRelease` passed, 81 executed tasks |
+| Actual extracted APK | Package/version23/name/API/discovery/no-requested-permission/packaging assertions passed |
+| Test separation | Four standalone descriptor/PNG probe assets absent from production APK |
+| Signature | Local release actually unsigned; `apksigner verify` rejected missing `META-INF/MANIFEST.MF` |
+
+The archive was prepared from committed reviewed main, then freshly extracted with
+no Git metadata. Only the wrapper's executable extraction mode was restored; no
+source or local property file was patched/added. JDK17/Gradle8.14.3/AGP8.13 and the
+external local 5.6.0.24 SDK route were used. This is not a credentialed Maven/service
+preflight. The actual selected-source delta from the prior v22 archive was reviewed:
+new stage/maintenance code, synthetic tests/probe inputs and version metadata.
+No keys, operational images/locations, server packages or user configuration belong
+to this source archive. Boundary checks are bounded checks, not a general secret
+scanner. The prior v21 and v22 ZIPs were rehashed and remain byte-identical.
+
+The ZIP and local APKs stay private. **No service upload, signed v23 return, phone /
+standard-host observer run, release or operational sharing was performed.** The
+owner may submit this exact ZIP/hash for signing, then return the complete result
+under the private TAK resources directory for package/signer/runtime inspection.
+Local unsigned/debug APKs are not update candidates for a service-signed phone.
+
+A later documentation-only merge does not require another ZIP when the explicit
+signing-input files remain byte-identical. Preserve this commit/hash pair instead
+of recreating archives solely to follow evidence documentation.
