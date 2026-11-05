@@ -6,6 +6,7 @@
         android:icon="@drawable/planner_icon"
         android:label="@string/app_name"
         android:description="@string/app_desc">
+        <uses-library android:name="org.apache.http.legacy" android:required="false" />
         <meta-data android:name="plugin-api" android:value="com.atakmap.app@5.6.0.CIV" />
         <meta-data android:name="app_desc" android:value="@string/app_desc" />
         <!-- ATAK discovers plugins through this host-defined component entry. -->
