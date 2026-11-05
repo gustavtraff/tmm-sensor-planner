@@ -51,6 +51,7 @@ repositories {
 }
 
 android {
+    useLibrary 'org.apache.http.legacy', false
     namespace 'se.tmm.sensorplanner.plugin'
     compileSdk 36
     buildToolsVersion '35.0.0'
@@ -71,8 +72,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 23
-        versionName '0.1.0-stage-foundation.1'
+        versionCode 24
+        versionName '0.1.0-mission-read-lab.1'
     }
 
     compileOptions {
