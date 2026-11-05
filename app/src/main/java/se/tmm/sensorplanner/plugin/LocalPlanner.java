@@ -117,13 +117,14 @@ final class LocalPlanner {
                 return mapCopy.create(prepared, label);
             }
         });
+        java.util.function.BooleanSupplier snapshotAllowed = () -> copyAllowed.getAsBoolean() && MissionSnapshotHttp.defaultProvider();
         inboxUi = new SnapshotInboxUi(context, store, new java.io.File(context.getNoBackupFilesDir(),
                 "se.tmm.sensorplanner/metadata-inbox-v1").toPath(), worker, new SnapshotInboxUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
             @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
-            @Override public boolean labAvailable() { return copyAllowed.getAsBoolean(); }
+            @Override public boolean labAvailable() { return snapshotAllowed.getAsBoolean(); }
             @Override public void changed() { storageUi.load(false); }
-        }, new MissionSnapshotHttp(copyAllowed), LocalPlanner::positionText);
+        }, new MissionSnapshotHttp(snapshotAllowed), LocalPlanner::positionText);
 
     }
 

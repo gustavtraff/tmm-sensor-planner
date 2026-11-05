@@ -19,6 +19,10 @@ import se.tmm.sensorplanner.plugin.ingress.*;
 @TargetApi(26)
 final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport {
     static final String BASE="https://127.0.0.1:8443";
+    static boolean defaultProvider(){
+        try{return CommsProviderFactory.isDefault()&&!CommsProviderFactory.getProvider().hasFeature(CommsProvider.CommsFeature.MISSION_API);}
+        catch(RuntimeException unavailable){return false;}
+    }
     interface Decoder<T>{T read(InputStream input)throws IOException;}
     private final BooleanSupplier allowed;
     MissionSnapshotHttp(BooleanSupplier allowed){this.allowed=allowed;}
@@ -29,7 +33,7 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
         private final AtomicReference<HttpGet> current=new AtomicReference<>();
         Read(MissionReadAttempt attempt){this.attempt=attempt;attempt.bindAbort(()->{HttpGet request=current.getAndSet(null);if(request!=null)request.abort();});}
         private boolean active(){return allowed.getAsBoolean()&&attempt.active(System.nanoTime())&&!Thread.currentThread().isInterrupted();}
-        private void require()throws IOException {if(!active()||!CommsProviderFactory.isDefault()||CommsProviderFactory.getProvider().hasFeature(CommsProvider.CommsFeature.MISSION_API))throw new IOException("Snapshot access unavailable");}
+        private void require()throws IOException {if(!active()||!defaultProvider())throw new IOException("Snapshot access unavailable");}
         List<MissionSnapshotInput.Feed> feeds()throws IOException {
             return get("/api/missions","application/json",in->MissionSnapshotInput.feeds(in,this::active));
         }

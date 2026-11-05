@@ -212,3 +212,16 @@ separate descriptor-v1 bytes. Existing metadata-format-1, inbox/local-v2, local
 image handles and all older fixtures remain unchanged; no registry migration or
 file writer exists here. Descriptor claims are not verified PNGs, authenticated
 feed/source associations, adoption, acknowledgments or a transport activation.
+
+
+## Snapshot intake adapter — 2026-11-06 (#171)
+
+[The v26 lab pilot](SNAPSHOT_INTAKE.md) activates the already approved inbox and
+local import UI/transaction for explicitly fetched metadata. It changes no domain,
+PublicationCodec, inbox-frame, local-v2 or image byte contract. The adapter assigns
+the existing opaque source context from the verified fixed logical service and
+canonical mission GUID; it never accepts source authority from an event/callsign.
+The owner approved current snapshots first, with every observed variant retained,
+no automatic winner/application and no deletion inferred from absence. A sampled
+membership-before/after check is not a globally atomic remote snapshot or complete
+history. Local application still uses a separately confirmed fresh v2 decision.

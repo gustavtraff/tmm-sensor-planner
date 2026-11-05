@@ -92,7 +92,7 @@ Actual supplied-SDK debug/release assembly, app lint, three app unit cases and
 SDK ingress reflection/compile checks pass. Added controller cases cover explicit
 initialization, review/queued-store Cancel, source loss, late results, malformed/
 wrong-feed responses, corrupt/missing local/inbox files and repeat deduplication.
-Additional exact scope tests and final artifact identifiers are recorded before merge.
+A further 16 focused controller cases pass, including application-grant refusal for wrong inbox/source/member, revoked access and intake Cancel. Final artifact identifiers are recorded before merge.
 
 The actual SDK host has completed explicit empty-local-v2/inbox initialization,
 server-provided feed selection, a full new-UUID snapshot intake, read-only variant
