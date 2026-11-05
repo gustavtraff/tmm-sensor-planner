@@ -10,6 +10,12 @@ The original PR #118 proposal below introduced no production implementation, wir
 format, adapter or transport. [The first content-only implementation](IMAGE_TRANSFER_CONTENT.md)
 now provides bounded exact-byte verification and a separate owned-PNG export copy;
 it adds no association, storage writer, network call or image-sharing UI.
+
+**Native feed follow-up, 2026-11-05:** [the #162 image-feed trial](DATA_SYNC_IMAGE_FEED_TRIAL.md)
+now records actual standard-client native File Select, cancellation, chosen-feed
+membership and byte-identical generated Full HD PNG storage/reception. This narrows
+the transport uncertainty; it does not approve a TMM container, trusted association,
+receipt or product HTTP adapter, and does not activate image sharing.
 Baseline: main `b37a1ef` (#117), including the approved #14 metadata profile and
 #15 import/local-state contracts. This work does not use the lab or change signing;
 agent 1 retains emulator and signed-v20 verification. F09/F10/F11/F12, N02/N03/N06.
