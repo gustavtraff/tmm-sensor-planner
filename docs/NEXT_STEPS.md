@@ -1,21 +1,25 @@
 # Current implementation and next steps — 2026-10-30
 
-## Active sequence — 2026-11-05
+## Active sequence — 2026-11-05 (metadata-first owner decision)
 
-1. Review/sign [candidate v23](STAGE_FOUNDATION_CANDIDATE.md). Preserve prior artifacts;
-   inspect the returned package/version/API/signature and signer continuity before
-   updating isolated standard clients. No signing submission or v23 host acceptance
-   has occurred in this preparation.
-2. Execute the existing [bounded source-observer protocol](INGRESS_OBSERVER_PROBE.md)
-   with positive controls. Determine which original variants/source facts are
-   actually observable; keep authoritative feed binding blocked when ambiguous.
-3. Under #26, the explicitly approved stage-v1 writer and actual standalone Android
-   recovery/Full-HD evidence are now complete, with an inactive explicit one-entry
-   discard backend. Review the exact association/receipt and cleanup/adoption UI/integration contracts before their respective activation. Unassociated
-   stage content and matching UUID/hash alone supply none of that authority.
-4. Implement and verify the intended image-feed route only from an evidenced
-   integration contract, with actual two-client destination/Cancel/restart/privacy
-   checks. Contact delivery does not replace the Data Sync-feed goal.
+1. Finish #164/#25's selected-feed receive route before more #26 image foundations.
+   [Candidate v25](MISSION_METADATA_LAB.md) now reads and validates the four actual
+   complete TMM canaries through the configured SDK TLS client. The previous
+   overview failure is not reproduced, not falsely diagnosed as fixed.
+2. The owner approved [snapshot-first semantics](MISSION_READ_PROPOSAL.md#owner-decision-snapshot-first-product-semantics--2026-11-05):
+   explicit Fetch of current selected-feed data, preserve observed variants for
+   review, no automatic overwrite and no deletion inferred from absence. Full
+   server history is investigated separately and is not promised. Verify actual
+   server/mission scope, role denial and reconnect before source/inbox wiring.
+3. Deliver the first useful two-client metadata workflow using existing publication,
+   InboxStore, review and import-decision components: A publishes, B explicitly
+   fetches/reviews/applies, B edits and republishes, A reviews the observed update.
+   Test stale local changes, conflicts, cancellation, duplicate Fetch and restart
+   on the exact service-signed standard client. Do not rebuild these core components.
+4. Then resume #26's actual image-feed association/adoption workflow and two-client
+   bytes/restart/privacy checks. Contact delivery remains outside the feed goal.
+5. After lab acceptance, arrange the owner's two-phone synthetic trial, followed
+   only with separate authorization by a bounded trial on the shared server.
 
 [The current backlog](BACKLOG.md) distinguishes implemented local features from
 remaining acceptance and external evidence. The older dated sections below are
