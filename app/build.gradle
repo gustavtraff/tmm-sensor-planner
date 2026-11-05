@@ -71,8 +71,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 22
-        versionName '0.1.0-source-observer.1'
+        versionCode 23
+        versionName '0.1.0-stage-foundation.1'
     }
 
     compileOptions {

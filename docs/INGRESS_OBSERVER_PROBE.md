@@ -7,7 +7,8 @@ or infer a trusted source context. **No native runtime result is claimed yet.**
 
 ## Activation and exact scope
 
-Candidate **22 / `0.1.0-source-observer.1`**, same package/API/permissions. Nothing
+Originally candidate **22 / `0.1.0-source-observer.1`**; now carried unchanged in
+[candidate v23](STAGE_FOUNDATION_CANDIDATE.md), with the same package/API/permissions. Nothing
 registers on plugin startup. In **TMM CoT-labb → Källkontext · syntetisk observation**,
 review the scope and press **Starta nytt prov**. It requires the existing lab-only
 policy: API 26+, lab access allowed, airplane/offline restriction, exactly one enabled
