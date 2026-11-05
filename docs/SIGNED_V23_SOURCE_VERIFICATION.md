@@ -108,6 +108,8 @@ bind original input variants to a feed or to each other.
   but independent feed metadata and event GETs still show zero members/events.
   That native attempt is unsuccessful; no two-feed source comparison, original
   losing-variant coverage or conflict acceptance is inferred from a Done click.
+  Its checkbox state was not independently captured; no specific Data Sync defect
+  or server rejection mechanism is attributed to that incomplete control.
 
 ## Disposition and next boundary
 
