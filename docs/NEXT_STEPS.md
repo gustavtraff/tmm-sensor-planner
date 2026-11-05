@@ -10,8 +10,8 @@
    with positive controls. Determine which original variants/source facts are
    actually observable; keep authoritative feed binding blocked when ambiguous.
 3. Under #26, the explicitly approved stage-v1 writer and actual standalone Android
-   recovery/Full-HD evidence are now complete. Review the exact association/receipt
-   and cleanup/adoption contracts before their respective activation. Unassociated
+   recovery/Full-HD evidence are now complete, with an inactive explicit one-entry
+   discard backend. Review the exact association/receipt and cleanup/adoption UI/integration contracts before their respective activation. Unassociated
    stage content and matching UUID/hash alone supply none of that authority.
 4. Implement and verify the intended image-feed route only from an evidenced
    integration contract, with actual two-client destination/Cancel/restart/privacy

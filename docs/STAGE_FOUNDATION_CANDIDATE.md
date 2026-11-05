@@ -7,14 +7,16 @@
 | ATAK API | `5.6.0.CIV`, unchanged |
 | Active lab addition since signed v21 | Explicit guarded read-only source observer from v22; no startup listener |
 | Image storage | Approved private unassociated stage-v1 foundation, with no UI/ingress caller |
+| Maintenance | Exact one-shot discard backend for unassociated copies; no cleanup UI/automatic deletion |
 | Existing state | Local/inbox/v2 and active-image formats unchanged; no automatic stage initialization |
 
 This combines the [unchanged source-observer preparation](INGRESS_OBSERVER_PROBE.md)
 with the implemented [descriptor/payload boundary](RECEIVED_IMAGE_PAYLOAD.md) and
-[private stage](IMAGE_STAGE_STORAGE.md). The latter has focused fault/concurrency
+[private stage](IMAGE_STAGE_STORAGE.md), including the inactive
+[reviewed discard operation](IMAGE_STAGE_MAINTENANCE.md). These have focused fault/concurrency
 tests, actual Android process-kill/guest-reboot and synthetic Full-HD readback
 evidence. Those standalone results do not establish loaded-ATAK/OEM behavior.
-No trusted source/feed authority, association/receipt registry, cleanup/adoption,
+No trusted source/feed authority, association/receipt registry, cleanup/adoption UI,
 background image fetch or Data Sync image transfer is activated.
 
 The distinct version supersedes the prepared v22 source recommendation. Earlier
