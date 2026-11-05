@@ -38,7 +38,10 @@ def stageProbeAssets = tasks.register('prepareImageStageProbeAssets', Sync) {
     from('src/test/resources/image-transfer') { include 'h1.png', 'h2.png' }
     into layout.buildDirectory.dir('generated/imageStageProbeAssets')
 }
-android.sourceSets.androidTest.assets.srcDir(stageProbeAssets.map { it.destinationDir })
+android.sourceSets.androidTest.assets.srcDir(layout.buildDirectory.dir('generated/imageStageProbeAssets'))
+// shortcut: pinned AGP consumer names; recheck merge/lint consumers when upgrading AGP.
+tasks.matching { it.name in ['mergeDebugAndroidTestAssets', 'generateDebugAndroidTestLintModel', 'lintAnalyzeDebugAndroidTest'] }
+        .configureEach { dependsOn stageProbeAssets }
 
 dependencies {
     implementation 'androidx.exifinterface:exifinterface:1.4.2'
