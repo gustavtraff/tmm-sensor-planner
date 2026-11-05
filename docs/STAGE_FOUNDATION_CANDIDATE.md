@@ -58,3 +58,11 @@ boundaries passed. The source-archive boundary suite passed all five tests. Loca
 release remains unsigned; no service build, standard-host load, live observer or
 image-feed trial was performed. The source archive's clean-extraction preflight
 and exact hashes follow separately after reviewed merge.
+
+
+After integrating the reviewed maintenance and clean-probe build fixes, the complete
+v23 candidate again passed debug/release assembly, app lint, three app unit cases
+and actual debug APK checks (168 tasks: 36 executed/132 up to date). Actual version
+23/name were re-read from the APK. The four standalone probe assets are absent from
+the production debug APK; they belong only to the separate instrumentation app.
+No standard-host, phone, source/feed or service-signing result is inferred.
