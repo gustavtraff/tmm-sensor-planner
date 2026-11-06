@@ -7,9 +7,13 @@
    review/explicit local application components are connected in the guarded lab.
    The correctly subscribed native-client new-UID control now succeeds; do not
    repeat the old empty-creator setup or rebuild the inbox/import components.
-2. Complete actual native Data Sync publisher -> v26 receiver and update/conflict /
-   Cancel/restart controls; obtain the service-signed standard-host v26 and verify
-   the exact update/signer/old-state boundary. Source is authenticated configured
+2. Native Data Sync publisher -> final SDK v26 receipt/review/Add, repeat Fetch,
+   local-versus-incoming status, Keep Local, Cancel and restart/update controls now
+   pass within [the recorded limits](SNAPSHOT_INTAKE.md#final-v26-native-trial--2026-11-06).
+   Obtain service-signed standard-host v26 and verify its signer/old-state boundary.
+   A full edit/republish round trip also needs an explicit reviewed update of an
+   existing host copy ([#173](https://github.com/gustavtraff/tmm-sensor-planner/issues/173)): the current map-copy pilot refuses a differing existing UUID.
+   Signing alone does not implement that update. Source is authenticated configured
    logical service plus mission GUID, not an author or complete feed history.
 3. Then review operational server/feed selection and source-access policy before
    enabling non-loopback use. The current pilot cannot access an operational host.

@@ -86,13 +86,17 @@ after UI stop; stale callbacks/results are suppressed, not described as rolled b
 
 ## Verification record
 
-Core suite and the full helper/image suite pass locally: **415 test cases, zero
-failures/errors, one intentional skip**, image lint and standalone APK/fixture checks.
+The core suite passes locally. The full helper/image suite reports **417 test
+cases, zero failures/errors, one intentional skip**; image lint and standalone
+APK/fixture checks pass.
 Actual supplied-SDK debug/release assembly, app lint, three app unit cases and
 SDK ingress reflection/compile checks pass. Added controller cases cover explicit
 initialization, review/queued-store Cancel, source loss, late results, malformed/
 wrong-feed responses, corrupt/missing local/inbox files and repeat deduplication.
-A further 16 focused controller cases pass, including application-grant refusal for wrong inbox/source/member, revoked access and intake Cancel. Final artifact identifiers are recorded before merge.
+The full run includes 16 controller cases covering application-grant refusal for
+wrong inbox/source/member, revoked access and intake Cancel. A source archive
+extracted into a separate directory also passes SDK release assembly; this is not
+a hosted Maven/signing-service build.
 
 The actual SDK host has completed explicit empty-local-v2/inbox initialization,
 server-provided feed selection, a full new-UUID snapshot intake, read-only variant
@@ -108,3 +112,43 @@ CoT contains one new synthetic TMM UUID with all 15 metadata attributes.
 Standard service-signed v26, two independent standard-client/native Data Sync
 publish-back, phone/OEM and operational-server acceptance remain separate gates.
 The SDK pilot must not be advertised as their completed product acceptance.
+
+## Final v26 native trial — 2026-11-06
+
+The final development APK SHA-256 is
+`03b6015abd84c1b854b8b9212603dc8d2869d1a287deffb3d704b0184857c4ff`.
+Only one emulator ran at a time, with guest IPv4/IPv6 egress blocked except
+loopback, no default route and only the isolated lab tunnels. The server was the
+supplied TAK Server 5.8-RELEASE-92. No operational connection was used.
+
+| Control | Actual outcome |
+|---|---|
+| Standard publisher: ATAK 5.6.0.25, service-signed TMM v23, Data Sync 3.7.4 [5.6.0] | Created a new synthetic saved Mini; reviewed/created its SDK map copy; selected only its row in native Add Items and confirmed Done in the new synthetic feed. Native feed list and server CoT showed the added UUID with all 15 metadata attributes. |
+| Final receiver: SDK developer host 5.6.0.24 / TMM v26 | Explicitly selected that same server-returned feed and fetched both synthetic members into the genuine inbox. The existing local draft and local decision bytes were unchanged. |
+| Repeat identical Fetch | All four local/inbox frame and lock files remained byte-identical; no duplicate receipt or new observation was added. |
+| Separate Add preview/Save | Added the new native-published UUID. Every decoded draft field exactly matched the publisher's saved draft; the previous local device remained unchanged. Two active records and two Add decisions were present. |
+| Cold start and final APK update in place | All four TMM state files matched their pre-switch capture exactly. Read-only history still opened. Import preparation without a fresh Fetch refused with missing source access. |
+| Cancel at the selected-feed review | All four state files remained byte-identical; no intake or local application occurred. |
+| Local status edit followed by Fetch of the different server status | Local Deployed / revision 2 survived unchanged while the incoming Planned variant remained available. Comparison explicitly reported differing metadata and an older decision that no longer covered current local state. |
+| Explicit Keep Local preview/Save | Registered one additional decision while preserving every draft field and revision. Nothing was republished. |
+| Observed lab-access loss with a live source grant | The controller displayed source access cancelled and required a new Fetch/review. All four state files remained byte-identical; guest egress blocking remained in place. |
+| Reviewed copies of edited received draft | First SDK map copy succeeded when absent. After another local status edit, confirmation refused the differing existing UUID without overwriting it. Existing-copy updates are #173, not an intake regression. |
+
+The first source canary was injected by a diagnostic TLS harness before its
+correctly subscribed membership setup. The second device above was genuinely
+published through native Data Sync. Later diagnostic attempts to change its
+existing-UID status did **not** establish an updated server payload; they are not
+successful native publish-back or new-variant evidence. Local-change versus
+received-status handling above uses the actually observed server payload, not
+those unobserved updates. Multi-variant persistence/failure behavior is covered
+by the core tests, not relabeled as that missing native trial.
+
+A service-signed v26 receiver is still needed for independent standard-client
+acceptance. The SDK host did not demonstrate native Data Sync loading. Repeat
+edit/republish operation also needs a reviewed existing-host-copy update path:
+the current map-copy pilot deliberately refuses a differing existing UUID rather
+than overwriting it. A first reviewed SDK map copy of the edited received draft
+succeeded when no host copy existed. That is a host handoff, not native Data Sync
+publish-back. Signing alone does not implement existing-copy updates; [#173](https://github.com/gustavtraff/tmm-sensor-planner/issues/173) tracks that remaining path and its destination checks.
+Phone/OEM, operational source selection, permission changes and complete
+intermediate server history remain outside this bounded result.
