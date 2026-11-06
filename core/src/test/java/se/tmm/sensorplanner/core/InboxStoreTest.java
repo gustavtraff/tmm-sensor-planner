@@ -19,6 +19,7 @@ public final class InboxStoreTest {
         Path root = Files.createTempDirectory("tmm-inbox-test-");
         try {
             receiptAndImages(root.resolve("receipts"), root.resolve("drafts"));
+            batch(root.resolve("batch"));
             faultsAndInitialization(root.resolve("faults"));
             limits(root.resolve("limits"));
             processes(root.resolve("restart"));
@@ -37,6 +38,47 @@ public final class InboxStoreTest {
     private static TmmDraft sample(String comment, long revision, String image) {
         return new TmmDraft(UID, "PIR SYNTHETIC 15", DeviceType.PIR, DeviceStatus.PLANNED, "SYNTHETIC ROLE",
                 Instant.EPOCH, Instant.ofEpochSecond(10, 456), null, comment, new Position(-0.0, 1.25), -0.0, image, revision);
+    }
+
+    private static void invalidBatch(Action action) throws Exception {
+        try { action.run(); throw new AssertionError("Invalid batch accepted"); }
+        catch (IllegalArgumentException expected) { }
+    }
+
+    private static void batch(Path directory) throws Exception {
+        InboxStore store = new InboxStore(directory); store.initializeNew();
+        TmmDraft first = sample("first", 1, null);
+        TmmDraft second = new TmmDraft(new UUID(0, 169), first.displayId, first.type, first.status,
+                first.owner, first.createdAt, first.updatedAt, null, "second", first.position, first.bearingDeg, null, 1);
+        List<TmmDraft> incoming = Arrays.asList(first, second);
+        Map<UUID, TmmDraft> local = new HashMap<>(); local.put(first.uid, sample("local", 3, "owned.png"));
+        List<InboxStore.Receipt> received = store.receiveBatch("SOURCE", incoming, local, NOW);
+        assert received.size() == 2 && store.load().receipts.size() == 2;
+        assert received.get(0).localObservations.get(0).revision == 3;
+        assert received.get(0).localObservations.get(0).imageRef == null;
+        assert received.get(1).localObservations.get(0) == null;
+        byte[] before = bytes(directory.resolve("inbox.bin"));
+        assert store.receiveBatch("SOURCE", incoming, Collections.emptyMap(), Instant.EPOCH).get(0).id.equals(received.get(0).id);
+        assert Arrays.equals(before, bytes(directory.resolve("inbox.bin")));
+        assert store.receiveBatch("SOURCE", Collections.emptyList(), Collections.emptyMap(), NOW).isEmpty();
+        assert Arrays.equals(before, bytes(directory.resolve("inbox.bin")));
+        invalidBatch(() -> store.receiveBatch("SOURCE", Arrays.asList(sample("new", 1, null), second.edit(second.displayId, second.type,
+                second.status, second.owner, null, second.comment, second.position, second.bearingDeg, "local.png", second.updatedAt)), local, NOW));
+        invalidBatch(() -> store.receiveBatch("SOURCE", Arrays.asList(first, first), local, NOW));
+        assert Arrays.equals(before, bytes(directory.resolve("inbox.bin")));
+        InboxStore failed = new InboxStore(directory, (source, target) -> { throw new IOException("Injected"); });
+        fails(() -> failed.receiveBatch("OTHER", incoming, local, NOW));
+        assert Arrays.equals(before, bytes(directory.resolve("inbox.bin")));
+        InboxStore uncertain = new InboxStore(directory, (source, target) -> {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            throw new IOException("Injected after replacement");
+        });
+        fails(() -> uncertain.receiveBatch("OTHER", incoming, local, NOW));
+        assert store.find("OTHER", first) != null && store.find("OTHER", second) != null;
+        assert store.load().receipts.size() == 4;
+        store.receiveBatch("SOURCE", Arrays.asList(sample("conflicting", 1, null), second), local, NOW);
+        assert store.load().receipts.size() == 5;
+        try { received.clear(); throw new AssertionError(); } catch (UnsupportedOperationException expected) { }
     }
 
     private static void receiptAndImages(Path directory, Path draftsDirectory) throws Exception {

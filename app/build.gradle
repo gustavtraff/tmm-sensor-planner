@@ -72,8 +72,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 25
-        versionName '0.1.0-metadata-read-lab.1'
+        versionCode 26
+        versionName '0.1.0-snapshot-inbox-lab.1'
     }
 
     compileOptions {

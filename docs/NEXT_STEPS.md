@@ -1,25 +1,26 @@
 # Current implementation and next steps — 2026-10-30
 
-## Active sequence — 2026-11-05 (metadata-first owner decision)
+## Active sequence — 2026-11-06 (snapshot intake pilot)
 
-1. Finish #164/#25's selected-feed receive route before more #26 image foundations.
-   [Candidate v25](MISSION_METADATA_LAB.md) now reads and validates the four actual
-   complete TMM canaries through the configured SDK TLS client. The previous
-   overview failure is not reproduced, not falsely diagnosed as fixed.
-2. The owner approved [snapshot-first semantics](MISSION_READ_PROPOSAL.md#owner-decision-snapshot-first-product-semantics--2026-11-05):
-   explicit Fetch of current selected-feed data, preserve observed variants for
-   review, no automatic overwrite and no deletion inferred from absence. Full
-   server history is investigated separately and is not promised. Verify actual
-   server/mission scope, role denial and reconnect before source/inbox wiring.
-3. Deliver the first useful two-client metadata workflow using existing publication,
-   InboxStore, review and import-decision components: A publishes, B explicitly
-   fetches/reviews/applies, B edits and republishes, A reviews the observed update.
-   Test stale local changes, conflicts, cancellation, duplicate Fetch and restart
-   on the exact service-signed standard client. Do not rebuild these core components.
-4. Then resume #26's actual image-feed association/adoption workflow and two-client
-   bytes/restart/privacy checks. Contact delivery remains outside the feed goal.
-5. After lab acceptance, arrange the owner's two-phone synthetic trial, followed
-   only with separate authorization by a bounded trial on the shared server.
+1. Review [candidate v26](SNAPSHOT_INTAKE.md) / #171: explicit server feed selection,
+   full snapshot validation, atomic existing-format inbox intake and the existing
+   review/explicit local application components are connected in the guarded lab.
+   The correctly subscribed native-client new-UID control now succeeds; do not
+   repeat the old empty-creator setup or rebuild the inbox/import components.
+2. Native Data Sync publisher -> final SDK v26 receipt/review/Add, repeat Fetch,
+   local-versus-incoming status, Keep Local, Cancel and restart/update controls now
+   pass within [the recorded limits](SNAPSHOT_INTAKE.md#final-v26-native-trial--2026-11-06).
+   Obtain service-signed standard-host v26 and verify its signer/old-state boundary.
+   A full edit/republish round trip also needs an explicit reviewed update of an
+   existing host copy ([#173](https://github.com/gustavtraff/tmm-sensor-planner/issues/173)): the current map-copy pilot refuses a differing existing UUID.
+   Signing alone does not implement that update. Source is authenticated configured
+   logical service plus mission GUID, not an author or complete feed history.
+3. Then review operational server/feed selection and source-access policy before
+   enabling non-loopback use. The current pilot cannot access an operational host.
+   Run the owner's separately authorized two-phone synthetic trial before any
+   shared-server rollout. Keep #164/#25/#171 acceptance limits explicit.
+4. Resume #26 actual image-feed association/adoption after the useful metadata
+   workflow. Contact transfer remains outside the Data Sync-feed goal.
 
 [The current backlog](BACKLOG.md) distinguishes implemented local features from
 remaining acceptance and external evidence. The older dated sections below are

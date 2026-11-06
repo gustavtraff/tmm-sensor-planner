@@ -132,3 +132,22 @@ historical observations, exposes the full current supplied local draft separatel
 and performs no store operation. Reassessment is explicit; it neither appends
 observations nor applies data. Format 1, initialization, locking and receipt
 identity/equality are unchanged. D remains deferred.
+
+## Atomic fetched-set intake — 2026-11-06 (#171)
+
+`receiveBatch(contextId, incoming, observedLocalByUid, observedAt)` extends the
+existing format-1 API without changing any bytes or migration rule. It validates
+the complete set and local observations before locking, rejects duplicate UUIDs
+and more than 1,000 supplied records, then loads one genuine committed snapshot.
+It retains existing exact-key receipt identities, appends new variants and writes
+at most once. Empty/duplicate-only input performs no replacement and never deletes
+receipts. Combined receipt/observation and file/text limits remain enforced by the
+existing encoder before replacement. Returned receipts are immutable and preserve
+input order. Local observations are historical, not a cross-store atomic snapshot.
+
+Any invalid member or pre-replacement/capacity error preserves prior bytes. An
+ambiguous post-replacement failure can commit the complete set; use existing find
+readback or an explicit deduplicating retry rather than assume rollback. Source
+identity remains the caller's responsibility; [the guarded pilot](SNAPSHOT_INTAKE.md)
+binds only its verified configured logical service plus mission GUID. No incoming
+image handle, local draft/image mutation or transport acknowledgment is introduced.

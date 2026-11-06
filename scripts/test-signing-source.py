@@ -26,6 +26,10 @@ class SourceArchiveTest(unittest.TestCase):
             self.write(name)
         for name in prepare['REQUIRED']:
             self.write(name)
+        fixture_root = self.repo / 'test-fixtures/synthetic/publication-envelope'
+        if fixture_root.is_file():
+            fixture_root.unlink()
+        self.write('test-fixtures/synthetic/publication-envelope/mini.xml')
         self.write('app/build.gradle', GRADLE_SOURCE)
         (self.repo / 'gradlew').chmod(0o755)
         self.commit()
@@ -61,6 +65,7 @@ class SourceArchiveTest(unittest.TestCase):
             self.assertNotIn(prepare['ROOT'] + '.env.github', archive.namelist())
             self.assertNotIn(prepare['ROOT'] + 'app/build/ignored.apk', archive.namelist())
             self.assertNotIn(prepare['ROOT'] + 'unrelated.txt', archive.namelist())
+            self.assertIn(prepare['ROOT'] + 'test-fixtures/synthetic/publication-envelope/mini.xml', archive.namelist())
             self.assertTrue(archive.getinfo(prepare['ROOT'] + 'gradlew').external_attr >> 16 & 0o111)
         with self.assertRaises(FileExistsError):
             self.create()

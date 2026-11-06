@@ -84,6 +84,36 @@ public final class InboxStore {
         });
     }
 
+    /** Atomically stages a fully validated fetched set; absence never removes existing receipts. */
+    public synchronized List<Receipt> receiveBatch(String contextId, List<TmmDraft> incoming,
+                                                   Map<UUID, TmmDraft> observedLocal, Instant observedAt) throws IOException {
+        String context = context(contextId);
+        Objects.requireNonNull(incoming, "incoming"); Objects.requireNonNull(observedLocal, "observedLocal");
+        Objects.requireNonNull(observedAt, "observedAt");
+        if (incoming.size() > 1000) throw failure("Inbox batch limit exceeded; nothing stored");
+        List<TmmDraft> metadata = new ArrayList<>(), observations = new ArrayList<>();
+        Set<UUID> seen = new HashSet<>();
+        for (TmmDraft item : incoming) {
+            TmmDraft value = incoming(item);
+            if (!seen.add(value.uid)) throw new IllegalArgumentException("Duplicate UUID in fetched set");
+            metadata.add(value); observations.add(observation(value.uid, observedLocal.get(value.uid)));
+        }
+        return locked(() -> {
+            Snapshot saved = read(); List<Receipt> receipts = new ArrayList<>(saved.receipts), results = new ArrayList<>();
+            for (int i = 0; i < metadata.size(); i++) {
+                Receipt found = match(saved, context, metadata.get(i));
+                if (found == null) {
+                    found = new Receipt(UUID.randomUUID(), context, observedAt, metadata.get(i),
+                            Collections.singletonList(observations.get(i)));
+                    receipts.add(found);
+                }
+                results.add(found);
+            }
+            if (receipts.size() != saved.receipts.size()) write(new Snapshot(saved.inboxId, receipts));
+            return Collections.unmodifiableList(results);
+        });
+    }
+
     /** Retains review evidence without changing the receipt's incoming variant or any live draft. */
     public synchronized Receipt retainLocalObservation(UUID receiptId, TmmDraft observedLocal) throws IOException {
         Objects.requireNonNull(receiptId, "receiptId");
