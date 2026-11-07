@@ -235,3 +235,10 @@ before a confirmed host-only metadata mutation; publication does not increment t
 private revision or mark the draft Shared/Synced. Geometry/type/identity changes and
 SDK-reported native attachments are refused. Remote acceptance, complete native
 membership and a distributed version are not inferred from the host result.
+
+The [v28 configured-source receive trial](CONFIGURED_SNAPSHOT_SOURCE.md) maps a
+caller-selected canonical HTTPS service plus mission GUID into the same approved
+opaque inbox context. The former loopback context is unchanged. Different services
+produce distinct receipts; server response URLs cannot change the selected source.
+This changes no frame, metadata bytes, image handles or migration. Session access
+is not a persisted credential/source registry or continuous permission lease.

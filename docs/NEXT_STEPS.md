@@ -23,10 +23,13 @@
    Data Sync destination/republication acceptance; geometry updates remain unsupported.
    Source is authenticated configured
    logical service plus mission GUID, not an author or complete feed history.
-4. Then review operational server/feed selection and source-access policy before
-   enabling non-loopback use. The current pilot cannot access an operational host.
-   Run the owner's separately authorized two-phone synthetic trial before any
-   shared-server rollout. Keep #164/#25/#171 acceptance limits explicit.
+4. [Candidate v28](CONFIGURED_SNAPSHOT_SOURCE.md) / #175 adds explicit selection
+   of an already connected configured SSL profile and separate HTTPS API port for
+   snapshot intake. Incoming service+GUID identity reuses the approved inbox field;
+   local application remains separately reviewed. Obtain owner-authorized synthetic
+   server/feed details and standard-signed phone evidence before rollout. Host-copy
+   publication and reviewed updates remain loopback-only; operational publish-back
+   still needs its own destination/compatibility verification.
 5. Resume #26 actual image-feed association/adoption after the useful metadata
    workflow. Contact transfer remains outside the Data Sync-feed goal.
 

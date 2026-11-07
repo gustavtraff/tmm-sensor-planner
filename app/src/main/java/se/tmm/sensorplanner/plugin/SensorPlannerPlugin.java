@@ -172,7 +172,8 @@ public final class SensorPlannerPlugin implements IPlugin {
                 trialConsent = new AlertDialog.Builder(map.getContext())
                         .setTitle("Uppkopplat lokalt test")
                         .setMessage("Endast syntetiska testdata i en separat testmiljö. "
-                                + "TMM:s delnings- och CoT-labbfunktioner är avstängda i detta läge. "
+                                + "TMM:s publicering och CoT-labb är avstängda i detta läge. "
+                                + "Valfri metadatahämtning kräver separat server- och feedval med uttrycklig bekräftelse; dina utkast och bilder skickas inte. "
                                 + "Testläget gäller tills pluginet avlastas (Unload) eller ATAK startas om.")
                         .setNegativeButton("Avbryt", null)
                         .setPositiveButton("Starta lokalt test", (dialog, which) -> {
