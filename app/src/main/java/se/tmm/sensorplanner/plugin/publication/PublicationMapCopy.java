@@ -12,14 +12,17 @@ import com.atakmap.coremap.maps.time.CoordinatedTime;
 import java.util.function.BooleanSupplier;
 import se.tmm.sensorplanner.core.PublicationPreparationReview;
 
-/** UI-thread lab handoff; refuses to change any existing host copy. */
+/** UI-thread lab handoffs; create never overwrites, updates require a separate one-use review. */
 @TargetApi(26)
 public final class PublicationMapCopy {
     interface Port {
         boolean available();
         int count(String uid);
         CotEvent export(String uid);
+        Object identity(String uid);
+        boolean hasAttachments(String uid);
         String importEvent(CotEvent event);
+        String updateMetadata(String uid, Object expectedIdentity, CotEvent event);
     }
     private final Port port;
     public PublicationMapCopy(MapView map, BooleanSupplier allowed) {
@@ -34,15 +37,41 @@ public final class PublicationMapCopy {
                 MapItem item = map.getMapItem(uid);
                 return item == null ? null : CotEventFactory.createCotEvent(item);
             }
+            @Override public Object identity(String uid) { return map.getMapItem(uid); }
+            @Override public boolean hasAttachments(String uid) {
+                try {
+                    // A cached empty SDK list must not authorize an update after a file appears.
+                    com.atakmap.android.util.AttachmentManager.notifyAttachmentChange(uid);
+                    java.util.List<java.io.File> files = com.atakmap.android.util.AttachmentManager.getAttachments(uid);
+                    return files == null || !files.isEmpty();
+                } catch (RuntimeException unavailable) { return true; }
+            }
             @Override public String importEvent(CotEvent event) {
                 CotImporterManager manager = CotImporterManager.getInstance();
                 if (manager == null) throw new IllegalStateException();
                 Bundle options = new Bundle(); options.putString("from", "se.tmm.sensorplanner.plugin.publicationlab");
                 return manager.importData(event, options).toString();
             }
+            @Override public String updateMetadata(String uid, Object expectedIdentity, CotEvent event) {
+                MapItem item = map.getMapItem(uid);
+                if (item != expectedIdentity || !(item instanceof com.atakmap.android.maps.Marker)) throw new IllegalStateException();
+                // Change only our payload and reviewed callsign; retain the original MapItem and native bindings.
+                com.atakmap.android.cot.OpaqueHandler.getInstance().toMarkerMetadata(item, event,
+                        event.getDetail().getFirstChildByName(0, PublicationCot.TAG));
+                item.setMetaString("callsign", event.getDetail().getFirstChildByName(0, "contact").getAttribute("callsign"));
+                com.atakmap.android.user.PlacePointTool.updateCallsign((com.atakmap.android.maps.Marker)item);
+                item.refresh(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
+                item.persist(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
+                return "METADATA_PERSIST_REQUESTED";
+            }
         });
     }
     PublicationMapCopy(Port port) { this.port = port; }
+
+    public se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi.PendingUpdate inspectUpdate(
+            PublicationPreparationReview.Prepared prepared, String label) {
+        return new PublicationHostUpdate(port, prepared, label);
+    }
 
     public String create(PublicationPreparationReview.Prepared prepared, String label) {
         boolean attempted = false;

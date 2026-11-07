@@ -225,3 +225,13 @@ The owner approved current snapshots first, with every observed variant retained
 no automatic winner/application and no deletion inferred from absence. A sampled
 membership-before/after check is not a globally atomic remote snapshot or complete
 history. Local application still uses a separately confirmed fresh v2 decision.
+
+## Metadata-only host-update pilot — 2026-11-07 (#173)
+
+[The reviewed lab update](REVIEWED_HOST_UPDATES.md) adds an in-memory one-use
+host review bound to an actual MapItem instance and retained export. It changes no
+domain, publication, inbox, local-v2 or image bytes. The saved selection is reloaded
+before a confirmed host-only metadata mutation; publication does not increment the
+private revision or mark the draft Shared/Synced. Geometry/type/identity changes and
+SDK-reported native attachments are refused. Remote acceptance, complete native
+membership and a distributed version are not inferred from the host result.
