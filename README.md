@@ -14,17 +14,28 @@ and limited to a 1,920-pixel longest side; original files remain untouched.
 
 | Area | Evidence and limits |
 |---|---|
-| Public CI | Java core/storage, auth/archive/fixture checks and separate native Android image tests/lint; no private ATAK SDK |
+| Public CI | Java core/storage, auth/archive/fixture checks and separate Android helper/UI tests and lint; no private ATAK SDK |
 | SDK development | Local 5.6.0.24 build/lint and bounded developer-host emulator results |
-| Signed standard client | VersionCode 7 passed standard ATAK-CIV 5.6.0.25 emulator load/unload/restart and one synthetic draft's preservation; see [verification](docs/STANDARD_CLIENT_VERIFICATION.md) |
-| Physical phone | Owner reports tools and local use; photo handling and delayed map restoration prompted [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49) and [#50](https://github.com/gustavtraff/tmm-sensor-planner/issues/50). The latest camera correction and UI improvements still need new signing/phone verification |
-| Connected use | Explicit session-only [local trial](docs/CONNECTED_LOCAL_TRIAL.md): bounded two-client SDK privacy checks passed; new signed standard-client/phone acceptance remains open |
+| Signed standard client | [Signed v23](docs/SIGNED_V23_SOURCE_VERIFICATION.md) passed in-place standard ATAK-CIV 5.6.0.25 loading and bounded source tests; [v21](docs/SIGNED_V21_VERIFICATION.md) records storage/image/restart acceptance. These do not prove the newer receive/update candidates |
+| Physical phone | [Owner-reported signed-v15 offline acceptance](docs/PHONE_ACCEPTANCE.md) includes camera images, restored markers, MGRS, map placement, bearing and device details; newer sharing candidates still need phone acceptance |
+| Connected use | [Signed v20 connected privacy](docs/CONNECTED_SIGNED20_VERIFICATION.md) has bounded two-client evidence. [v28 explicit snapshot intake](docs/CONFIGURED_SNAPSHOT_SOURCE.md) has developer-host evidence; signed-standard and actual-server acceptance remain open |
 
 Use synthetic data. Offline is the default; connected testing requires the separate
 isolated procedure and explicit session consent linked above.
 **TMM CoT-labb** and the metadata-sharing action are isolated-lab tools. Do not use
 them on an operational server/feed. Local installation does not publish the APK.
 No public APK release or automatic distribution channel is provided here.
+
+## Current shared-workflow boundary
+
+The [snapshot receiver](docs/CONFIGURED_SNAPSHOT_SOURCE.md) lets the operator choose
+an already connected SSL profile, confirm the separate HTTPS API port and select
+a feed before an explicit Fetch. Received metadata is preserved in the existing
+review inbox; local application needs a separate preview/Save. Images stay local.
+[Reviewed metadata updates of a host map copy](docs/REVIEWED_HOST_UPDATES.md) remain
+an isolated-loopback lab pilot. Native Data Sync destination/republication and
+an owner-authorized two-phone/server trial are still required before shared use.
+See [the current sequence and remaining gates](docs/NEXT_STEPS.md).
 
 ## Development checks
 
