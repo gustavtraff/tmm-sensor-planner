@@ -15,7 +15,7 @@ import org.apache.http.params.*;
 import se.tmm.sensorplanner.core.TmmDraft;
 import se.tmm.sensorplanner.plugin.ingress.*;
 
-/** Guarded loopback Mission snapshot reader; no credential copies, subscription or storage operation. */
+/** Explicit configured-source snapshot reader; no credential copies, subscription or storage operation. */
 @TargetApi(26)
 final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport {
     static final String BASE="https://127.0.0.1:8443";
@@ -25,7 +25,10 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
     }
     interface Decoder<T>{T read(InputStream input)throws IOException;}
     private final BooleanSupplier allowed;
-    MissionSnapshotHttp(BooleanSupplier allowed){this.allowed=allowed;}
+    private final MissionEndpoint endpoint;
+    MissionSnapshotHttp(BooleanSupplier allowed){this(allowed,MissionEndpoint.fromProfile(ShareLabRoute.STREAM,8443));}
+    MissionSnapshotHttp(BooleanSupplier allowed,MissionEndpoint endpoint){this.allowed=allowed;this.endpoint=endpoint;}
+    @Override public String description(){return endpoint.base+" · ATAK TLS "+endpoint.stream;}
     @Override public List<MissionSnapshotInput.Feed> list(MissionReadAttempt attempt)throws IOException {try(Read read=begin(attempt)){return read.feeds();}}
     @Override public MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {try(Read read=begin(attempt)){return read.fetch(feed);}}
     final class Read implements AutoCloseable {
@@ -35,9 +38,10 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
         private boolean active(){return allowed.getAsBoolean()&&attempt.active(System.nanoTime())&&!Thread.currentThread().isInterrupted();}
         private void require()throws IOException {if(!active()||!defaultProvider())throw new IOException("Snapshot access unavailable");}
         List<MissionSnapshotInput.Feed> feeds()throws IOException {
-            return get("/api/missions","application/json",in->MissionSnapshotInput.feeds(in,this::active));
+            return get("/api/missions","application/json",in->MissionSnapshotInput.feeds(in,this::active,endpoint.base));
         }
         MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed feed)throws IOException {
+            if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
             String route="/api/missions/guid/"+feed.guid;
             Set<String> before=get(route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
             List<TmmDraft> values=get(route+"/cot","application/xml",in->MissionSnapshotInput.metadata(in,before,this::active));
@@ -48,9 +52,9 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
             HttpGet request=null;TakHttpClient client=null;TakHttpResponse response=null;
             T result=null;boolean failed=false;
             try{
-                require();CertificateManager.ExtendedSSLSocketFactory sockets=CertificateManager.getSockFactory(false,NetConnectString.fromString(ShareLabRoute.STREAM),false);
-                if(sockets==null)throw new IOException();client=new TakHttpClient(BASE+"/Marti",sockets,5000,5000);
-                URI expected=URI.create(BASE+"/Marti"+path);if(!expected.equals(URI.create(client.getUrl(path))))throw new IOException();
+                require();CertificateManager.ExtendedSSLSocketFactory sockets=CertificateManager.getSockFactory(false,NetConnectString.fromString(endpoint.stream),false);
+                if(sockets==null)throw new IOException();client=new TakHttpClient(endpoint.base+"/Marti",sockets,5000,5000);
+                URI expected=URI.create(endpoint.base+"/Marti"+path);if(!expected.equals(URI.create(client.getUrl(path))))throw new IOException();
                 request=new HttpGet(expected);current.set(request);require();
                 request.setHeader("Accept",accept);request.setHeader("Accept-Encoding","identity");
                 HttpClientParams.setRedirecting(request.getParams(),false);HttpClientParams.setAuthenticating(request.getParams(),false);

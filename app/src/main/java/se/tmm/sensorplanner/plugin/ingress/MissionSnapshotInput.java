@@ -17,16 +17,17 @@ public final class MissionSnapshotInput {
     public static final int MAX_MEMBERS=64;
     private MissionSnapshotInput() { }
     public static final class Feed {
-        public final String name,guid;
-        public Feed(String name,String guid){
+        public final String name,guid,service;
+        public Feed(String name,String guid){this(name,guid,MissionEndpoint.LAB_BASE);}
+        public Feed(String name,String guid,String service){
             if(name==null||name.isEmpty()||name.length()>256||!name.equals(name.trim()))throw new IllegalArgumentException("Invalid mission name");
             for(int n=0;n<name.length();){int cp=name.codePointAt(n),type=Character.getType(cp);
                 if(Character.isISOControl(cp)||type==Character.FORMAT||type==Character.SURROGATE||type==Character.LINE_SEPARATOR||type==Character.PARAGRAPH_SEPARATOR)throw new IllegalArgumentException("Invalid mission name");n+=Character.charCount(cp);
             }
             UUID id=UUID.fromString(guid);if(!id.toString().equals(guid)||id.equals(new UUID(0,0)))throw new IllegalArgumentException("Invalid mission GUID");
-            this.name=name;this.guid=guid;
+            this.name=name;this.guid=guid;this.service=MissionEndpoint.checkedBase(service);
         }
-        public String context(){return "mission-api-v1|https://127.0.0.1:8443|"+guid;}
+        public String context(){return "mission-api-v1|"+service+"|"+guid;}
     }
     public static final class Snapshot {
         public final Feed feed;public final Set<String> members;public final List<TmmDraft> metadata;
@@ -39,16 +40,19 @@ public final class MissionSnapshotInput {
         }
     }
     public static List<Feed> feeds(InputStream input,BooleanSupplier active)throws IOException {
+        return feeds(input,active,MissionEndpoint.LAB_BASE);
+    }
+    public static List<Feed> feeds(InputStream input,BooleanSupplier active,String service)throws IOException {
         try {
             JSONArray missions=json(input,active);if(missions.length()>MAX_MEMBERS)throw new IOException();
             List<Feed> result=new ArrayList<>();Set<String> seen=new HashSet<>();
-            for(int n=0;n<missions.length();n++){Feed feed=feed(missions.getJSONObject(n));if(!seen.add(feed.guid))throw new IOException();result.add(feed);}
+            for(int n=0;n<missions.length();n++){Feed feed=feed(missions.getJSONObject(n),service);if(!seen.add(feed.guid))throw new IOException();result.add(feed);}
             return Collections.unmodifiableList(result);
         }catch(Exception invalid){throw failure();}
     }
     public static Set<String> members(Feed expected,InputStream input,BooleanSupplier active)throws IOException {
         try {
-            JSONArray data=json(input,active);if(data.length()!=1)throw new IOException();JSONObject mission=data.getJSONObject(0);Feed actual=feed(mission);
+            JSONArray data=json(input,active);if(data.length()!=1)throw new IOException();JSONObject mission=data.getJSONObject(0);Feed actual=feed(mission,expected.service);
             if(!actual.guid.equals(expected.guid)||!actual.name.equals(expected.name))throw new IOException();
             JSONArray uids=mission.getJSONArray("uids");if(uids.length()>MAX_MEMBERS)throw new IOException();Set<String> result=new HashSet<>();
             for(int n=0;n<uids.length();n++){
@@ -58,8 +62,8 @@ public final class MissionSnapshotInput {
             return Collections.unmodifiableSet(result);
         }catch(Exception invalid){throw failure();}
     }
-    private static Feed feed(JSONObject value)throws Exception {
-        Object name=value.get("name"),guid=value.get("guid");if(!(name instanceof String)||!(guid instanceof String))throw new IOException();return new Feed((String)name,(String)guid);
+    private static Feed feed(JSONObject value,String service)throws Exception {
+        Object name=value.get("name"),guid=value.get("guid");if(!(name instanceof String)||!(guid instanceof String))throw new IOException();return new Feed((String)name,(String)guid,service);
     }
     private static JSONArray json(InputStream input,BooleanSupplier active)throws Exception {
         String text=MissionReadInput.readText(input,active);MissionReadInput.boundStructure(text);JSONTokener parser=new JSONTokener(text);Object root=parser.nextValue();

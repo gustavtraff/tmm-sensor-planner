@@ -26,18 +26,18 @@ public class SnapshotInboxUiTest {
     private final AtomicBoolean available=new AtomicBoolean(true),lab=new AtomicBoolean(true);
     private final AtomicInteger lists=new AtomicInteger(),fetches=new AtomicInteger();
     private MissionSnapshotInput.Feed feed=new MissionSnapshotInput.Feed("Synthetic","00000000-0000-4000-8000-000000000171");
-    private TmmDraft incoming;private volatile CountDownLatch entered,release;private volatile boolean wrongFeed,networkFailure;
+    private TmmDraft incoming;private volatile CountDownLatch entered,release;private volatile boolean wrongFeed,wrongSource,networkFailure;
     @Before public void setup()throws Exception{
         activity=Robolectric.buildActivity(Activity.class).setup().get();AlertDialog warm=new AlertDialog.Builder(activity).setTitle("Warmup").create();warm.show();warm.dismiss();Path root=temporary.newFolder().toPath();
         local=new LocalV2Store(root.resolve("local"));local.initializeNew();localFile=root.resolve("local/drafts.bin");inbox=new InboxStore(root.resolve("inbox"));inboxFile=root.resolve("inbox/inbox.bin");
         incoming=new TmmDraft(new UUID(0,171),"PIR SYNTHETIC",DeviceType.PIR,DeviceStatus.PLANNED,"ROLE",Instant.EPOCH,Instant.ofEpochSecond(10),null,"remote",new Position(0,1),45.0,null,1);
         flow=new SnapshotInboxUi(activity,local,inboxFile.getParent(),work::add,new SnapshotInboxUi.Host(){
-            public void post(Runnable r){posts.add(r);}public boolean available(){return available.get();}public boolean labAvailable(){return lab.get();}public void changed(){}
+            public void post(Runnable r){posts.add(r);}public boolean available(){return available.get();}public boolean sourceAvailable(){return lab.get();}public void changed(){}
         },new SnapshotInboxUi.Transport(){
             public List<MissionSnapshotInput.Feed> list(MissionReadAttempt attempt)throws Exception{lists.incrementAndGet();if(networkFailure)throw new java.io.IOException("PRIVATE-SYNTHETIC-ENDPOINT");return Collections.singletonList(feed);}
             public MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed selected,MissionReadAttempt attempt)throws Exception{
                 fetches.incrementAndGet();if(entered!=null){entered.countDown();release.await(5,TimeUnit.SECONDS);}
-                return new MissionSnapshotInput.Snapshot(wrongFeed?new MissionSnapshotInput.Feed("Other","00000000-0000-4000-8000-000000000172"):selected,Collections.singleton(incoming.uid.toString()),Collections.singletonList(incoming));
+                return new MissionSnapshotInput.Snapshot(wrongFeed?new MissionSnapshotInput.Feed("Other","00000000-0000-4000-8000-000000000172"):wrongSource?new MissionSnapshotInput.Feed(selected.name,selected.guid,"https://other.example.invalid:8443"):selected,Collections.singleton(incoming.uid.toString()),Collections.singletonList(incoming));
             }
         },p->"SYNTHETIC MGRS");
     }
@@ -55,7 +55,7 @@ public class SnapshotInboxUiTest {
         }
         fail("Missing async result dialog");
     }
-    private void listExisting()throws Exception{flow.fetch();work();awaitPost();assertEquals("Välj labbfeed",org.robolectric.Shadows.shadowOf(dialog()).getTitle().toString());}
+    private void listExisting()throws Exception{flow.fetch();work();awaitPost();assertEquals("Välj feed",org.robolectric.Shadows.shadowOf(dialog()).getTitle().toString());}
     private void choose(){dialog().getListView().performItemClick(null,0,0);pump();}
     private void fetchToWorker()throws Exception{listExisting();choose();click(AlertDialog.BUTTON_POSITIVE);awaitPost();}
     @Test public void missingInboxNeedsExplicitConsentAndCancelCreatesNothing()throws Exception{
@@ -96,6 +96,11 @@ public class SnapshotInboxUiTest {
     @Test public void missingLocalDatasetCannotBecomeNewInboxConsent()throws Exception{
         Files.delete(localFile);flow.fetch();work();assertFalse(Files.exists(inboxFile));assertEquals(0,lists.get());
         assertEquals("Lokala lagringen kunde inte läsas",org.robolectric.Shadows.shadowOf(dialog()).getTitle().toString());
+    }
+    @Test public void sameNamedFeedFromDifferentServiceCannotReachInbox()throws Exception{
+        inbox.initializeNew();wrongSource=true;byte[] original=Files.readAllBytes(localFile);
+        listExisting();choose();click(AlertDialog.BUTTON_POSITIVE);awaitPost();
+        assertTrue(work.isEmpty());assertTrue(inbox.load().receipts.isEmpty());assertArrayEquals(original,Files.readAllBytes(localFile));
     }
     @Test public void wrongReturnedFeedCannotReachTheInbox()throws Exception{
         inbox.initializeNew();wrongFeed=true;listExisting();choose();click(AlertDialog.BUTTON_POSITIVE);awaitPost();assertTrue(work.isEmpty());assertTrue(inbox.load().receipts.isEmpty());

@@ -28,6 +28,16 @@ public class MissionSnapshotInputTest {
         assertThrows(IllegalArgumentException.class,()->new MissionSnapshotInput.Feed("Name","https://invalid.invalid/path"));
         assertThrows(IOException.class,()->MissionSnapshotInput.members(renamed,input(overview("")),()->true));
     }
+    @Test public void callerSelectedServiceIsPartOfSourceIdentityAndPayloadCannotOverrideIt()throws Exception{
+        String base="https://tak.example.invalid:9443";
+        String json=overview("").replace("\"name\":","\"url\":\"https://untrusted.invalid:443\",\"source\":\"OTHER\",\"name\":");
+        MissionSnapshotInput.Feed selected=MissionSnapshotInput.feeds(input(json),()->true,base).get(0);
+        assertEquals(base,selected.service);assertTrue(selected.context().contains(base));
+        assertNotEquals(new MissionSnapshotInput.Feed(selected.name,GUID).context(),selected.context());
+        assertEquals(selected.context(),new MissionSnapshotInput.Feed("Renamed",GUID,base).context());
+        assertTrue(MissionSnapshotInput.members(selected,input(overview("")),()->true).isEmpty());
+        assertThrows(IOException.class,()->MissionSnapshotInput.feeds(input(json),()->true,"https://tak.example.invalid:9443/"));
+    }
     @Test public void strictJsonAndMemberIdentityRejectAmbiguousOrIncompleteInput()throws Exception{
         MissionSnapshotInput.Feed feed=new MissionSnapshotInput.Feed("Synthetic",GUID);
         assertEquals(Collections.singleton("ordinary"),MissionSnapshotInput.members(feed,input(overview("{\"data\":\"ordinary\"}")),()->true));

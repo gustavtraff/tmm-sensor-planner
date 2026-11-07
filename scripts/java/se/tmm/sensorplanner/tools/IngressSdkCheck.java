@@ -40,6 +40,12 @@ public final class IngressSdkCheck {
                 String.class).getModifiers())) {
             throw new AssertionError("Mission read factory is not static");
         }
+        check(TAKServerListener.class,"getInstance",TAKServerListener.class);
+        check(TAKServerListener.class,"getServers",TAKServer[].class);
+        check(TAKServer.class,"getConnectString",String.class);
+        check(TAKServer.class,"isEnabled",boolean.class);
+        check(TAKServer.class,"isStream",boolean.class);
+        check(TAKServer.class,"isConnected",boolean.class);
         check(TakHttpClient.class, "execute", TakHttpResponse.class, org.apache.http.client.methods.HttpRequestBase.class);
         check(TakHttpClient.class, "execute", TakHttpResponse.class, org.apache.http.client.methods.HttpRequestBase.class,boolean.class);
         check(CertificateManager.class,"getSockFactory",CertificateManager.ExtendedSSLSocketFactory.class,

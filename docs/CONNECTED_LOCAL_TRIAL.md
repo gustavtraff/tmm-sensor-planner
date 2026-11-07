@@ -24,6 +24,11 @@ only until plugin **Unload** or ATAK process restart; it is not stored in settin
 Connected startup does not restore private markers until consent is given again.
 Saved drafts and images remain local and retain their existing format.
 
+From v28, optional [configured-source snapshot intake](CONFIGURED_SNAPSHOT_SOURCE.md)
+requires its own explicit source/port choice and selected-feed confirmation. Opening
+the connected-local trial performs no network read and sends no private draft or
+image. The historical privacy observations below precede this receive extension.
+
 TMM's metadata-sharing action is hidden and its CoT lab is blocked throughout the
 trial, even after returning offline. This restriction concerns TMM's tools; ordinary
 ATAK self-location, contacts and other plugins can still send their own traffic.

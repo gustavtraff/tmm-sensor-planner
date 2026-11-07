@@ -18,13 +18,14 @@ import se.tmm.sensorplanner.plugin.ingress.MissionSnapshotInput.Snapshot;
 @TargetApi(26)
 public final class SnapshotInboxUi {
     public interface Transport {
+        default String description(){return MissionEndpoint.LAB_BASE;}
         List<Feed> list(MissionReadAttempt attempt)throws Exception;
         Snapshot fetch(Feed feed,MissionReadAttempt attempt)throws Exception;
     }
     public interface Host {
         void post(Runnable action);
         boolean available();
-        boolean labAvailable();
+        boolean sourceAvailable();
         void changed();
     }
     private final Context context;private final Host host;private final Executor worker;private final Transport transport;
@@ -49,25 +50,25 @@ public final class SnapshotInboxUi {
             public void changed(UUID id){host.changed();}
         },local,inbox);
         decisions=new ImportDecisionUi(context,worker,new ImportDecisionUi.Host(){
-            public void post(Runnable r){host.post(r);}public boolean available(){return SnapshotInboxUi.this.available()&&grant!=null&&lab();}
+            public void post(Runnable r){host.post(r);}public boolean available(){return SnapshotInboxUi.this.available()&&grant!=null&&source();}
             public ImportDecisionUi.Sources load()throws Exception{return new ImportDecisionUi.Sources(inbox.load(),local.load());}
             public Instant editTime(){return Instant.now();}
         },coordinates,commits);
         browser=new InboxReviewUi(context,coordinates,decisions);
         timer.scheduleAtFixedRate(()->{
             if(closed||(pending==null&&grant==null)||!guardQueued.compareAndSet(false,true))return;
-            host.post(()->{try{if(!closed&&!lab()){cancel();info("Källåtkomst avbruten","Labbvillkoren ändrades. Hämta och granska på nytt. Sparad historik behålls.");}}finally{guardQueued.set(false);}});
+            host.post(()->{try{if(!closed&&!source()){cancel();info("Källåtkomst avbruten","Den valda serveråtkomsten ändrades. Hämta och granska på nytt. Sparad historik behålls.");}}finally{guardQueued.set(false);}});
         },250,250,TimeUnit.MILLISECONDS);
     }
     private boolean available(){return !closed&&host.available();}
-    private boolean lab(){return available()&&host.labAvailable();}
+    private boolean source(){return available()&&host.sourceAvailable();}
     private boolean trusted(UUID id,InboxStore.Receipt receipt){
-        Grant current=grant;return current!=null&&lab()&&current.inboxId.equals(id)&&current.snapshot.feed.context().equals(receipt.contextId)&&current.snapshot.members.contains(receipt.incoming.uid.toString());
+        Grant current=grant;return current!=null&&source()&&current.inboxId.equals(id)&&current.snapshot.feed.context().equals(receipt.contextId)&&current.snapshot.members.contains(receipt.incoming.uid.toString());
     }
     public boolean isBusy(){return pending!=null||localTask>=0||decisions.isBusy();}
     public void fetch(){
         if(isBusy()||!available())return;
-        if(!lab()){info("Endast isolerat labb","Mottagningspiloten kräver den anslutna loopback-labbservern och flygplansläge. Ingen annan server används.");return;}
+        if(!source()){info("Ingen verifierad serveråtkomst","Välj en ansluten TLS-server och granska på nytt. Ingen annan källa används som reserv.");return;}
         long token=generation.incrementAndGet();localTask=token;progress("Kontrollerar inkorgen");
         worker.execute(()->{
             try{
@@ -86,35 +87,35 @@ public final class SnapshotInboxUi {
                 .setNegativeButton("Avbryt",(d,w)->cancel()).setPositiveButton("Starta ny inkorg",(d,w)->initialize()).create());
     }
     private void initialize(){
-        if(!lab())return;long token=generation.incrementAndGet();localTask=token;progress("Startar inkorgen");
-        worker.execute(()->{try{if(!valid(token)||!lab())return;local.load();inbox.initializeNew();post(token,this::listFeeds);}
+        if(!source())return;long token=generation.incrementAndGet();localTask=token;progress("Startar inkorgen");
+        worker.execute(()->{try{if(!valid(token)||!source())return;local.load();inbox.initializeNew();post(token,this::listFeeds);}
             catch(Exception unknown){post(token,()->info("Starten är obekräftad","Inkorgen kan redan vara skapad. Läs den igen; inget återställs eller skrivs över automatiskt."));}
             finally{if(localTask==token)localTask=-1;}});
     }
     private void listFeeds(){read(null,feeds->{
         if(feeds.isEmpty()){info("Inga feeds","Servern gav inga tillgängliga feeds. Ingenting har raderats lokalt.");return;}
         String[] labels=new String[feeds.size()];for(int n=0;n<labels.length;n++)labels[n]=feeds.get(n).name+"\n"+feeds.get(n).guid;
-        replace(new AlertDialog.Builder(context).setTitle("Välj labbfeed")
+        replace(new AlertDialog.Builder(context).setTitle("Välj feed")
                 .setItems(labels,(d,n)->review(feeds.get(n))).setNegativeButton("Avbryt",(d,w)->cancel()).create());
     },null);}
     private void review(Feed feed){
         replace(new AlertDialog.Builder(context).setTitle("Hämta metadata till inkorgen?")
-                .setMessage("Källa: isolerad labbserver 127.0.0.1:8443\nFeed: "+feed.name+"\nGUID: "+feed.guid
+                .setMessage("Källa: "+transport.description()+"\nFeed: "+feed.name+"\nGUID: "+feed.guid
                         +"\nEndast aktuell snapshot: högst 64 poster och 64 KiB per svar. Mellanliggande ändringar kan saknas. "
                         +"Observerade varianter sparas för granskning. Inga lokala utkast ändras och frånvaro raderar ingenting. Bilder hämtas inte. Ingen publicering eller kvittens skickas.")
                 .setNegativeButton("Avbryt",(d,w)->cancel()).setPositiveButton("Hämta till inkorgen",(d,w)->read(feed,null,this::stage)).create());
     }
     private void read(Feed feed,Consumer<List<Feed>> listed,Consumer<Snapshot> fetched){
-        if(!lab()||pending!=null)return;grant=null;long token=generation.incrementAndGet();
+        if(!source()||pending!=null)return;grant=null;long token=generation.incrementAndGet();
         MissionReadAttempt attempt=new MissionReadAttempt(System.nanoTime());pending=attempt;progress(feed==null?"Läser feeds":"Hämtar metadatasnapshot");
         try{
             attempt.bindDeadline(timer.schedule(()->{attempt.cancel();post(token,()->{cancel();info("Tidsgränsen nåddes","Inget nätverksresultat godtas. Ingen snapshot sparas av detta försök.");});},12,TimeUnit.SECONDS));
             attempt.bindWorker(network.submit(()->{
                 try{
                     Object result=feed==null?transport.list(attempt):transport.fetch(feed,attempt);
-                    if(feed!=null&&(!feed.guid.equals(((Snapshot)result).feed.guid)||!feed.name.equals(((Snapshot)result).feed.name)))throw new IllegalArgumentException("Snapshot target changed");
+                    if(feed!=null&&(!feed.context().equals(((Snapshot)result).feed.context())||!feed.name.equals(((Snapshot)result).feed.name)))throw new IllegalArgumentException("Snapshot target changed");
                     post(token,()->{
-                        if(pending!=attempt||!attempt.active(System.nanoTime())||!lab())return;
+                        if(pending!=attempt||!attempt.active(System.nanoTime())||!source())return;
                         pending=null;attempt.clearTimers();
                         if(feed==null)listed.accept(castFeeds(result));else fetched.accept((Snapshot)result);
                     });
@@ -124,16 +125,16 @@ public final class SnapshotInboxUi {
     }
     @SuppressWarnings("unchecked") private static List<Feed> castFeeds(Object value){return (List<Feed>)value;}
     private void stage(Snapshot snapshot){
-        if(!lab())return;long token=generation.incrementAndGet();localTask=token;progress("Sparar mottagna metadata");
+        if(!source())return;long token=generation.incrementAndGet();localTask=token;progress("Sparar mottagna metadata");
         worker.execute(()->{
             try{
-                if(!valid(token)||!lab())return;LocalV2.Snapshot current=local.load();Map<UUID,TmmDraft> observations=new HashMap<>();
+                if(!valid(token)||!source())return;LocalV2.Snapshot current=local.load();Map<UUID,TmmDraft> observations=new HashMap<>();
                 for(TmmDraft draft:current.activeDrafts())observations.put(draft.uid,draft);
-                if(!valid(token)||!lab())return;
+                if(!valid(token)||!source())return;
                 inbox.receiveBatch(snapshot.feed.context(),snapshot.metadata,observations,Instant.now());
                 InboxStore.Snapshot saved=inbox.load();
                 post(token,()->{
-                    if(!lab())return;grant=new Grant(saved.inboxId,snapshot);
+                    if(!source())return;grant=new Grant(saved.inboxId,snapshot);
                     replace(new AlertDialog.Builder(context).setTitle("Snapshot sparad i inkorgen")
                             .setMessage(snapshot.metadata.size()+" TMM-poster kontrollerade. Tidigare varianter behålls; upprepade metadata skapar ingen ny mottagning. "
                                     +"Lokala utkast och bilder har inte ändrats. Granska innan du väljer vad som ska appliceras.")

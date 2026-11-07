@@ -1,5 +1,9 @@
 # Explicit Mission snapshot intake pilot — #171 / #164
 
+The current configured-source extension is documented in
+[CONFIGURED_SNAPSHOT_SOURCE.md](CONFIGURED_SNAPSHOT_SOURCE.md). The v26 record below
+is historical loopback evidence; it does not claim standard-signed v28 acceptance.
+
 Candidate **26 / `0.1.0-snapshot-inbox-lab.1`** composes the existing metadata
 codec, inbox, review, decision preparation and local-v2 transaction. It is a
 loopback-only synthetic lab pilot. No operational server, background polling,
