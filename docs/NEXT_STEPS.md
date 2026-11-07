@@ -1,25 +1,33 @@
 # Current implementation and next steps — 2026-10-30
 
-## Active sequence — 2026-11-06 (snapshot intake pilot)
+## Active sequence — 2026-11-07 (reviewed host updates)
 
-1. Review [candidate v26](SNAPSHOT_INTAKE.md) / #171: explicit server feed selection,
+1. [Candidate v27](REVIEWED_HOST_UPDATES.md) adds a separately reviewed, one-use,
+   metadata-only update of an existing host object. It uses public SDK metadata,
+   callsign, refresh/persist APIs rather than reimporting/deleting the MapItem.
+   The fresh private selection and original host instance/export are checked again;
+   geometry/type changes and reported host attachments refuse. This remains a
+   synthetic loopback lab pilot with manual affected-feed consent, not a verified
+   destination API or operational update flow. Complete signed-standard Data Sync
+   and two-client repeat-publication acceptance under #173 before enabling it broadly.
+2. [Candidate v26](SNAPSHOT_INTAKE.md) / #171 connects explicit server feed selection,
    full snapshot validation, atomic existing-format inbox intake and the existing
    review/explicit local application components are connected in the guarded lab.
    The correctly subscribed native-client new-UID control now succeeds; do not
    repeat the old empty-creator setup or rebuild the inbox/import components.
-2. Native Data Sync publisher -> final SDK v26 receipt/review/Add, repeat Fetch,
+3. Native Data Sync publisher -> final SDK v26 receipt/review/Add, repeat Fetch,
    local-versus-incoming status, Keep Local, Cancel and restart/update controls now
    pass within [the recorded limits](SNAPSHOT_INTAKE.md#final-v26-native-trial--2026-11-06).
    Obtain service-signed standard-host v26 and verify its signer/old-state boundary.
-   A full edit/republish round trip also needs an explicit reviewed update of an
-   existing host copy ([#173](https://github.com/gustavtraff/tmm-sensor-planner/issues/173)): the current map-copy pilot refuses a differing existing UUID.
-   Signing alone does not implement that update. Source is authenticated configured
+   The v27 metadata-only host-update implementation still needs its actual native
+   Data Sync destination/republication acceptance; geometry updates remain unsupported.
+   Source is authenticated configured
    logical service plus mission GUID, not an author or complete feed history.
-3. Then review operational server/feed selection and source-access policy before
+4. Then review operational server/feed selection and source-access policy before
    enabling non-loopback use. The current pilot cannot access an operational host.
    Run the owner's separately authorized two-phone synthetic trial before any
    shared-server rollout. Keep #164/#25/#171 acceptance limits explicit.
-4. Resume #26 actual image-feed association/adoption after the useful metadata
+5. Resume #26 actual image-feed association/adoption after the useful metadata
    workflow. Contact transfer remains outside the Data Sync-feed goal.
 
 [The current backlog](BACKLOG.md) distinguishes implemented local features from

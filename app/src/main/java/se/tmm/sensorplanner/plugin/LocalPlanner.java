@@ -116,6 +116,10 @@ final class LocalPlanner {
             @Override public String create(PublicationPreparationReview.Prepared prepared, String label) {
                 return mapCopy.create(prepared, label);
             }
+            @Override public boolean supportsUpdates() { return true; }
+            @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) {
+                return mapCopy.inspectUpdate(prepared, label);
+            }
         });
         java.util.function.BooleanSupplier snapshotAllowed = () -> copyAllowed.getAsBoolean() && MissionSnapshotHttp.defaultProvider();
         inboxUi = new SnapshotInboxUi(context, store, new java.io.File(context.getNoBackupFilesDir(),

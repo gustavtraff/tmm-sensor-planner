@@ -29,8 +29,8 @@ public class SavedDraftCopyUiTest {
     private SavedDraftCopyUi copy;
     private TmmDraft draft;
     private Path file;
-    private boolean available = true, throwOnCreate;
-    private int imports;
+    private boolean available = true, throwOnCreate, supportsUpdates, throwOnInspect;
+    private int imports, inspections, updates, closedUpdates;
     private PublicationPreparationReview.Prepared handed;
     private String label;
     @Before public void setup() throws Exception {
@@ -47,6 +47,19 @@ public class SavedDraftCopyUiTest {
                 imports++; handed = prepared; label = hostLabel;
                 if (throwOnCreate) throw new IllegalStateException("PRIVATE-PATH-MUST-NOT-APPEAR");
                 return "Granskad kartkopia verifierad: Ja";
+            }
+            @Override public boolean supportsUpdates() { return supportsUpdates; }
+            @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String hostLabel) {
+                inspections++;
+                if (throwOnInspect) throw new IllegalStateException("PRIVATE-INSPECTION-ERROR");
+                ShareReview.Metadata before = new PublicationPreparationReview(draft).metadata;
+                return new SavedDraftCopyUi.PendingUpdate() {
+                    boolean ended;
+                    public ShareReview.Metadata previous() { return before; }
+                    public String previousLabel() { return "Synthetic previous label"; }
+                    public String commit() { assertFalse(ended); updates++; ended=true; return "Uppdaterad kartkopia verifierad: Ja"; }
+                    public void close() { ended=true; closedUpdates++; }
+                };
             }
         });
     }
@@ -146,6 +159,55 @@ public class SavedDraftCopyUiTest {
         available = true; draft = draft.edit(draft.displayId, draft.type, draft.status, draft.owner, draft.deployedAt,
                 draft.comment, draft.position, draft.bearingDeg, null, draft.updatedAt); save(draft);
         review(); assertTrue(text(shadowOf(dialog()).getView()).contains("Ingen lokal bild är bifogad"));
+    }
+    private void updateReview() throws Exception {
+        supportsUpdates=true;review();click(AlertDialog.BUTTON_NEUTRAL);executeHandoff();
+        assertEquals("Granska befintlig uppdatering · labb",shadowOf(dialog()).getTitle().toString());
+        assertEquals(0,imports);assertEquals(0,updates);
+    }
+    private android.widget.CheckBox consent(android.view.View v) {
+        if(v instanceof android.widget.CheckBox)return (android.widget.CheckBox)v;
+        if(v instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)v;for(int i=0;i<g.getChildCount();i++){android.widget.CheckBox c=consent(g.getChildAt(i));if(c!=null)return c;}}
+        return null;
+    }
+    @Test public void updateNeedsSeparateDestinationConsentAndFreshExplicitSave() throws Exception {
+        byte[] before=Files.readAllBytes(file);updateReview();
+        String text=text(shadowOf(dialog()).getView());assertTrue(text.contains("BEFINTLIG KARTKOPIA")&&text.contains("FÖRESLAGEN METADATA")&&text.contains("TMM väljer ingen feed")&&text.contains("Okända destinationer"));
+        assertFalse(dialog().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());click(AlertDialog.BUTTON_POSITIVE);assertTrue(work.isEmpty());
+        consent(shadowOf(dialog()).getView()).setChecked(true);assertTrue(dialog().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        android.widget.Button save=dialog().getButton(AlertDialog.BUTTON_POSITIVE);click(AlertDialog.BUTTON_POSITIVE);save.performClick();assertEquals(1,work.size());
+        executeHandoff();assertEquals(1,updates);assertEquals(0,imports);assertEquals(1,closedUpdates);
+        assertArrayEquals(before,Files.readAllBytes(file));assertEquals("synthetic-image",store.load().activeDrafts().get(0).imageRef);
+    }
+    @Test public void cancelledUpdateAndChangedPrivateStateCannotReachHost() throws Exception {
+        updateReview();click(AlertDialog.BUTTON_NEGATIVE);assertEquals(1,closedUpdates);assertEquals(0,updates);
+        updateReview();consent(shadowOf(dialog()).getView()).setChecked(true);
+        TmmDraft changed=draft.edit(draft.displayId,draft.type,draft.status,draft.owner,draft.deployedAt,draft.comment,draft.position,draft.bearingDeg,"changed-image",draft.updatedAt);save(changed);
+        click(AlertDialog.BUTTON_POSITIVE);work.remove().run();drainUi();assertEquals(0,updates);assertEquals(2,closedUpdates);
+        assertTrue(shadowOf(dialog()).getMessage().toString().contains("Inte uppdaterat"));
+    }
+    @Test public void cancelOrAccessLossBeforeQueuedUpdateCannotImport() throws Exception {
+        for(boolean loss:new boolean[]{false,true}){
+            available=true;updateReview();consent(shadowOf(dialog()).getView()).setChecked(true);click(AlertDialog.BUTTON_POSITIVE);
+            Thread t=startWaitingHandoff();if(loss)available=false;else copy.cancel();drainUi();t.join(3000);assertFalse(t.isAlive());drainUi();assertEquals(0,updates);
+            copy.cancel();
+        }
+    }
+    @Test public void inspectionFailureNeverClaimsAnAttemptedUpdateOrLeaksCause() throws Exception {
+        supportsUpdates=true;throwOnInspect=true;review();click(AlertDialog.BUTTON_NEUTRAL);executeHandoff();String message=shadowOf(dialog()).getMessage().toString();
+        assertTrue(message.contains("Ingen uppdatering utfördes"));assertFalse(message.contains("PRIVATE-INSPECTION"));assertEquals(0,updates);assertEquals(0,imports);
+    }
+    @Test public void recreatedPrivateRecordOrDatasetInvalidatesPendingUpdate() throws Exception {
+        for(boolean replacement:new boolean[]{false,true}){
+            updateReview();LocalV2.Snapshot saved=store.load();
+            if(replacement)Files.write(file,LocalV2Codec.encode(new LocalV2.Snapshot(UUID.randomUUID(),saved.slots,saved.decisions)));
+            else {store.delete(saved.storeId,saved.state(draft.uid));save(draft);}
+            consent(shadowOf(dialog()).getView()).setChecked(true);click(AlertDialog.BUTTON_POSITIVE);work.remove().run();drainUi();assertEquals(0,updates);click(AlertDialog.BUTTON_POSITIVE);
+        }
+    }
+    @Test public void cancellationAfterHostUpdateDoesNotPretendToRollBack() throws Exception {
+        updateReview();consent(shadowOf(dialog()).getView()).setChecked(true);click(AlertDialog.BUTTON_POSITIVE);Thread t=startWaitingHandoff();
+        ui.remove().run();t.join(3000);assertFalse(t.isAlive());assertEquals(1,updates);copy.cancel();drainUi();assertEquals(1,updates);assertFalse(copy.isBusy());
     }
     private void review() throws Exception {
         copy.show(draft.uid); work.remove().run(); drainUi();

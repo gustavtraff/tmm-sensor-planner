@@ -49,6 +49,9 @@ public final class PublicationMapCopyCheck {
         boolean allowed = true, disconnectOnExport, throwAfterImport, drop;
         @Override public boolean available() { return allowed; }
         @Override public int count(String uid) { return count; }
+        @Override public boolean hasAttachments(String uid) { return false; }
+        @Override public Object identity(String uid) { return this; }
+        @Override public String updateMetadata(String uid, Object expected, CotEvent event) { throw new AssertionError("Create must never request an existing-host update"); }
         @Override public CotEvent export(String uid) { if (disconnectOnExport) allowed = false; return event; }
         @Override public String importEvent(CotEvent value) {
             calls++;

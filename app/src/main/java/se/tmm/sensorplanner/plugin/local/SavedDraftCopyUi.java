@@ -5,22 +5,34 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.widget.CheckBox;
 import java.io.ByteArrayInputStream;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import se.tmm.sensorplanner.core.*;
 
 /** Reviewed saved-state handoff; caller keeps normal edits busy-blocked on the same worker. */
 @TargetApi(26)
 public final class SavedDraftCopyUi {
+    public interface PendingUpdate extends AutoCloseable {
+        ShareReview.Metadata previous();
+        String previousLabel();
+        /** UI thread; one-use, freshly checked host mutation. No destination/delivery claim. */
+        String commit();
+        @Override void close();
+    }
     public interface Host {
         void post(Runnable action);
         boolean available();
         String summary(ShareReview.Metadata metadata);
         /** UI thread; must enforce lab guards and return an honest host-copy outcome. */
         String create(PublicationPreparationReview.Prepared prepared, String label);
+        default boolean supportsUpdates() { return false; }
+        default PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) { throw new UnsupportedOperationException(); }
     }
     private final Context context;
     private final LocalV2Store store;
@@ -32,6 +44,7 @@ public final class SavedDraftCopyUi {
     private long generation;
     private PublicationPreparationReview pending;
     private Handoff waiting;
+    private PendingUpdate pendingUpdate;
     private AlertDialog dialog;
 
     public SavedDraftCopyUi(Context context, LocalV2Store store, Executor worker, Host host) {
@@ -72,10 +85,10 @@ public final class SavedDraftCopyUi {
                 + "Feeder kan publicera vanligt kartinnehåll automatiskt. Kartkopian kan finnas kvar efter Unload/omstart. "
                 + "Utkastet förblir lokalt och senare ändringar följer inte med. "
                 + "Välj och kontrollera eventuell feed separat i Data Sync; TMM kan inte verifiera native Done eller leverans. "
-                + "En avvikande befintlig kartkopia med samma UUID skrivs inte över.";
+                + "Skapa-funktionen skriver inte över en avvikande befintlig kartkopia med samma UUID. Uppdatering har en separat granskning.";
         TextView text = new TextView(context); text.setText(host.summary(review.metadata) + warning); text.setPadding(24, 16, 24, 16);
         ScrollView scroll = new ScrollView(context); scroll.addView(text);
-        replace(new AlertDialog.Builder(context).setTitle("Granska kartkopia · isolerat labb").setView(scroll)
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle("Granska kartkopia · isolerat labb").setView(scroll)
                 .setNegativeButton("Avbryt", (d, w) -> cancel())
                 .setPositiveButton("Skapa kartkopia i labbet", (d, w) -> {
                     synchronized (lifecycle) {
@@ -85,10 +98,21 @@ public final class SavedDraftCopyUi {
                     replace(new AlertDialog.Builder(context).setTitle("Kontrollerar sparad enhet")
                             .setMessage("Ingen feed vald. Åtgärden kan avbrytas innan SDK-importen börjar.")
                             .setNegativeButton("Avbryt", (ignored, which) -> cancel()).create());
-                    worker.execute(() -> prepare(review, selected, label, token));
-                }).create());
+                    worker.execute(() -> prepare(review, selected, label, token, false));
+                });
+        if (host.supportsUpdates()) builder.setNeutralButton("Granska uppdatering", (d,w) -> {
+            synchronized (lifecycle) {
+                if (!valid(token) || pending != review) return;
+                pending = null;
+            }
+            replace(new AlertDialog.Builder(context).setTitle("Läser befintlig kartkopia")
+                    .setMessage("Ingen kartkopia ändras före en separat uppdateringsbekräftelse.")
+                    .setNegativeButton("Avbryt", (ignored,which)->cancel()).create());
+            worker.execute(() -> prepare(review, selected, label, token, true));
+        });
+        replace(builder.create());
     }
-    private void prepare(PublicationPreparationReview review, LocalV2.Selection selected, String label, long token) {
+    private void prepare(PublicationPreparationReview review, LocalV2.Selection selected, String label, long token, boolean update) {
         try {
             if (!valid(token)) return;
             LocalV2.Snapshot snapshot = store.load();
@@ -97,13 +121,58 @@ public final class SavedDraftCopyUi {
             if (!valid(token)) return;
             PublicationPreparationReview.Prepared prepared = review.prepare(current);
             PublicationCodec.decode(new ByteArrayInputStream(PublicationCodec.encode(prepared)));
-            String outcome = handoff(prepared, label, token);
-            if (outcome != null) post(token, () -> result(outcome));
+            String outcome = handoff(() -> {
+                if (!update) return host.create(prepared, label);
+                PendingUpdate inspected = host.inspectUpdate(prepared, label);
+                if (inspected == null) throw new IllegalStateException();
+                pendingUpdate = inspected;
+                return "";
+            }, token, update ? "Inte uppdaterat: kräver en enda giltig kartkopia utan värdbilagor. Ändrad typ, position, bäring eller skapandetid stöds inte. Ingen uppdatering utfördes. Granska på nytt."
+                    : "Skapande försökt – resultat oklart. Kontrollera kartan och feeds före nytt försök. Ingen automatisk återställning görs.");
+            if (outcome != null) post(token, () -> {
+                if (update && pendingUpdate != null) reviewUpdate(pendingUpdate, prepared.metadata, selected, label, token);
+                else result(outcome);
+            });
         } catch (Exception unavailable) {
-            post(token, () -> result("Inte skapat: enheten har ändrats, tagits bort eller kunde inte verifieras. Läs om och granska på nytt."));
+            post(token, () -> result((update ? "Inte uppdaterat" : "Inte skapat") + ": enheten har ändrats, tagits bort eller kunde inte verifieras. Läs om och granska på nytt."));
         } finally { review.close(); }
     }
-    private String handoff(PublicationPreparationReview.Prepared prepared, String label, long token) {
+    private void reviewUpdate(PendingUpdate update, ShareReview.Metadata proposed, LocalV2.Selection selected, String label, long token) {
+        LinearLayout body = new LinearLayout(context); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(24,16,24,16);
+        TextView text = new TextView(context);
+        text.setText("BEFINTLIG KARTKOPIA\nEtikett: " + update.previousLabel() + "\n" + host.summary(update.previous())
+                + "\n\nFÖRESLAGEN METADATA\nEtikett: " + label + "\n" + host.summary(proposed)
+                + "\n\nEndast metadata. Ändrad typ, position, bäring eller skapandetid stöds inte i detta prov. Privata TMM-bilder läses eller delas inte av uppdateringskoden. Befintliga värdbilagor måste saknas enligt SDK-kontrollen."
+                + "\n\nTMM väljer ingen feed. Befintliga Data Sync-kopplingar och andra värdfunktioner kan publicera ändringen direkt eller senare. "
+                + "Kontrollera alla berörda labbfeeds före bekräftelse. Okända destinationer är inte godkända. Endast syntetiska data i isolerat loopback-labb.");
+        body.addView(text);
+        CheckBox consent = new CheckBox(context); consent.setText("Jag har kontrollerat berörda labbfeeds och godkänner uppdateringens möjliga publicering dit.");
+        consent.setMinHeight(64); body.addView(consent);
+        ScrollView scroll = new ScrollView(context); scroll.addView(body);
+        AlertDialog next = new AlertDialog.Builder(context).setTitle("Granska befintlig uppdatering · labb").setView(scroll)
+                .setNegativeButton("Avbryt", (d,w)->cancel()).setPositiveButton("Uppdatera kartkopian", null).create();
+        replace(next); next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+        consent.setOnCheckedChangeListener((button,checked)->next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(checked));
+        next.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
+            synchronized (lifecycle) {
+                if (!valid(token) || pendingUpdate != update || !consent.isChecked()) return;
+                pendingUpdate = null;
+            }
+            replace(new AlertDialog.Builder(context).setTitle("Kontrollerar sparad enhet och kartkopia")
+                    .setMessage("Ingen feedleverans bekräftas av SDK-resultatet.").setNegativeButton("Avbryt", (d,w)->cancel()).create());
+            worker.execute(()->{
+                try {
+                    if (!valid(token)) return;
+                    LocalV2.Snapshot fresh = store.load();
+                    if (!selected.isCurrent(fresh)) throw new IllegalStateException();
+                    String outcome = handoff(update::commit, token, "SDK-uppdatering försökt – resultat oklart. Kontrollera kartan och feeds före nytt försök. Ingen automatisk återställning görs.");
+                    if (outcome != null) post(token,()->result(outcome));
+                } catch (Exception stale) { post(token,()->result("Inte uppdaterat: den sparade enheten har ändrats eller kunde inte läsas. Granska på nytt.")); }
+                finally { update.close(); }
+            });
+        });
+    }
+    private String handoff(Supplier<String> operation, long token, String failureMessage) {
         Handoff h = new Handoff();
         synchronized (lifecycle) {
             if (!valid(token)) return null;
@@ -114,10 +183,10 @@ public final class SavedDraftCopyUi {
                         if (!h.pending || !valid(token)) { h.done.countDown(); return; }
                         h.pending = false;
                         try {
-                            h.outcome = host.available() ? java.util.Objects.requireNonNull(host.create(prepared, label))
+                            h.outcome = host.available() ? java.util.Objects.requireNonNull(operation.get())
                                     : "Inte skapat: labbvillkoren gäller inte längre. Granska på nytt.";
                         } catch (RuntimeException uncertain) {
-                            h.outcome = "Skapande försökt – resultat oklart. Kontrollera kartan och feeds före nytt försök. Ingen automatisk återställning görs.";
+                            h.outcome = failureMessage;
                         } finally { h.done.countDown(); }
                     }
                 });
@@ -164,6 +233,7 @@ public final class SavedDraftCopyUi {
     private void invalidate() {
         generation++;
         if (pending != null) { pending.close(); pending = null; }
+        if (pendingUpdate != null) { pendingUpdate.close(); pendingUpdate = null; }
         if (waiting != null) { waiting.pending = false; waiting.done.countDown(); waiting = null; }
     }
     public void stop() { synchronized (lifecycle) { closed = true; invalidate(); } }
