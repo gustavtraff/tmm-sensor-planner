@@ -2,7 +2,7 @@
 
 Candidate **27 / `0.1.0-reviewed-update-lab.1`** extends the saved-draft map-copy
 pilot with a separate in-memory existing-copy review. It is still restricted to
-the connected isolated loopback lab and synthetic data. It is not an operational
+the connected isolated loopback lab, default comms provider and synthetic data. It is not an operational
 publisher or completion of #173/#171/#25. No private or outgoing byte format changes.
 
 ## Operator flow
@@ -25,7 +25,9 @@ Only ID, status, owner, deployed time, comment and updated time may differ. UUID
 creation time, device type, exact position and bearing must match the previous
 valid host metadata. Geometry/type changes need their own SDK/native verification;
 refusal does not authorize deleting the old host object or changing UUIDs.
-SDK-reported host attachments must be absent at review and commit. Private TMM
+SDK-reported host attachments must be absent at review and commit. The SDK caches
+these lists; its public cache invalidation is called before every guard query so
+a previously empty cached list does not authorize an update after a file appears. Private TMM
 images are neither opened nor transmitted by the update code; their association
 and bytes are untouched. Native resource/destination behavior remains a separate gate.
 
@@ -87,3 +89,44 @@ consent, disabled confirmation, double activation, cancellation/access loss,
 changed image/draft, recreated record/dataset, safe inspection failure and post-write
 cancellation. Core tests and actual SDK debug/release assembly, lint and app unit
 checks pass. Native evidence and exact candidate identifiers are recorded below.
+
+## Native verification — 2026-11-07
+
+One API35 SDK developer 5.6.0.24 emulator ran at a time; the retained standard
+5.6.0.25 client was stopped before starting it. IPv4/IPv6 egress was restricted to
+loopback, with no default route, airplane mode and only the isolated TAK Server
+5.8-RELEASE-92 tunnels. No operational server/profile was accessed.
+
+The SDK host showed old Deployed / host label r2 against saved Active / revision 3.
+Confirmation was disabled before the separate consent. Cancel preserved all four
+private state files. Terminating the host while review was pending did not resume
+consent or update the old copy after restart. A separately confirmed update returned
+`METADATA_PERSIST_REQUESTED` and **Uppdaterad kartkopia verifierad: Ja**. Readback
+retained the same MapItem/count, exact proposed metadata/label and the other
+exported fields. All private drafts, inbox and decision files stayed byte-identical.
+A new exact review/confirmation then reported no SDK update requested.
+
+A deliberately staged owned synthetic PNG initially exposed the SDK's stale-empty
+attachment cache. After the fresh-cache correction, the same host process passed
+both controls: removing a reported attachment allowed inspection; adding it after
+a cached-empty inspection refused before write. The fixture was hash-checked and
+removed, including its newly created empty directory. A local type change also
+refused; the private type was subsequently restored. These are host-guard controls,
+not image transport or acceptance of arbitrary physical-device attachment providers.
+
+The standard-client file-import diagnostic was inconclusive and is not counted
+as a successful update. Its complete TMM private state stayed byte-identical.
+The existing server payload at the start of this goal matched the previous goal's
+diagnostic Active update, which had not appeared in that goal's immediate readback.
+Do not misattribute it to this candidate or infer immediate/atomic cache visibility.
+After the SDK update, it still matched that earlier diagnostic payload rather than
+the freshly reviewed private metadata. The SDK host did not demonstrate native
+Data Sync loading; no new feed-delivery or complete round-trip result is claimed.
+
+The final installed development APK SHA-256 is
+`d5b391130eb6ed7bbb6c0c1de94f9030ffbadb46ad05f45b31c6549067079d09`. After the type was restored, this exact build completed another
+separately confirmed metadata update with verified readback and all four private
+files unchanged. Service-signed v27,
+standard Data Sync behavior and destination checks, independent two-client
+publish-back, geometry updates, phone/OEM and actual server acceptance remain
+open under #173/#171/#164/#25. The pilot is not an operational sharing approval.

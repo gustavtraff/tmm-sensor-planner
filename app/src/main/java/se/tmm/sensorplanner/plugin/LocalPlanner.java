@@ -107,7 +107,8 @@ final class LocalPlanner {
             @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
             @Override public String summary(ShareReview.Metadata m) { return metadataSummary(m); }
         });
-        java.util.function.BooleanSupplier copyAllowed = () -> !closed && labAllowed.getAsBoolean() && ShareLabRoute.connected(context);
+        java.util.function.BooleanSupplier copyAllowed = () -> !closed && labAllowed.getAsBoolean()
+                && ShareLabRoute.connected(context) && MissionSnapshotHttp.defaultProvider();
         PublicationMapCopy mapCopy = new PublicationMapCopy(map, copyAllowed);
         copyUi = new SavedDraftCopyUi(context, store, worker, new SavedDraftCopyUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
@@ -121,7 +122,7 @@ final class LocalPlanner {
                 return mapCopy.inspectUpdate(prepared, label);
             }
         });
-        java.util.function.BooleanSupplier snapshotAllowed = () -> copyAllowed.getAsBoolean() && MissionSnapshotHttp.defaultProvider();
+        java.util.function.BooleanSupplier snapshotAllowed = copyAllowed;
         inboxUi = new SnapshotInboxUi(context, store, new java.io.File(context.getNoBackupFilesDir(),
                 "se.tmm.sensorplanner/metadata-inbox-v1").toPath(), worker, new SnapshotInboxUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
