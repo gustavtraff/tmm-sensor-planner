@@ -36,6 +36,8 @@ jobs:
         run: python3 scripts/create-attachment-fixture.py "$RUNNER_TEMP/TMM-IMAGE-PROBE.zip"
       - name: Inspect proposed private image-stage layout fixtures
         run: python3 scripts/test-image-stage-proposal.py
+      - name: Inspect proposed image association registry fixtures
+        run: python3 scripts/test-image-association-proposal.py
       - name: Check native-probe target guards without a device
         run: python3 scripts/test-image-stage-android-guards.py
       - name: Check native-probe asset packaging controls without Android
