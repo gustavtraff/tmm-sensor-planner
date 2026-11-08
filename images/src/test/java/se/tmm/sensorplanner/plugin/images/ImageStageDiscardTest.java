@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import se.tmm.sensorplanner.core.ImageAssociationRegistry;
 import se.tmm.sensorplanner.core.ImageOffer;
 import se.tmm.sensorplanner.core.ImageOfferCodec;
 import static org.junit.Assert.*;
@@ -39,6 +40,21 @@ public class ImageStageDiscardTest {
         assertCode(ImageStageStore.Code.ALREADY_ATTEMPTED,()->store.discard(plan));
         assertCode(ImageStageStore.Code.NOT_FOUND,()->store.prepareDiscard(H1));
         assertEquals(ImageStageStore.Outcome.ABSENT,store.reconcile(H1,payload(1)));
+    }
+
+    @Test public void publicDiscardRefusesReferencedEntriesAndAbsentRegistry() throws Exception {
+        Path root=fixture("ready-two"),registryDir=root.resolveSibling("registry");
+        ImageStageStore store=new ImageStageStore(root);
+        ImageAssociationRegistry registry=new ImageAssociationRegistry(registryDir);
+        ImageStageStore.DiscardPlan absent=store.prepareDiscard(H1);
+        try{store.discard(absent,registry);fail();}catch(IOException expected){}
+        Files.createDirectories(registryDir);Files.write(registryDir.resolve("associations.bin"),resource("/one.bin"));
+        try{store.discard(store.prepareDiscard(H1),registry);fail();}catch(IOException expected){}
+        assertArrayEquals(payload(1).image.bytes(),store.read(H1).image.bytes());
+        assertEquals(Collections.singletonList(H1),store.discard(store.prepareDiscard(H2),registry).ready);
+        store.requireReady(H1,payload(1).offer);
+        assertCode(ImageStageStore.Code.CONFLICT,()->store.requireReady(H1,payload(2).offer));
+        assertCode(ImageStageStore.Code.NOT_FOUND,()->store.requireReady(H2,payload(2).offer));
     }
 
     @Test public void pendingPartialCompleteAndEmptyRequireTheirOwnExactReview() throws Exception {

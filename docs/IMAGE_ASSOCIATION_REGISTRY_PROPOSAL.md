@@ -152,12 +152,13 @@ ingress, transport or adoption caller, so nothing in the APK writes a record yet
 
 - `associate` proves preconditions 2 and 3 itself, by requiring a retained inbox
   receipt for the exact context and M, and a matching `inboxId`.
-- **The caller must prove preconditions 1 and 4**: the stage entry is ready and
-  verified, and contextId came from the approved adapter. The core cannot read the
-  app-side stage or authenticate a source.
-- **R3 is not wired yet.** `ImageStageStore` has no association caller, so no record
-  can reference a stage entry today. The integration PR that first creates records
-  must make discard refuse referenced entries in the same change.
+- Precondition 1 runs under the registry lock through a stage proof, normally
+  `ImageStageStore.requireReady`. An exact repeat needs no live entry.
+- **The caller must prove precondition 4**: contextId came from the approved
+  adapter. The core cannot authenticate a source.
+- **R3 is enforced.** The public `ImageStageStore.discard` needs the registry and
+  runs under its lock, refusing a referenced entry. An absent or invalid registry
+  also refuses. Both operations take the registry lock first, then the stage lock.
 
 `sh scripts/test.sh` covers the three goldens byte for byte, malformed frames,
 idempotent repeats, a second delivery, identity conflicts, stage reuse, missing
