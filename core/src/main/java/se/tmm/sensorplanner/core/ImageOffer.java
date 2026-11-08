@@ -34,7 +34,7 @@ public final class ImageOffer {
                 && Arrays.equals(digest, other.digest);
     }
 
-    private static TmmDraft carrier(ShareReview.Metadata m) {
+    static TmmDraft carrier(ShareReview.Metadata m) {
         return new TmmDraft(m.uid, m.displayId, m.type, m.status, m.owner, m.createdAt, m.updatedAt,
                 m.deployedAt, m.comment, m.position, m.bearingDeg, null, 1);
     }
