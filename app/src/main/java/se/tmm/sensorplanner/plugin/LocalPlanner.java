@@ -65,6 +65,7 @@ final class LocalPlanner {
     private final ServerTrialConsentUi trialConsent;
     private final ConfiguredPublicationTrial serverTrial = new ConfiguredPublicationTrial();
     private UUID trialTarget;
+    private final ServerTrialConnectionWatch trialWatch;
     private SnapshotInboxUi inboxUi;
     private final MissionSourceChoiceUi sourceChoice;
     private LocalDraftLayer layer;
@@ -129,6 +130,7 @@ final class LocalPlanner {
                 return mapCopy.inspectUpdate(prepared, label);
             }
         });
+        trialWatch = new ServerTrialConnectionWatch(context, serverTrial::end);
         PublicationMapCopy trialCopy = new PublicationMapCopy(map, this::serverTrialAllowed).forServerTrial();
         trialCopyUi = new SavedDraftCopyUi(context, store, worker, new SavedDraftCopyUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
@@ -729,6 +731,7 @@ final class LocalPlanner {
         copyUi.close();
         trialCopyUi.close();
         trialConsent.close();
+        trialWatch.dispose();
         serverTrial.end();
         imagesUi.close();
         storageUi.close();

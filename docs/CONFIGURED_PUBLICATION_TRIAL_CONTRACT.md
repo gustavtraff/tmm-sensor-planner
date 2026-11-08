@@ -141,6 +141,8 @@ server**.
   The action stays disabled until all four are set.
 - A second `SavedDraftCopyUi` and `PublicationMapCopy` serve the trial. The offline
   lab path, `ShareLabRoute`, `labAllowed` and the CoT diagnostic tools are unchanged.
+- `ServerTrialConnectionWatch` subscribes through the SDK's `CotStreamListener`, so a
+  disconnect ends consent when it happens. A reconnect before the next check cannot resume it.
 - Consent ends on Cancel, disconnect, profile or provider change, loss of local
   access, Unload and restart. Closing a result dialog keeps it for the next review.
 
@@ -148,6 +150,16 @@ Automated evidence: `sh scripts/test.sh`, `sh scripts/check-sdk.sh` (SDK checks,
 build, lint and APK contract), the image and UI suite (460 cases, no failures, one
 existing skip) and `assembleCivRelease`, all on the 5.6.0.24 SDK. **Controls 1–8 have
 not been run.** They need a signed candidate on standard clients.
+
+**Pre-signing smoke, debug build on the 5.6.0.24 SDK emulator with the isolated
+loopback lab server (2026-11-09).** The action stayed disabled with three of four
+statements set and enabled with all four. Cancel at review ended consent. A fresh
+synthetic draft got SDK result SUCCESS and a verified host copy, and an existing
+copy with a deviating state was refused unchanged. Closing the result kept consent.
+With the connection down the trial reported no connected server. After a disconnect
+and reconnect between checks it asked for consent again. No crash was logged. This
+does not satisfy any of controls 1–8, which need the signed candidate on standard
+clients, and it did not include native publication or a non-loopback server.
 
 **Server version gap.** The owner's server reports a TAK Server **5.6** release, while
 all Data Sync, Mission API and snapshot evidence comes from the lab's 5.8-RELEASE-92.
