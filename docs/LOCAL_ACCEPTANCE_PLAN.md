@@ -143,8 +143,9 @@ that navigation, through `dumpsys window` and, for the picker, the focused activ
 After every case, all five private TMM files (drafts, inbox, their locks, the owned
 PNG) matched the starting SHA-256 values, apart from L02 and L05's expected temporary
 copy while its preview was open. After L05 they still matched after settling, after
-reload and after a force-stop and cold ATAK start, when the 22 drafts, the map and
-the saved image were again available. The crash log stayed empty for the whole run.
+reload and after a force-stop and cold ATAK start, when the 22 drafts and the saved
+image were again available. Rendered map markers were not checked. The crash log
+stayed empty for the whole run.
 
 **Not covered.** L08 and L09 need actual map headings. `adb input` offers no verified
 two-finger rotation and this plan forbids guessing a rotation API. L05's enlarged-viewer
