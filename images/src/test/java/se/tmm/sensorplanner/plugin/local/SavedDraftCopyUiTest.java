@@ -29,8 +29,8 @@ public class SavedDraftCopyUiTest {
     private SavedDraftCopyUi copy;
     private TmmDraft draft;
     private Path file;
-    private boolean available = true, throwOnCreate, supportsUpdates, throwOnInspect;
-    private int imports, inspections, updates, closedUpdates;
+    private boolean available = true, throwOnCreate, supportsUpdates, throwOnInspect, serverTrial;
+    private int imports, inspections, updates, closedUpdates, cancelled;
     private PublicationPreparationReview.Prepared handed;
     private String label;
     @Before public void setup() throws Exception {
@@ -49,6 +49,8 @@ public class SavedDraftCopyUiTest {
                 return "Granskad kartkopia verifierad: Ja";
             }
             @Override public boolean supportsUpdates() { return supportsUpdates; }
+            @Override public boolean serverTrial() { return serverTrial; }
+            @Override public void cancelled() { cancelled++; }
             @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String hostLabel) {
                 inspections++;
                 if (throwOnInspect) throw new IllegalStateException("PRIVATE-INSPECTION-ERROR");
@@ -209,9 +211,22 @@ public class SavedDraftCopyUiTest {
         updateReview();consent(shadowOf(dialog()).getView()).setChecked(true);click(AlertDialog.BUTTON_POSITIVE);Thread t=startWaitingHandoff();
         ui.remove().run();t.join(3000);assertFalse(t.isAlive());assertEquals(1,updates);copy.cancel();drainUi();assertEquals(1,updates);assertFalse(copy.isBusy());
     }
+    @Test public void serverTrialWordingOmitsLabClaimsAndCancelEndsConsent() throws Exception {
+        serverTrial = true; review();
+        String text = text(shadowOf(dialog()).getView()).toLowerCase(Locale.ROOT);
+        assertTrue(text.contains("serverprov")); assertFalse(text.contains("labb") || text.contains("loopback"));
+        assertEquals(0, cancelled); click(AlertDialog.BUTTON_NEGATIVE);
+        assertEquals(1, cancelled); assertEquals(0, imports);
+    }
+    @Test public void closingTheResultKeepsServerTrialConsent() throws Exception {
+        serverTrial = true; review();
+        click(AlertDialog.BUTTON_POSITIVE); executeHandoff(); assertEquals(1, imports);
+        click(AlertDialog.BUTTON_POSITIVE);
+        assertEquals(0, cancelled); assertFalse(copy.isBusy());
+    }
     private void review() throws Exception {
         copy.show(draft.uid); work.remove().run(); drainUi();
-        assertEquals("Granska kartkopia · isolerat labb", shadowOf(dialog()).getTitle().toString());
+        assertEquals(serverTrial ? "Granska kartkopia · serverprov" : "Granska kartkopia · isolerat labb", shadowOf(dialog()).getTitle().toString());
     }
     private Thread startWaitingHandoff() throws Exception {
         Thread t = new Thread(work.remove(), "saved-copy-test-worker"); t.start();

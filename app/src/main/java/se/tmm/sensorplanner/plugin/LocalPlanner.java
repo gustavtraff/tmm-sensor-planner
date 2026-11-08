@@ -35,6 +35,7 @@ import se.tmm.sensorplanner.plugin.local.BearingMilsEdit;
 import se.tmm.sensorplanner.plugin.local.BearingDirectionView;
 import se.tmm.sensorplanner.plugin.local.PublicationPreparationUi;
 import se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi;
+import se.tmm.sensorplanner.plugin.local.ServerTrialConsentUi;
 import se.tmm.sensorplanner.plugin.local.LocalStorageUi;
 import se.tmm.sensorplanner.plugin.local.SnapshotInboxUi;
 import se.tmm.sensorplanner.plugin.local.MissionSourceChoiceUi;
@@ -60,6 +61,10 @@ final class LocalPlanner {
     private final LocalShareUi sharing;
     private final PublicationPreparationUi preparation;
     private final SavedDraftCopyUi copyUi;
+    private final SavedDraftCopyUi trialCopyUi;
+    private final ServerTrialConsentUi trialConsent;
+    private final ConfiguredPublicationTrial serverTrial = new ConfiguredPublicationTrial();
+    private UUID trialTarget;
     private SnapshotInboxUi inboxUi;
     private final MissionSourceChoiceUi sourceChoice;
     private LocalDraftLayer layer;
@@ -122,6 +127,29 @@ final class LocalPlanner {
             @Override public boolean supportsUpdates() { return true; }
             @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) {
                 return mapCopy.inspectUpdate(prepared, label);
+            }
+        });
+        PublicationMapCopy trialCopy = new PublicationMapCopy(map, this::serverTrialAllowed).forServerTrial();
+        trialCopyUi = new SavedDraftCopyUi(context, store, worker, new SavedDraftCopyUi.Host() {
+            @Override public void post(Runnable action) { ui.queueEvent(action); }
+            @Override public boolean available() { return serverTrialAllowed(); }
+            @Override public String summary(ShareReview.Metadata m) { return metadataSummary(m); }
+            @Override public String create(PublicationPreparationReview.Prepared prepared, String label) {
+                return trialCopy.create(prepared, label);
+            }
+            @Override public boolean supportsUpdates() { return true; }
+            @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) {
+                return trialCopy.inspectUpdate(prepared, label);
+            }
+            @Override public boolean serverTrial() { return true; }
+            @Override public void cancelled() { serverTrial.end(); }
+        });
+        trialConsent = new ServerTrialConsentUi(context, new ServerTrialConsentUi.Host() {
+            @Override public boolean available() { return !closed && localAllowed.getAsBoolean(); }
+            @Override public List<String> profiles() { return ConfiguredMissionSource.profiles(); }
+            @Override public void confirmed(String stream, boolean[] statements) {
+                serverTrial.begin(stream, statements);
+                openServerTrial();
             }
         });
         java.util.function.BooleanSupplier snapshotAllowed = copyAllowed;
@@ -285,6 +313,7 @@ final class LocalPlanner {
             }));
             details.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
         }
+        details.addView(button("Publiceringsprov mot server", () -> startServerTrial(draft.uid)));
         details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(selected)));
         details.setVisibility(View.GONE);
         Button expand = button("Fler uppgifter", () -> { });
@@ -666,11 +695,28 @@ final class LocalPlanner {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
 
-    private boolean isBusy() { return storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy(); }
+    /** Rechecked at review and before each host write; any failure ends the session consent. */
+    private boolean serverTrialAllowed() {
+        if (closed || !localAllowed.getAsBoolean()) { serverTrial.end(); return false; }
+        return serverTrial.allows(ConfiguredMissionSource.trialStreams(), MissionSnapshotHttp.defaultProvider());
+    }
 
-    void cancelSharing() { sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); }
+    private void startServerTrial(UUID uid) {
+        if (closed || !localAccess()) return;
+        trialTarget = uid;
+        if (serverTrial.live()) openServerTrial(); else trialConsent.show();
+    }
 
-    void disableSharing() { sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); }
+    private void openServerTrial() {
+        if (serverTrialAllowed()) trialCopyUi.show(trialTarget);
+        else ui.showToast("Serverprovet avslutades: exakt en ansluten och vald server krävs");
+    }
+
+    private boolean isBusy() { return storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy(); }
+
+    void cancelSharing() { sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
+
+    void disableSharing() { sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
 
     void close() {
         closed = true;
@@ -681,6 +727,9 @@ final class LocalPlanner {
         sharing.close();
         preparation.close();
         copyUi.close();
+        trialCopyUi.close();
+        trialConsent.close();
+        serverTrial.end();
         imagesUi.close();
         storageUi.close();
         worker.shutdown();

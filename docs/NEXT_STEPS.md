@@ -16,8 +16,8 @@
    existing-item updates can prompt even when Auto-publish *new* content is off.
    Do not promise a single feed or native Done boundary. Keep #171/#25 open for the
    real user/server workflow and separately authorized physical two-phone trial.
-   The exact policy awaiting owner approval is in the
-   [trial contract proposal](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md).
+   The owner-approved [trial contract](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md) is
+   implemented in candidate 29; it needs signing, then controls 1–8.
 3. **Confirm the actual environment before that trial.** Obtain server-owner
    permission, software/full build, HTTPS Mission API port/access and a dedicated
    synthetic feed with known read/write roles. Record both phones' exact ATAK,
