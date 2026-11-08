@@ -26,7 +26,8 @@
    plus mission GUID and current accessible UID payload, not author identity,
    complete history, per-feed independent versions or a continuous permission lease.
    Native importer/logger hints are not silently adopted as trusted feed ingress.
-5. **Then extend shared geometry and #26 image delivery.** Existing reviewed updates
+5. **Then extend shared geometry and #26 image delivery.** The approved private
+   [association registry](IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md) now exists without a caller. Existing reviewed updates
    support metadata only and refuse type/position/bearing changes and reported host
    attachments. Images remain local; hash-valid stage/content groundwork does not
    provide feed association, adoption or delivery acknowledgment.
