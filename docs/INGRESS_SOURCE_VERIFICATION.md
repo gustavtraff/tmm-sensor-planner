@@ -1,9 +1,11 @@
 # Receiving metadata: verified SDK surfaces and source limits — #15/#25
 
-**Next decision:** [the selected-feed receive proposal](MISSION_READ_PROPOSAL.md)
-under #164 records a passing compile/reflection preflight for the actual SDK HTTP
-surface. It proposes an isolated GET-only experiment, not an accepted product
-adapter or a trusted source/inbox writer.
+**Current decision — 2026-11-08:** [ADR 0012](decisions/0012-explicit-mission-snapshot-intake.md)
+records the owner's accepted configured GET-only snapshot receive route and its
+version-specific runtime evidence. The initial #164 proposal is superseded for
+this bounded route; it is not approval of a publisher, complete history, image
+association or a new source-registry format. The dated observer investigation
+below remains historical evidence of why native hints alone are insufficient.
 
 **Candidate follow-up — 2026-10-30:** [the read-only source observer](INGRESS_OBSERVER_PROBE.md)
 now implements the guarded structural-only PUB18 experiment in candidate v22. Local

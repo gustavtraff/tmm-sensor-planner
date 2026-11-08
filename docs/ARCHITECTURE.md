@@ -1,27 +1,37 @@
 # Architecture
 
-Intended chain: domain model → local storage → local map representation →
-explicit publishing adapter → verified ATAK/CoT route.
+Current chain: private domain/local-v2 storage and image copies → local TMM feature
+layer → separately reviewed host-copy handoff/native Data Sync publication; and
+explicit configured Mission snapshot → durable metadata inbox → reviewed local-v2
+application. The private layer is not replaced by ordinary shared MapItems.
 
-Implemented: core/ with plain Java for drafts, validation and distances.
-app/ contains a guarded offline local planner prototype with list/forms/review and
-a private feature layer, plus the separate fixed-fixture CoT lab tool. The earlier
-disposable map experiment established candidate SDK signatures.
-See [LOCAL_MAP_PROBE.md](LOCAL_MAP_PROBE.md) and [ADR 0003](decisions/0003-local-feature-layer-experiment.md).
-A separate synthetic CoT experiment exercises explicit single-recipient transport and
-host marker detail import/re-export; see [COT_ROUND_TRIP.md](COT_ROUND_TRIP.md).
-The [offline planner adapter](LOCAL_PLANNER.md) calls the versioned Java-core
-[local snapshot store](LOCAL_STORAGE.md) in the host's private no-backup directory.
-Normalized [local images](LOCAL_IMAGES.md) are integrated. The guarded
-[metadata-sharing lab](METADATA_SHARE_LAB.md) serializes fresh saved-record reads,
-review freshness checks and explicit one-recipient dispatch on the planner worker.
-Its strict experimental wire codec is separate from snapshot-v1. Recipient inspection
-uses actual SDK marker import/export without writing received data to DraftStore.
-Production connected privacy and publishing remain pending.
-Direct Data Sync integration is deferred because no applicable plugin API contract
-is available in the inspected inputs. Mission Package APIs are documented SDK
-candidates; the separate [attachment investigation](DATA_SYNC_AND_ATTACHMENTS.md)
-does not implement a TMM image adapter or feed publication.
+The domain/store remain plain Java. The ATAK adapter owns forms, MGRS/map placement,
+image inspection, lifecycle and source guards. SDK host copying/updating requires a
+fresh saved selection and explicit review. Native Data Sync's own feed/confirmation
+UI controls publication; an SDK persist/readback is not delivery acknowledgment.
+[Signed-v28 evidence](SIGNED_V28_METADATA_ROUND_TRIP.md) records the bounded
+standard-client metadata round trip, native publication prompt and No/retry behavior.
+Host-copy publication remains isolated-loopback-only, with no operational fallback.
+
+[ADR 0012](decisions/0012-explicit-mission-snapshot-intake.md) records the owner's
+accepted explicit snapshot receive route. The supported SDK supplies strict TLS for
+an already configured connected profile; the operator chooses the separate API port
+and returned mission GUID. Complete bounded metadata validates before existing-format
+inbox intake. Fetch never auto-applies, deletes missing records or uploads private
+images. Separate preview/Save retains conflict/decision evidence and preserves local
+image handles. Source means configured logical service plus mission membership,
+not author identity, complete server history or a continuous permission lease.
+
+No supported private Android Data Sync caller contract is claimed or invoked.
+The Mission API adapter is GET-only; a direct REST publisher and actual image-feed
+association/adoption remain separate work. [The native source investigation](INGRESS_SOURCE_VERIFICATION.md)
+explains why importer/logger hints are not promoted to trusted inbox writes.
+
+The historical [local map probe](LOCAL_MAP_PROBE.md), [synthetic CoT experiment](COT_ROUND_TRIP.md)
+and [metadata-sharing lab](METADATA_SHARE_LAB.md) retain their experimental limits.
+They are not substitutes for the current configured receive contract or operational
+release approval. [NEXT_STEPS](NEXT_STEPS.md) separates implemented components from
+remaining physical, server, destination and image-transport gates.
 
 Accepted SDK target: ATAK-CIV API 5.6.0 ([ADR 0002](decisions/0002-atak-5.6-target.md), 2026-10-12).
 The supplied SDK directory is labeled full build 5.6.0.24 and contains an app, guide and JARs;
@@ -43,7 +53,7 @@ unknown; lab transport evidence does not establish operational compatibility.
 
 [The integration investigation](DATA_SYNC_INTEGRATION.md) distinguishes a candidate
 user-mediated export into Data Sync's chosen feed from a separate Mission API
-adapter. Neither is implemented. [ADR 0010](decisions/0010-investigate-data-sync-workflows.md)
+adapter. The dated investigation below predates the current receive decision; see ADR 0012 above. [ADR 0010](decisions/0010-investigate-data-sync-workflows.md)
 is proposed for review; private storage/features and experimental wire contracts
 remain unchanged. Data Sync auto-publication and queued offline sends need explicit
 #4/#7 testing before any published MapItem representation is introduced.

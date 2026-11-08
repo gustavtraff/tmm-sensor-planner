@@ -40,6 +40,10 @@ public final class IngressSdkCheck {
                 String.class).getModifiers())) {
             throw new AssertionError("Mission read factory is not static");
         }
+        // Candidate routing signatures only; no feed membership or publication contract is inferred.
+        check(CommsMapComponent.class,"sendCoTToServersByMission",void.class,String.class,String.class,CotEvent.class);
+        check(CommsMapComponent.class,"sendCoTToServersOnly",void.class,String.class,CotEvent.class);
+        check(CommsMapComponent.class,"getAllPortsBundle",Bundle.class);
         check(TAKServerListener.class,"getInstance",TAKServerListener.class);
         check(TAKServerListener.class,"getServers",TAKServer[].class);
         check(TAKServer.class,"getConnectString",String.class);
