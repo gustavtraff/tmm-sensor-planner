@@ -32,14 +32,17 @@ The Javadoc describes the first method as mission-routed server delivery, with t
 SDK adding routing information. A non-null interface key selects a configured
 stream; null selects all active streams. The inspected default-provider bytecode
 resolves a specified key through the current streaming-interface map and returns
-on an invalid key rather than sending to all streams. The method returns void.
+on an invalid key rather than sending to all streams. The method returns void. A further static trace through CotService, the default
+streaming-interface map and TAKServer.getConnectString correlates that raw
+connect string with the interface key in this supplied default-provider build.
+Runtime alignment/freshness still needs the controlled probe.
 These are actual public SDK surfaces, not guessed private Android Data Sync actions.
 The optional SDK preflight verifies their signatures only, without creating a
 client, registering a listener or sending anything.
 
 **Not established:** whether the mission argument is the chosen mission name or
-GUID in this exact server combination; which supported value supplies the live
-interface key; persistence/Data Sync content membership for a fresh UUID; role
+GUID in this exact server combination; current runtime key/interface alignment;
+persistence/Data Sync content membership for a fresh UUID; role
 enforcement; destination isolation; standard-host behavior; or any acknowledgment.
 Routing an event to mission participants is not proof of creating durable feed
 content. The server-only method is not a substitute for the Data Sync-feed goal.
