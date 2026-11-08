@@ -605,7 +605,7 @@ final class LocalPlanner {
         input.setId(View.generateViewId());
         label.setLabelFor(input.getId());
         input.setContentDescription(title);
-        input.setMinHeight(dp(48));
+        input.setMinimumHeight(dp(48)); // setSingleLine resets TextView.setMinHeight
         input.setSingleLine(true);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         input.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
