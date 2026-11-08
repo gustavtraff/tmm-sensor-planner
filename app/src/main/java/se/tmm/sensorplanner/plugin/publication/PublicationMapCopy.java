@@ -25,6 +25,7 @@ public final class PublicationMapCopy {
         String updateMetadata(String uid, Object expectedIdentity, CotEvent event);
     }
     private final Port port;
+    private boolean serverTrial;
     public PublicationMapCopy(MapView map, BooleanSupplier allowed) {
         this(new Port() {
             @Override public boolean available() { return allowed.getAsBoolean(); }
@@ -68,6 +69,8 @@ public final class PublicationMapCopy {
     }
     PublicationMapCopy(Port port) { this.port = port; }
 
+    public PublicationMapCopy forServerTrial() { serverTrial = true; return this; }
+
     public se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi.PendingUpdate inspectUpdate(
             PublicationPreparationReview.Prepared prepared, String label) {
         return new PublicationHostUpdate(port, prepared, label);
@@ -76,7 +79,7 @@ public final class PublicationMapCopy {
     public String create(PublicationPreparationReview.Prepared prepared, String label) {
         boolean attempted = false;
         try {
-            if (!port.available()) return "Inte skapat: kräver isolerat loopback-labb, flygplansläge och ansluten labbserver.";
+            if (!port.available()) return serverTrial ? "Inte skapat: provet kräver exakt en ansluten och vald server." : "Inte skapat: kräver isolerat loopback-labb, flygplansläge och ansluten labbserver.";
             CotEvent candidate = PublicationCot.create(prepared, label, new CoordinatedTime());
             String uid = candidate.getUID();
             int before = port.count(uid);
@@ -88,7 +91,7 @@ public final class PublicationMapCopy {
                 }
                 return "Inte skapat: en avvikande eller oklar kartkopia har samma UUID. Inget befintligt objekt har skrivits över. Utred kartkopian separat.";
             }
-            if (!port.available()) return "Inte skapat: labbvillkoren gäller inte längre. Granska på nytt.";
+            if (!port.available()) return (serverTrial ? "Inte skapat: provvillkoren" : "Inte skapat: labbvillkoren") + " gäller inte längre. Granska på nytt.";
             attempted = true;
             String sdk = port.importEvent(candidate);
             int count = port.count(uid);

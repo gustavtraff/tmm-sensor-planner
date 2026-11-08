@@ -85,7 +85,7 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
     }
 
     private static boolean same(Double a, Double b) { return a == null ? b == null : b != null && a.doubleValue() == b.doubleValue(); }
-    private static String refused() { return "Inte uppdaterat: kartkopian eller labbåtkomsten har ändrats eller kunde inte verifieras. Granska på nytt."; }
+    private static String refused() { return "Inte uppdaterat: kartkopian eller åtkomsten har ändrats eller kunde inte verifieras. Granska på nytt."; }
     private static IllegalArgumentException invalid() { return new IllegalArgumentException("Host update requires one valid matching metadata-only copy"); }
 
     static CotEvent copy(CotEvent event) {

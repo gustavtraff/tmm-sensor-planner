@@ -23,6 +23,19 @@ final class ConfiguredMissionSource {
         }
         Collections.sort(result);return Collections.unmodifiableList(result);
     }
+    /** Null when the registry cannot be read; the trial treats that as a refusal. */
+    static List<se.tmm.sensorplanner.core.ConfiguredPublicationTrial.Stream> trialStreams() {
+        try{
+            TAKServer[] all=TAKServerListener.getInstance().getServers();
+            if(all==null||all.length>32)return null;
+            List<se.tmm.sensorplanner.core.ConfiguredPublicationTrial.Stream> result=new ArrayList<>();
+            for(TAKServer server:all){
+                if(server==null)return null;
+                if(server.isStream())result.add(new se.tmm.sensorplanner.core.ConfiguredPublicationTrial.Stream(server.isEnabled(),server.isConnected(),server.getConnectString()));
+            }
+            return result;
+        }catch(RuntimeException unavailable){return null;}
+    }
     static boolean connected(String stream) {
         try{return profiles().contains(stream);}catch(RuntimeException unavailable){return false;}
     }

@@ -32,6 +32,10 @@ public final class SavedDraftCopyUi {
         /** UI thread; must enforce lab guards and return an honest host-copy outcome. */
         String create(PublicationPreparationReview.Prepared prepared, String label);
         default boolean supportsUpdates() { return false; }
+        /** True for the owner-approved configured-server trial; selects its wording. */
+        default boolean serverTrial() { return false; }
+        /** Explicit Cancel or dismissal; the server trial ends its session consent here. */
+        default void cancelled() { }
         default PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) { throw new UnsupportedOperationException(); }
     }
     private final Context context;
@@ -59,7 +63,7 @@ public final class SavedDraftCopyUi {
             busy = true; token = ++generation;
         }
         replace(new AlertDialog.Builder(context).setTitle("Läser sparad enhet för kartkopieprov")
-                .setMessage("Endast syntetiska data i isolerat labb. Ingen kartkopia skapas före bekräftelse.")
+                .setMessage(mode("Endast syntetiska data i isolerat labb.", "Endast syntetiska data i serverprovet.") + " Ingen kartkopia skapas före bekräftelse.")
                 .setNegativeButton("Avbryt", (d, w) -> cancel()).create());
         worker.execute(() -> {
             try {
@@ -78,7 +82,7 @@ public final class SavedDraftCopyUi {
             pending = review;
         }
         String label = saved.displayId + " · r" + saved.revision;
-        String warning = "\n\nENDAST SYNTETISKT ISOLERAT LABB\nKartetikett: " + label
+        String warning = mode("\n\nENDAST SYNTETISKT ISOLERAT LABB", "\n\nENDAST SYNTETISKT SERVERPROV") + "\nKartetikett: " + label
                 + "\nDen lokala revisionen är ingen gemensam versionsräknare."
                 + (saved.imageRef == null ? "\nIngen lokal bild är bifogad. Ingen bild delas." : "\nBilden delas inte.")
                 + "\n\nIngen feed vald. Bekräftelse skapar en vanlig ATAK-kartkopia. "
@@ -88,9 +92,9 @@ public final class SavedDraftCopyUi {
                 + "Skapa-funktionen skriver inte över en avvikande befintlig kartkopia med samma UUID. Uppdatering har en separat granskning.";
         TextView text = new TextView(context); text.setText(host.summary(review.metadata) + warning); text.setPadding(24, 16, 24, 16);
         ScrollView scroll = new ScrollView(context); scroll.addView(text);
-        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle("Granska kartkopia · isolerat labb").setView(scroll)
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(mode("Granska kartkopia · isolerat labb", "Granska kartkopia · serverprov")).setView(scroll)
                 .setNegativeButton("Avbryt", (d, w) -> cancel())
-                .setPositiveButton("Skapa kartkopia i labbet", (d, w) -> {
+                .setPositiveButton(mode("Skapa kartkopia i labbet", "Skapa kartkopia för prov"), (d, w) -> {
                     synchronized (lifecycle) {
                         if (!valid(token) || pending != review) return;
                         pending = null;
@@ -144,12 +148,13 @@ public final class SavedDraftCopyUi {
                 + "\n\nFÖRESLAGEN METADATA\nEtikett: " + label + "\n" + host.summary(proposed)
                 + "\n\nEndast metadata. Ändrad typ, position, bäring eller skapandetid stöds inte i detta prov. Privata TMM-bilder läses eller delas inte av uppdateringskoden. Befintliga värdbilagor måste saknas enligt SDK-kontrollen."
                 + "\n\nTMM väljer ingen feed. Befintliga Data Sync-kopplingar och andra värdfunktioner kan publicera ändringen direkt eller senare. "
-                + "Kontrollera alla berörda labbfeeds före bekräftelse. Okända destinationer är inte godkända. Endast syntetiska data i isolerat loopback-labb.");
+                + mode("Kontrollera alla berörda labbfeeds före bekräftelse. Okända destinationer är inte godkända. Endast syntetiska data i isolerat loopback-labb.",
+                        "Nej i Data Sync-frågan ångrar inte SDK-ändringen. Okända destinationer är inte godkända. Endast syntetiska data."));
         body.addView(text);
-        CheckBox consent = new CheckBox(context); consent.setText("Jag har kontrollerat berörda labbfeeds och godkänner uppdateringens möjliga publicering dit.");
+        CheckBox consent = new CheckBox(context); consent.setText(mode("Jag har kontrollerat berörda labbfeeds och godkänner uppdateringens möjliga publicering dit.", "Jag har kontrollerat testfeeden och godkänner uppdateringens möjliga publicering dit."));
         consent.setMinHeight(64); body.addView(consent);
         ScrollView scroll = new ScrollView(context); scroll.addView(body);
-        AlertDialog next = new AlertDialog.Builder(context).setTitle("Granska befintlig uppdatering · labb").setView(scroll)
+        AlertDialog next = new AlertDialog.Builder(context).setTitle(mode("Granska befintlig uppdatering · labb", "Granska befintlig uppdatering · serverprov")).setView(scroll)
                 .setNegativeButton("Avbryt", (d,w)->cancel()).setPositiveButton("Uppdatera kartkopian", null).create();
         replace(next); next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
         consent.setOnCheckedChangeListener((button,checked)->next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(checked));
@@ -184,7 +189,7 @@ public final class SavedDraftCopyUi {
                         h.pending = false;
                         try {
                             h.outcome = host.available() ? java.util.Objects.requireNonNull(operation.get())
-                                    : "Inte skapat: labbvillkoren gäller inte längre. Granska på nytt.";
+                                    : mode("Inte skapat: labbvillkoren", "Inte skapat: provvillkoren") + " gäller inte längre. Granska på nytt.";
                         } catch (RuntimeException uncertain) {
                             h.outcome = failureMessage;
                         } finally { h.done.countDown(); }
@@ -220,16 +225,18 @@ public final class SavedDraftCopyUi {
     private void result(String message) {
         replace(new AlertDialog.Builder(context).setTitle("Kartkopieprov · resultat").setMessage(message
                 + "\n\nIngen feed vald av TMM. Feedpublicering och mottagande är obekräftade. Utkastet är fortsatt lokalt.")
-                .setPositiveButton("Stäng", (d, w) -> cancel()).create());
+                .setPositiveButton("Stäng", (d, w) -> finish()).create());
     }
     private void replace(AlertDialog next) {
         if (dialog != null) dialog.dismiss();
         dialog = next; dialog.setCanceledOnTouchOutside(false); dialog.setOnCancelListener(d -> cancel()); dialog.show();
     }
-    public void cancel() {
+    public void cancel() { finish(); host.cancelled(); }
+    private void finish() {
         synchronized (lifecycle) { invalidate(); busy = false; }
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
+    private String mode(String lab, String server) { return host.serverTrial() ? server : lab; }
     private void invalidate() {
         generation++;
         if (pending != null) { pending.close(); pending = null; }
