@@ -41,10 +41,10 @@ are used; there is no new on-disk field, delete journal or format migration.
 - Unknown markers, foreign/nonregular/linked entries, quota violations or corrupt
   ready pairs fail closed. This is not a best-effort repair/reset API for damaged
   roots; a new confirmation cannot bypass those validation failures.
-- This store currently contains unassociated data only. Before a future association
-  registry/UI can call maintenance, independently prove the selected content has no
-  retained association/reference that must be preserved. Matching names, UUIDs or
-  image bytes alone do not prove that eligibility.
+- `discard(plan, registry)` is the only public discard. It refuses an entry referenced
+  by an [association record](IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md) under the registry
+  lock, and refuses when the registry is absent or invalid. Matching names, UUIDs or
+  image bytes alone do not prove eligibility.
 - Existing active local image handles/files, drafts, inbox metadata, gallery sources,
   server/sender/recipient copies and future association/receipt history are outside
   the operation. Equal image bytes outside this root are not a deletion target.

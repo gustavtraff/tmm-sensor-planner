@@ -8,6 +8,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import se.tmm.sensorplanner.core.ImageAssociationRegistry;
+import se.tmm.sensorplanner.core.ImageOffer;
 import se.tmm.sensorplanner.core.ImageOfferCodec;
 import se.tmm.sensorplanner.images.ImagePreparationException;
 
@@ -180,8 +182,18 @@ public final class ImageStageStore {
         });
     }
 
-    /** Explicit one-shot confirmation for an unassociated entry. Future association/UI callers need separate review. */
-    public Inspection discard(DiscardPlan plan) throws IOException {
+    /** Throws unless this exact offer is a ready entry whose descriptor and PNG verify. */
+    public void requireReady(UUID id, ImageOffer offer) throws IOException {
+        if (!Arrays.equals(ImageOfferCodec.encode(read(id).offer), ImageOfferCodec.encode(offer))) throw fail(Code.CONFLICT);
+    }
+
+    /** Explicit one-shot confirmation for an entry that no association record references. */
+    public Inspection discard(DiscardPlan plan, ImageAssociationRegistry registry) throws IOException {
+        Objects.requireNonNull(plan, "plan");
+        return registry.unlessReferenced(plan.id, () -> discard(plan));
+    }
+
+    Inspection discard(DiscardPlan plan) throws IOException {
         Objects.requireNonNull(plan, "plan");
         if (!plan.attempted.compareAndSet(false, true)) throw fail(Code.ALREADY_ATTEMPTED);
         if (!root.equals(plan.root)) throw fail(Code.CONFLICT);

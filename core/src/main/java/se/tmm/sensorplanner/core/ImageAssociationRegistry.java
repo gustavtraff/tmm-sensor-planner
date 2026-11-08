@@ -17,6 +17,8 @@ public final class ImageAssociationRegistry {
     static final int MAX_BYTES = 76 + MAX_RECORDS * (140 + MAX_CONTEXT_BYTES);
     private static final int MAGIC = 0x544d4d41, VERSION = 1;
     private static final UUID NIL = new UUID(0, 0);
+    public interface StageProof { void requireReady(UUID stageLocalId, ImageOffer offer) throws IOException; }
+    public interface StageAction<T> { T run() throws IOException; }
     private interface Operation<T> { T run() throws IOException; }
 
     private final Path directory, data;
@@ -48,13 +50,15 @@ public final class ImageAssociationRegistry {
     public synchronized Snapshot load() throws IOException { return locked(this::read); }
 
     /**
-     * The caller must first prove stage entry {@code stageLocalId} is ready and verified, and that contextId came
-     * from the approved adapter. An exact repeat keeps the original record; a conflicting binding changes nothing.
+     * The caller must prove contextId came from the approved adapter. An exact repeat keeps the original record;
+     * a conflicting binding changes nothing. The stage proof runs under the registry lock, so that discard cannot
+     * remove the entry before the record is committed.
      */
-    public synchronized Record associate(InboxStore inbox, String contextId, ImageOffer offer, UUID stageLocalId, Instant verifiedAt) throws IOException {
+    public synchronized Record associate(InboxStore inbox, String contextId, ImageOffer offer, UUID stageLocalId, Instant verifiedAt, StageProof stage) throws IOException {
         Objects.requireNonNull(inbox, "inbox");
         Objects.requireNonNull(offer, "offer");
         Objects.requireNonNull(verifiedAt, "verifiedAt");
+        Objects.requireNonNull(stage, "stage");
         // Inbox calls finish before the registry lock; receipts are never removed, so the match stays valid.
         UUID inboxId = inbox.load().inboxId;
         InboxStore.Receipt receipt = inbox.find(contextId, ImageOffer.carrier(offer.metadata));
@@ -67,6 +71,8 @@ public final class ImageAssociationRegistry {
             for (Record record : current.records)
                 if (record.sameDelivery(candidate) && record.sameBinding(candidate)) return record;
             if (current.records.size() >= MAX_RECORDS) throw new SafeFailure("Registry is full; nothing changed");
+            try { stage.requireReady(stageLocalId, offer); }
+            catch (IOException notReady) { throw new SafeFailure("Stage entry is not a verified match; nothing changed"); }
             List<Record> next = new ArrayList<>(current.records);
             next.add(candidate);
             try { validate(next); }
@@ -74,6 +80,21 @@ public final class ImageAssociationRegistry {
             write(new Snapshot(current.registryId, current.inboxId, next));
             return candidate;
         });
+    }
+
+    /** Runs a stage removal under the registry lock, only if no record references that entry (decision R3). */
+    public synchronized <T> T unlessReferenced(UUID stageLocalId, StageAction<T> action) throws IOException {
+        Objects.requireNonNull(stageLocalId, "stageLocalId");
+        Objects.requireNonNull(action, "action");
+        IOException[] failed = new IOException[1];
+        T result = locked(() -> {
+            for (Record record : read().records)
+                if (record.stageLocalId.equals(stageLocalId)) throw new SafeFailure("Stage entry is referenced by a record; nothing changed");
+            try { return action.run(); }
+            catch (IOException failure) { failed[0] = failure; return null; }
+        });
+        if (failed[0] != null) throw failed[0]; // The action's own failure, unchanged: it may have partly applied.
+        return result;
     }
 
     private <T> T locked(Operation<T> operation) throws IOException {
