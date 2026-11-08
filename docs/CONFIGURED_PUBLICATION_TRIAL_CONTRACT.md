@@ -1,9 +1,11 @@
 # Configured-server metadata trial contract — proposal (#178)
 
-**Status: proposal awaiting explicit owner approval.** Merging this document does
-not approve it. It enables nothing: the loopback guard stays, no code changes, no
-server is contacted. [The gates document](CONFIGURED_PUBLICATION_GATES.md) records
+**Status: approved by the owner on 2026-11-08 (D1–D5).** This document alone enables
+nothing: a separate reviewed implementation PR, a new signed candidate and controls
+1–8 still follow. No server is contacted. [The gates document](CONFIGURED_PUBLICATION_GATES.md) records
 the SDK investigation; this file states the exact policy to approve or change.
+
+**Owner approval recorded 2026-11-08:** the owner explicitly approved all decisions D1–D5 in the conversation, for this document as merged at `fc3b34e`. Approval came from that decision, not from the merge. D5 leaves server permission and details with the owner before any two-phone trial.
 
 ## What the trial is
 

@@ -1,7 +1,7 @@
 # Proposed image association registry v1 — synthetic fixtures
 
 These pin the bytes proposed in `docs/IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md`.
-**The format is not approved.** They contain no real positions, images, accounts
+The owner approved this format on 2026-11-08. They contain no real positions, images, accounts
 or servers; the context uses the reserved `example.invalid` domain.
 
 | File | Bytes | SHA-256 | Content |
