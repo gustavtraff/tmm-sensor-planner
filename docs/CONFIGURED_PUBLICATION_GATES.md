@@ -86,6 +86,9 @@ full build, HTTPS Mission API port/access and a dedicated test feed with known
 roles before the separately authorized two-phone trial. No Android TMM APK needs
 to be installed on that server.
 
+The [trial contract proposal](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md) states the
+exact source, destination and consent policy for owner review.
+
 ## Implementation boundary
 
 Reuse fresh saved-selection checks, metadata encoding, explicit review and honest
