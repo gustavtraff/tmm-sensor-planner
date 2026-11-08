@@ -461,4 +461,4 @@ remain separate review gates.
 
 [The exact private registry proposal](IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md) records
 "association verified for review" using existing receipt and stage identities. It
-is not approved and has no writer. Receipt and container formats remain separate gates.
+was approved by the owner on 2026-11-08 (R1–R4). Receipt and container formats remain separate gates.

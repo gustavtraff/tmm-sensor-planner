@@ -1,10 +1,11 @@
 # Private image association registry v1 — exact format proposal (#26)
 
-**Status: proposal awaiting explicit owner approval.** Merging this document does
-not approve it, and no writer may be built until the owner approves these exact
-bytes (decision H in [the image contract](IMAGE_SHARING_CONTRACT_PROPOSAL.md)).
-It adds a specification, synthetic fixtures and a test-only inspector. No production
-code, store, transport or data-contract change is included.
+**Status: exact bytes approved by the owner on 2026-11-08 (R1–R4), satisfying
+decision H in [the image contract](IMAGE_SHARING_CONTRACT_PROPOSAL.md) for a scoped
+writer.** This approval covers this registry only, not receipts, a container,
+adoption, source authority or transport.
+
+**Owner approval recorded 2026-11-08:** the owner explicitly approved all decisions R1–R4 in the conversation, for this document as merged at `afae71b`. Approval came from that decision, not from the merge.
 
 ## Purpose
 
