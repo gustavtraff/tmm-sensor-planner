@@ -153,4 +153,3 @@ not been run.** They need a signed candidate on standard clients.
 all Data Sync, Mission API and snapshot evidence comes from the lab's 5.8-RELEASE-92.
 That evidence does not transfer. No 5.6 server package is available locally, so the
 first contact with that server must be treated as an untested combination.
-
