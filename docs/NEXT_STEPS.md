@@ -1,37 +1,36 @@
 # Current implementation and next steps — 2026-10-30
 
-## Active sequence — 2026-11-07 (reviewed host updates)
+## Active sequence — 2026-11-08 (signed metadata round trip)
 
-1. [Candidate v27](REVIEWED_HOST_UPDATES.md) adds a separately reviewed, one-use,
-   metadata-only update of an existing host object. It uses public SDK metadata,
-   callsign, refresh/persist APIs rather than reimporting/deleting the MapItem.
-   The fresh private selection and original host instance/export are checked again;
-   geometry/type changes and reported host attachments refuse. This remains a
-   synthetic loopback lab pilot with manual affected-feed consent, not a verified
-   destination API or operational update flow. Complete signed-standard Data Sync
-   and two-client repeat-publication acceptance under #173 before enabling it broadly.
-2. [Candidate v26](SNAPSHOT_INTAKE.md) / #171 connects explicit server feed selection,
-   full snapshot validation, atomic existing-format inbox intake and the existing
-   review/explicit local application components are connected in the guarded lab.
-   The correctly subscribed native-client new-UID control now succeeds; do not
-   repeat the old empty-creator setup or rebuild the inbox/import components.
-3. Native Data Sync publisher -> final SDK v26 receipt/review/Add, repeat Fetch,
-   local-versus-incoming status, Keep Local, Cancel and restart/update controls now
-   pass within [the recorded limits](SNAPSHOT_INTAKE.md#final-v26-native-trial--2026-11-06).
-   Obtain service-signed standard-host v26 and verify its signer/old-state boundary.
-   The v27 metadata-only host-update implementation still needs its actual native
-   Data Sync destination/republication acceptance; geometry updates remain unsupported.
-   Source is authenticated configured
-   logical service plus mission GUID, not an author or complete feed history.
-4. [Candidate v28](CONFIGURED_SNAPSHOT_SOURCE.md) / #175 adds explicit selection
-   of an already connected configured SSL profile and separate HTTPS API port for
-   snapshot intake. Incoming service+GUID identity reuses the approved inbox field;
-   local application remains separately reviewed. Obtain owner-authorized synthetic
-   server/feed details and standard-signed phone evidence before rollout. Host-copy
-   publication and reviewed updates remain loopback-only; operational publish-back
-   still needs its own destination/compatibility verification.
-5. Resume #26 actual image-feed association/adoption after the useful metadata
-   workflow. Contact transfer remains outside the Data Sync-feed goal.
+1. **The signed v28 metadata lab round trip now works.**
+   [Exact standard-client results](SIGNED_V28_METADATA_ROUND_TRIP.md) cover native
+   publication, configured snapshot Fetch, inbox/review/Add, local status edit,
+   existing-host update, native No/retry/OK, original-client Fetch and explicit
+   local conflict decisions. Stable UUID and all 15 incoming fields are checked
+   independently; repeated intake retains variants without duplicate receipts.
+   This is bounded isolated-lab acceptance, not operational rollout.
+2. **Next product gate: #178, a reviewed configured-server publication trial.**
+   Receive can select an already connected configured SSL source; host-copy creation
+   and updates still require loopback/offline lab conditions. Define and review the
+   source/destination/operator policy before removing that restriction. Native
+   existing-item updates can prompt even when Auto-publish *new* content is off.
+   Do not promise a single feed or native Done boundary. Keep #171/#25 open for the
+   real user/server workflow and separately authorized physical two-phone trial.
+3. **Confirm the actual environment before that trial.** Obtain server-owner
+   permission, software/full build, HTTPS Mission API port/access and a dedicated
+   synthetic feed with known read/write roles. Record both phones' exact ATAK,
+   Android, TMM and Data Sync builds. No Android TMM APK is installed on the server.
+4. **Retain the bounded receive meaning.** The source is configured logical service
+   plus mission GUID and current accessible UID payload, not author identity,
+   complete history, per-feed independent versions or a continuous permission lease.
+   Native importer/logger hints are not silently adopted as trusted feed ingress.
+5. **Then extend shared geometry and #26 image delivery.** Existing reviewed updates
+   support metadata only and refuse type/position/bearing changes and reported host
+   attachments. Images remain local; hash-valid stage/content groundwork does not
+   provide feed association, adoption or delivery acknowledgment.
+
+The same returned signed v28 remains the runtime candidate for this evidence-only
+update. Documentation changes do not require another signing submission.
 
 [The current backlog](BACKLOG.md) distinguishes implemented local features from
 remaining acceptance and external evidence. The older dated sections below are

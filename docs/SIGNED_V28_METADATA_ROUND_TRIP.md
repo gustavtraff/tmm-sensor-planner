@@ -158,3 +158,50 @@ are unchanged. The local edit timestamp advances by the approved selected-field
 import contract; it is not relabelled as the remote author's timestamp. The exact
 remote variant remains intact in the inbox. No private application republishes:
 server metadata still matches A's earlier Deployed payload exactly.
+
+## Second native update and repeat intake
+
+B then makes a genuine new local Active/r3 edit. Its existing host copy is observed
+as Deployed/r2 before the new review, corroborating the received shared-object
+state without treating that native observation as the trusted inbox source.
+After fresh affected-feed consent, the SDK update again opens native Publish
+Content to Feeds for only the selected feed. Before native OK the server still
+matches A's earlier Deployed variant; after OK it matches all 15 fields of B's
+actual saved Active record. One stable UUID remains in the selected feed, zero in
+the other five. Private files are unchanged by host update/native publication.
+
+B Fetches the new server snapshot and repeats it identically. Independent inbox
+readback verifies both exact Deployed and Active variants for the target, unchanged
+logical source/inbox identity, and retention of all original receipt IDs. No previous
+variant is erased. The identical repeat leaves all four current private/inbox files
+byte-identical; it adds neither a duplicate receipt nor a new observation.
+
+## Source loss, explicit recovery and final artifact
+
+Stopping only the owned relay causes the actual standard client to display source
+access cancelled. All four private/inbox files remain byte-identical. After the
+relay restarts, receipt history remains readable but actual import preparation
+refuses without source access; reconnection does not silently authorize the old
+review. A new explicit profile/feed Fetch succeeds and deduplicates with every
+file still byte-identical.
+
+The actually installed B APK is read back and matches the returned service APK
+SHA-256 above. A final normal ATAK cold start preserves all four files, including
+the Active private state, both incoming variants and both local decisions. No
+uninstall, data clear, signer bypass or transport workaround is used.
+
+## Scope and checks
+
+This is a bounded completed metadata-only update-path trial on the recorded
+standard combination. Type/position/bearing updates and reported host attachments
+still refuse; no image sharing, physical-phone test or operational-server sharing
+is enabled. #171/#25 and the concrete configured-publication gate #178 remain.
+Native prompt behavior depends on the recorded preferences; TMM does not claim to
+validate all future native destinations or return a remote delivery acknowledgment.
+
+No product/domain/build input changed for this evidence. The current APK boundary
+checker and actual signature checks were run; independent current-core helpers
+were compiled to verify captured frames, receipt identity/variants and every exact
+metadata field. Full unchanged core/image/SDK build suites were not redundantly
+rerun or relabelled as new acceptance. Required CI on the documentation PR remains
+mandatory. No raw profile, key, account, server package, image or capture is committed.
