@@ -456,3 +456,9 @@ approved this exact stage-v1 layout after PR #143; the decision is recorded on
 2026-11-04. [The scoped writer](IMAGE_STAGE_STORAGE.md) implements unassociated
 staging only. Source/association/receipt registries, cleanup/adoption and transport
 remain separate review gates.
+
+## Association registry proposal — 2026-11-08
+
+[The exact private registry proposal](IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md) records
+"association verified for review" using existing receipt and stage identities. It
+is not approved and has no writer. Receipt and container formats remain separate gates.
