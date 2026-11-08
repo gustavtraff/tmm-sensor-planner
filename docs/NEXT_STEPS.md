@@ -111,8 +111,9 @@ than treating all candidate/device verification as a reason to reopen fixed bugs
   access-return-before-callback timing was not forced in the v21 native run; the
   deterministic tests and pending-confirmation native cases remain distinct.
 - **Local UI:** #12/#52/#66/#67 retain targeted physical/accessibility/lifecycle
-  follow-ups: TalkBack, active picker/viewer Unload, exact rotated-map selection and
-  applicable phone-size detail/gesture cases. Most feature code is implemented;
+  follow-ups: TalkBack, exact rotated-map selection and applicable phone-size
+  detail/gesture cases. Active picker/viewer Unload passed on an emulator, once, in the
+  [2026-11-08 record](LOCAL_ACCEPTANCE_PLAN.md#execution-record--2026-11-08). Most feature code is implemented;
   do not describe MGRS, 6400-mil entry or the 1920-image viewer as missing features.
 - **Provenance/governance:** original SDK archive/source/terms evidence (#2), license /
   contribution/distribution and authoritative-owner review decisions (#55) require

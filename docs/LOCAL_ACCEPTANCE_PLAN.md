@@ -1,7 +1,8 @@
 # Offline lifecycle and rotated-map acceptance preparation — 2026-10-25
 
-Tracking: #12, #52 and #66; supporting A02/A05/N02/N08. **Preparation only:
-all runtime cases below are NOT RUN.** The owner requested preparation without
+Tracking: #12, #52 and #66; supporting A02/A05/N02/N08. **L01–L07 were later run
+on signed v28; see [the execution record](#execution-record--2026-11-08). L08/L09
+remain NOT RUN.** The original preparation text follows. The owner requested preparation without
 starting another emulator while the parallel #25 agent uses the two-client lab.
 No emulator, Docker service, Gradle build or local unit suite was started for this
 preparation. Existing lab clients, tunnels, profiles and containers were not changed.
@@ -68,13 +69,13 @@ Do not infer bitmap release or a leak-free heap solely from a dismissed window.
 
 | ID | Procedure | Required observation | Status |
 |---|---|---|---|
-| L01 | Open the saved image, zoom/pan/Fit, then Close; repeat with Android Back | Return normally; saved snapshot, owned PNG and original source bytes unchanged | NOT RUN |
-| L02 | Choose the replacement, enlarge its pending preview, then Back/Close; cancel the preview | Inspection returns to the same explicit Save/Cancel preview; Cancel keeps the previous image/reference and removes only the uncommitted copy | NOT RUN |
-| L03 | Keep the saved-image viewer active and unload through the host Plugin Manager | Viewer and TMM tools close; no stale viewer reappears; reload restores tools once and the original saved image | NOT RUN |
-| L04 | Keep DocumentsUI active, unload TMM, then return Cancel; repeat with a selected synthetic file if the route permits | Late picker results cannot create a preview or commit after Unload; saved fields/image remain unchanged | NOT RUN |
-| L05 | Keep an unconfirmed replacement preview, or its enlarged viewer, active and unload | No implicit Save; pending work settles without deleting the saved image or reopening dialogs; reload/restart preserves the baseline | NOT RUN |
-| L06 | Edit ID/owner/comment and a PIR bearing without saving; open map selection, pan, then Cancel; repeat with Back | Same unsaved form values and original accepted position return; storage remains unchanged. Cancelling the whole form then discards those edits | NOT RUN |
-| L07 | Keep map selection active over an unsaved form and unload | Sight, controls and hidden editor are disposed; no late editor returns; reload/restart preserves saved data and registers each tool once | NOT RUN |
+| L01 | Open the saved image, zoom/pan/Fit, then Close; repeat with Android Back | Return normally; saved snapshot, owned PNG and original source bytes unchanged | PASS, 2026-11-08; zoom by buttons |
+| L02 | Choose the replacement, enlarge its pending preview, then Back/Close; cancel the preview | Inspection returns to the same explicit Save/Cancel preview; Cancel keeps the previous image/reference and removes only the uncommitted copy | PASS, 2026-11-08 |
+| L03 | Keep the saved-image viewer active and unload through the host Plugin Manager | Viewer and TMM tools close; no stale viewer reappears; reload restores tools once and the original saved image | PASS, 2026-11-08; lab route |
+| L04 | Keep DocumentsUI active, unload TMM, then return Cancel; repeat with a selected synthetic file if the route permits | Late picker results cannot create a preview or commit after Unload; saved fields/image remain unchanged | PASS, 2026-11-08; lab route, both variants |
+| L05 | Keep an unconfirmed replacement preview, or its enlarged viewer, active and unload | No implicit Save; pending work settles without deleting the saved image or reopening dialogs; reload/restart preserves the baseline | PASS, 2026-11-08; lab route, preview only |
+| L06 | Edit ID/owner/comment and a PIR bearing without saving; open map selection, pan, then Cancel; repeat with Back | Same unsaved form values and original accepted position return; storage remains unchanged. Cancelling the whole form then discards those edits | PASS, 2026-11-08; ID field only, Scout |
+| L07 | Keep map selection active over an unsaved form and unload | Sight, controls and hidden editor are disposed; no late editor returns; reload/restart preserves saved data and registers each tool once | PASS, 2026-11-08; lab route |
 | L08 | Repeat map selection at actual map headings 0°, 90°, 180° and 270°; pan/zoom and cancel at each heading | Sight tracks the selected map location; Cancel preserves form/storage, without confusing map heading with device orientation or bearing | NOT RUN |
 | L09 | At a verified rotated heading, choose Use position; inspect storage before Save, then explicitly Save once | Use alone changes only the form. Save preserves UUID/createdAt/image/unrelated fields, advances revision once and stores the selected position; reopen/restart agrees | NOT RUN |
 
@@ -105,7 +106,54 @@ relate the sight and selected point. A displayed one-meter MGRS cell alone canno
 prove exact floating-point camera coordinates; state that precision limitation if
 exact center readback is unavailable. Do not introduce a guessed ATAK rotation API.
 
-## Execution record to complete later
+## Execution record — 2026-11-08
+
+Run 22:14–22:35 CET by an agent, on one task-owned emulator. No Docker, server,
+tunnel or phone was used. Guest IPv4/IPv6 egress was loopback-only, with airplane
+mode on and Wi-Fi and data off. The guest has been stopped and its AVD copy removed.
+
+| Field | Value |
+|---|---|
+| TMM | Service-signed v28, `0.1.0-configured-receive-trial.1`; installed APK SHA-256 `35e2727b493b0d6273aa5449a1120c86e96ce198ea41a0d60d21b6f0090c2cd6` |
+| Host | Standard ATAK-CIV 5.6.0.25 (238484ee) |
+| Guest | Android 15 / API 35 arm64 AOSP emulator image, Emulator 37.2.12, 1536 MiB, 720×1280 at 240 dpi override, shown landscape |
+| Starting data | 22 synthetic drafts, one with an owned PNG; `drafts.bin` SHA-256 `c18879892d62634dd6a4b116b43e483fd1b6206bfa819114219145afdaba76d5` |
+
+**Deviations from this plan.** The candidate is v28, the current signed build, not
+v15. The guest is a private copy of the retained signed client, not an empty AVD,
+so the synthetic baseline was inherited rather than created through the forms. The
+retained AVD itself was not started or changed.
+
+**Plugin Manager route.** `AppMgmtActivity` is non-exported, so it was opened with
+`am start` from the emulator's root shell. This is a lab-only route, not a field-user
+path. Unload and Load then used the host's normal row and confirmation dialog.
+For L03, L04, L05 and L07 the target window was confirmed active immediately before
+that navigation, through `dumpsys window` and, for the picker, the focused activity.
+
+| Case | Observed |
+|---|---|
+| L01 | Zoom in, zoom out, Fit, Close and Android Back all returned to the same review |
+| L02 | Enlarged pending preview returned to the same Save/Cancel preview through Close and Back; Cancel removed the uncommitted copy |
+| L03 | Viewer and review closed; ATAK windows went from three to one on return. Reload listed 22 drafts and reopened the saved image |
+| L04 | With DocumentsUI active, Unload then Back returned to ATAK with no preview. In the second variant, a synthetic file selected **after** Unload created no preview or copy |
+| L05 | Pending preview closed without an implicit Save. The uncommitted copy was removed after Unload |
+| L06 | Unsaved ID text survived map-selection Cancel and Back, with the accepted position unchanged. Cancelling the whole form discarded it |
+| L07 | Sight, controls and hidden editor were disposed. No editor returned |
+
+After every case, all five private TMM files (drafts, inbox, their locks, the owned
+PNG) matched the starting SHA-256 values, apart from L02 and L05's expected temporary
+copy while its preview was open. After L05 they still matched after settling, after
+reload and after a force-stop and cold ATAK start, when the 22 drafts, the map and
+the saved image were again available. The crash log stayed empty for the whole run.
+
+**Not covered.** L08 and L09 need actual map headings. `adb input` offers no verified
+two-finger rotation and this plan forbids guessing a rotation API. L05's enlarged-viewer
+variant, L06's owner, comment and PIR-bearing fields, and pinch gestures were not
+run. Each case ran once, on an emulator. A force-stop is not a phone restart. This
+does not cover physical phones, TalkBack, OEM picker apps or memory pressure, and it
+says nothing about a leak-free heap.
+
+## Execution record template
 
 For each case record: date/time/timezone, exact candidate/host/Android versions,
 starting baseline hash, actions and actual heading/viewport, outcome
