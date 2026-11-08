@@ -16,9 +16,9 @@ and limited to a 1,920-pixel longest side; original files remain untouched.
 |---|---|
 | Public CI | Java core/storage, auth/archive/fixture checks and separate Android helper/UI tests and lint; no private ATAK SDK |
 | SDK development | Local 5.6.0.24 build/lint and bounded developer-host emulator results |
-| Signed standard client | [Signed v23](docs/SIGNED_V23_SOURCE_VERIFICATION.md) passed in-place standard ATAK-CIV 5.6.0.25 loading and bounded source tests; [v21](docs/SIGNED_V21_VERIFICATION.md) records storage/image/restart acceptance. These do not prove the newer receive/update candidates |
+| Signed standard client | [Signed v28](docs/SIGNED_V28_METADATA_ROUND_TRIP.md) verifies in-place updates and the bounded two-client metadata publish/Fetch/review/local-edit/native-republication/return path on ATAK-CIV 5.6.0.25; current host publication remains loopback-only |
 | Physical phone | [Owner-reported signed-v15 offline acceptance](docs/PHONE_ACCEPTANCE.md) includes camera images, restored markers, MGRS, map placement, bearing and device details; newer sharing candidates still need phone acceptance |
-| Connected use | [Signed v20 connected privacy](docs/CONNECTED_SIGNED20_VERIFICATION.md) has bounded two-client evidence. [v28 explicit snapshot intake](docs/CONFIGURED_SNAPSHOT_SOURCE.md) has developer-host evidence; signed-standard and actual-server acceptance remain open |
+| Connected use | [Signed v20 connected privacy](docs/CONNECTED_SIGNED20_VERIFICATION.md) has bounded two-client evidence. [v28 explicit snapshot intake](docs/CONFIGURED_SNAPSHOT_SOURCE.md) now has signed-standard round-trip evidence; actual-server/phone rollout remains open |
 
 Use synthetic data. Offline is the default; connected testing requires the separate
 isolated procedure and explicit session consent linked above.
