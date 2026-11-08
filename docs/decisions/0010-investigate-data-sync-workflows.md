@@ -3,6 +3,8 @@
 Status: proposed for human review; investigation only.
 Date: 2026-10-23. Tracking: #25, #4/#7, #14/#15.
 
+The later owner-approved receive-only choice is recorded in [ADR 0012](0012-explicit-mission-snapshot-intake.md). This historical publishing investigation is not relabelled as a direct REST publishing approval.
+
 ## Context
 
 The owner confirms an existing working Data Sync/8S server and wants TMM to use
