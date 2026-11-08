@@ -164,4 +164,3 @@ idempotent repeats, a second delivery, identity conflicts, stage reuse, missing
 receipts, wrong inbox, failed atomic replacement, future versions left unrewritten,
 reopen through a new instance, and the 256-record and context limits. No SDK build,
 emulator, phone or server was involved.
-
