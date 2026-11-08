@@ -5,7 +5,7 @@ decision H in [the image contract](IMAGE_SHARING_CONTRACT_PROPOSAL.md) for a sco
 writer.** This approval covers this registry only, not receipts, a container,
 adoption, source authority or transport.
 
-**Owner approval recorded 2026-11-08:** the owner explicitly approved all decisions R1–R4 in the conversation, for this document as merged at `afae71b`. Approval came from that decision, not from the merge. 
+**Owner approval recorded 2026-11-08:** the owner explicitly approved all decisions R1–R4 in the conversation, for this document as merged at `afae71b`. Approval came from that decision, not from the merge.
 
 ## Purpose
 
