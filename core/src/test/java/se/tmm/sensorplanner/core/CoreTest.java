@@ -19,7 +19,45 @@ public final class CoreTest {
         geographicDistances();
         neighbors();
         statusFilteredNeighbors();
+        configuredTrial();
         System.out.println("Core tests passed (validation, manual IDs, edits, bearing and filtered distances).");
+    }
+
+    private static void configuredTrial() {
+        boolean[] all = {true, true, true, true};
+        String selected = "ssl://tak.example.invalid:8089";
+        ConfiguredPublicationTrial.Stream ok = new ConfiguredPublicationTrial.Stream(true, true, selected);
+        ConfiguredPublicationTrial.Stream off = new ConfiguredPublicationTrial.Stream(false, false, "ssl://other.example.invalid:8089");
+        ConfiguredPublicationTrial trial = new ConfiguredPublicationTrial();
+        assert !trial.allows(Arrays.asList(ok), true) : "no consent, no access";
+        for (boolean[] bad : new boolean[][]{{true, true, true, false}, {true, true, true}, null}) {
+            rejects(() -> trial.begin(selected, bad));
+            assert !trial.live();
+        }
+        rejects(() -> trial.begin("", all));
+        trial.begin(selected, all);
+        assert trial.allows(Arrays.asList(ok, off), true) : "disabled streams do not count";
+        Object[][] refusals = {
+                {Arrays.asList(new ConfiguredPublicationTrial.Stream(true, false, selected)), true},
+                {Arrays.asList(new ConfiguredPublicationTrial.Stream(true, true, "ssl://other.example.invalid:8089")), true},
+                {Arrays.asList(ok, new ConfiguredPublicationTrial.Stream(true, true, "ssl://other.example.invalid:8089")), true},
+                {Arrays.asList(ok, ok), true},
+                {Collections.emptyList(), true},
+                {Arrays.asList(off), true},
+                {Arrays.asList(ok, null), true},
+                {null, true},
+                {Arrays.asList(ok), false}};
+        for (Object[] refusal : refusals) {
+            ConfiguredPublicationTrial session = new ConfiguredPublicationTrial();
+            session.begin(selected, all);
+            @SuppressWarnings("unchecked")
+            Iterable<ConfiguredPublicationTrial.Stream> streams = (Iterable<ConfiguredPublicationTrial.Stream>) refusal[0];
+            assert !session.allows(streams, (Boolean) refusal[1]);
+            assert !session.live() : "a failed check ends consent";
+            assert !session.allows(Arrays.asList(ok), true) : "consent never resumes";
+        }
+        trial.end();
+        assert !trial.live() && !trial.allows(Arrays.asList(ok), true);
     }
 
     private static void validation() {
