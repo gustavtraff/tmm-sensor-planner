@@ -158,8 +158,11 @@ synthetic draft got SDK result SUCCESS and a verified host copy, and an existing
 copy with a deviating state was refused unchanged. Closing the result kept consent.
 With the connection down the trial reported no connected server. After a disconnect
 and reconnect between checks it asked for consent again. No crash was logged. This
-does not satisfy any of controls 1–8, which need the signed candidate on standard
-clients, and it did not include native publication or a non-loopback server.
+also refused the trial with the only stream disabled and with a second enabled
+stream. Unload then Load, and a force-stop then cold start, each required consent
+again. This does not satisfy any of controls 1–8, which need the signed candidate
+on standard clients, and it did not include native publication or a non-loopback
+server.
 
 **Server version gap.** The owner's server reports a TAK Server **5.6** release, while
 all Data Sync, Mission API and snapshot evidence comes from the lab's 5.8-RELEASE-92.
