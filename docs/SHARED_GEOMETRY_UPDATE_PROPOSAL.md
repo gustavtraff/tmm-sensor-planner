@@ -28,8 +28,10 @@ on the feed.
 Position exists in **two places** on a published item: the outer point of the map
 item and the exact values inside the `tmmPublication` payload. The current path
 writes only the payload and requires the outer point to be unchanged. Updating one
-without the other would publish a device in two different places, depending on who
-reads which field. Bearing exists only in the payload, so it carries much less risk.
+without the other would show native ATAK users one place while the payload says
+another, and `PublicationCot.read` would then refuse the event, because it requires
+the outer point to equal the rounded payload position. Bearing exists only in the
+payload, so it carries much less risk.
 
 ## Static SDK check — 2026-11-09
 
@@ -55,7 +57,7 @@ Isolated lab, synthetic data, two standard clients, one emulator at a time.
 | 3 | Receiver behavior | The other client's inbox shows a new variant. Position changes only after an explicit selected-field choice |
 | 4 | Partial write | A failure between the point and payload writes is reported as uncertain, with no rollback claim |
 | 5 | Native drag | If a user drags the published marker in ATAK, the mismatch with the payload is detected and refused |
-| 6 | Rounding | The outer point's SDK rounding is measured, and the comparison tolerance comes from that measurement |
+| 6 | Rounding | `setPoint` followed by export yields exactly the rounded value `PublicationCot.read` requires |
 | 7 | Bearing | A bearing-only update changes the payload and leaves the outer point unchanged |
 | 8 | Server version | Controls 1–3 are repeated on the target 5.6 server, or the gap is stated |
 
