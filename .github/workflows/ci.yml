@@ -49,6 +49,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: Check Gradle wrapper against the published checksum
+        run: |
+          version=$(sed -n 's#.*/gradle-\(.*\)-bin\.zip#\1#p' gradle/wrapper/gradle-wrapper.properties)
+          expected=$(curl -fsSL "https://services.gradle.org/distributions/gradle-$version-wrapper.jar.sha256")
+          echo "$expected  gradle/wrapper/gradle-wrapper.jar" | sha256sum -c -
       - name: Set up public Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
         with:
