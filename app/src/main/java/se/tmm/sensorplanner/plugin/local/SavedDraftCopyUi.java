@@ -152,7 +152,7 @@ public final class SavedDraftCopyUi {
                         "Nej i Data Sync-frågan ångrar inte SDK-ändringen. Okända destinationer är inte godkända. Endast syntetiska data."));
         body.addView(text);
         CheckBox consent = new CheckBox(context); consent.setText(mode("Jag har kontrollerat berörda labbfeeds och godkänner uppdateringens möjliga publicering dit.", "Jag har kontrollerat testfeeden och godkänner uppdateringens möjliga publicering dit."));
-        consent.setMinHeight(64); body.addView(consent);
+        consent.setMinHeight(Math.round(48 * context.getResources().getDisplayMetrics().density)); body.addView(consent);
         ScrollView scroll = new ScrollView(context); scroll.addView(body);
         AlertDialog next = new AlertDialog.Builder(context).setTitle(mode("Granska befintlig uppdatering · labb", "Granska befintlig uppdatering · serverprov")).setView(scroll)
                 .setNegativeButton("Avbryt", (d,w)->cancel()).setPositiveButton("Uppdatera kartkopian", null).create();
