@@ -154,6 +154,24 @@ run. Each case ran once, on an emulator. A force-stop is not a phone restart. Th
 does not cover physical phones, TalkBack, OEM picker apps or memory pressure, and it
 says nothing about a leak-free heap.
 
+## Additional emulator observations — 2026-11-09
+
+Debug build of candidate 29 on the 5.6.0.24 SDK host, Android 15 API 35, one run each.
+
+- **Malformed grids (#52).** Eight inputs were entered on an existing synthetic draft:
+  wrong precision, odd digits, invalid zone, invalid band, invalid square, empty,
+  free text and trailing digits. Save left the form open each time, and after Cancel
+  the draft was still at revision 1. The inline error text was not captured, because
+  the UI dump does not expose Android's error popup.
+- **Touch targets (#12).** A UI dump at density 160 measured the list, details, edit,
+  source choice, consent and inbox screens. The only finding was that form text fields
+  were 40 dp. After the correction in #187 they measure 48 dp.
+- **Rotated map, still open.** Two-finger pinch and rotate written to the emulator's
+  multi-touch device with `sendevent` had no visible map effect. L08 and L09 remain
+  not run, and no ATAK rotation API was guessed.
+
+These do not change the "not covered" list above for physical phones or TalkBack.
+
 ## Execution record template
 
 For each case record: date/time/timezone, exact candidate/host/Android versions,

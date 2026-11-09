@@ -9,24 +9,24 @@
    local conflict decisions. Stable UUID and all 15 incoming fields are checked
    independently; repeated intake retains variants without duplicate receipts.
    This is bounded isolated-lab acceptance, not operational rollout.
-2. **Next product gate: #178, a reviewed configured-server publication trial.**
-   Receive can select an already connected configured SSL source; host-copy creation
-   and updates still require loopback/offline lab conditions. Define and review the
-   source/destination/operator policy before removing that restriction. Native
-   existing-item updates can prompt even when Auto-publish *new* content is off.
-   Do not promise a single feed or native Done boundary. Keep #171/#25 open for the
-   real user/server workflow and separately authorized physical two-phone trial.
-   The owner-approved [trial contract](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md) is
-   implemented in candidate 29; it needs signing, then controls 1–8.
-3. **Confirm the actual environment before that trial.** Obtain server-owner
-   permission, software/full build, HTTPS Mission API port/access and a dedicated
+2. **Next product gate: #178, the configured-server publication trial.** The owner
+   approved [the trial contract](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md) on
+   2026-11-08 and candidate 29 implements it. Controls 1–8 need the signed candidate
+   on isolated standard clients. Native existing-item updates can prompt even when
+   Auto-publish *new* content is off, so do not promise a single feed or native Done
+   boundary. Keep #171/#25 open for the real user/server workflow and the separately
+   authorized physical two-phone trial.
+3. **Confirm the actual environment before that trial.** The target server reports a
+   TAK Server 5.6 release, while all feed evidence comes from 5.8-RELEASE-92, so the
+   first contact is an untested combination. Obtain server-owner
+   permission, full build, HTTPS Mission API port/access and a dedicated
    synthetic feed with known read/write roles. Record both phones' exact ATAK,
    Android, TMM and Data Sync builds. No Android TMM APK is installed on the server.
 4. **Retain the bounded receive meaning.** The source is configured logical service
    plus mission GUID and current accessible UID payload, not author identity,
    complete history, per-feed independent versions or a continuous permission lease.
    Native importer/logger hints are not silently adopted as trusted feed ingress.
-5. **Then extend shared geometry and #26 image delivery.** The approved private
+5. **Then extend shared geometry ([proposal](SHARED_GEOMETRY_UPDATE_PROPOSAL.md)) and #26 image delivery.** The approved private
    [association registry](IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md) now exists without a caller. Existing reviewed updates
    support metadata only and refuse type/position/bearing changes and reported host
    attachments. Images remain local; hash-valid stage/content groundwork does not

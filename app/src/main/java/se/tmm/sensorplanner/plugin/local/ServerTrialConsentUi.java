@@ -68,7 +68,7 @@ public final class ServerTrialConsentUi {
         for (String statement : STATEMENTS) {
             CheckBox box = new CheckBox(context);
             box.setText(statement);
-            box.setMinHeight(64);
+            box.setMinHeight(Math.round(48 * context.getResources().getDisplayMetrics().density));
             boxes.add(box);
             body.addView(box);
         }
