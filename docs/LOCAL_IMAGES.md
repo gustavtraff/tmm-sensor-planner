@@ -1,5 +1,9 @@
 # Local images in the offline planner
 
+The inactive [received-owned-image preparation](RECEIVED_OWNED_IMAGE.md) adds exact
+copies of already verified PNGs without changing ordinary input limits or enabling
+image adoption/sharing in this UI.
+
 Issue: [#13](https://github.com/gustavtraff/tmm-sensor-planner/issues/13), F09/A05.
 Integration: [#35](https://github.com/gustavtraff/tmm-sensor-planner/issues/35).
 Phone-photo correction: [#49](https://github.com/gustavtraff/tmm-sensor-planner/issues/49).
