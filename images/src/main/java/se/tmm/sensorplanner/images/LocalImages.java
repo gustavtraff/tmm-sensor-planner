@@ -40,6 +40,33 @@ public final class LocalImages {
         } catch (OutOfMemoryError e) {
             throw new ImagePreparationException(ImagePreparationException.Reason.LOW_MEMORY);
         }
+        return stage(normalized);
+    }
+
+    /**
+     * Prepare a new byte-identical owned copy, not an adoption decision. The caller still needs verified
+     * source/association, current-state review and a recoverable transaction before Pending.commit.
+     */
+    public Pending prepareReceived(ImageTransferPng.VerifiedContent verified) throws IOException {
+        Objects.requireNonNull(verified, "verified");
+        Pending pending = null;
+        boolean ready = false;
+        try {
+            byte[] exact = verified.bytes();
+            pending = stage(exact);
+            if (!java.util.Arrays.equals(exact, pending.preview())) {
+                throw new ImagePreparationException(ImagePreparationException.Reason.SAVE_FAILED);
+            }
+            ready = true;
+            return pending;
+        } catch (OutOfMemoryError exhausted) {
+            throw new ImagePreparationException(ImagePreparationException.Reason.LOW_MEMORY);
+        } finally {
+            if (!ready && pending != null) pending.close();
+        }
+    }
+
+    private Pending stage(byte[] normalized) throws IOException {
         try {
             Files.createDirectories(directory);
         } catch (IOException failure) {
