@@ -1,5 +1,39 @@
 # Current implementation and next steps — 2026-10-30
 
+## Owner-prioritized image delivery — 2026-11-10
+
+The owner prioritizes #26 for an exercise in about 1.5 weeks. This is a delivery
+target, not a tested date commitment. Metadata round-trip groundwork remains
+available; do not rebuild it or postpone images behind optional geometry/UI work.
+
+- #193 / PR #194 implements frozen sender preparation with exact owned-byte,
+  local-state and destination freshness checks. No image sender/UI is activated.
+- #197 / PR #198 implements byte-identical verified-PNG owned-copy preparation,
+  including real 1920-edge content over the unchanged 10 MiB source cap. It is not
+  an adoption transaction and has no UI/ingress caller.
+- [The native container trial](IMAGE_CONTAINER_NATIVE_TRIAL.md) verifies a 6.2 MB
+  file source → selected Data Sync feed → actual server → actual recipient,
+  cancellation and restart. Both standard clients load signed v29 and retain
+  private state. #178 configured-publication controls 1–8 remain open.
+
+Next implementation sequence:
+
+1. Obtain explicit C1–C3 approval of [the exact container](IMAGE_CONTAINER_FORMAT_PROPOSAL.md),
+   then implement its bounded stream codec against the independent goldens.
+2. Review and implement the selected-feed resource receive boundary, binding the
+   authorized source and exact metadata M to the existing inbox/stage/registry.
+   Native file paths or importer hints do not provide that authority.
+3. Review the exact recoverable image-adoption transaction/history format before
+   its writer, then connect explicit current-state image preview/replace/keep UI.
+4. Resolve image-specific final-handoff freshness (a manual frozen-snapshot pilot
+   requires separate approval), integrate the sender/receiver, sign the resulting
+   UI candidate and run the full two-client path before the authorized phone trial.
+
+Optional outbound receipts remain separate and disabled; absence of a receipt
+must not prevent honest local verification, but it prevents a delivery claim.
+The actual TAK Server 5.6 and physical-phone combination remains untested. This
+work is not permission for operational images, feeds or server access.
+
 ## Active sequence — 2026-11-08 (signed metadata round trip)
 
 1. **The signed v28 metadata lab round trip now works.**
