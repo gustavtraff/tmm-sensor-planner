@@ -92,6 +92,19 @@ is not a product failure or evidence of concurrent-client execution.
   embedded PNG byte-identically through private write/readback/reopen in that
   test. This is host test execution, not adoption by the signed ATAK plugin.
 
+## Local deletion and retained server content
+
+B's file-row **Actions → Delete** first offers Replace/Delete, then a separate
+dialog with **Delete local content** and **Delete from server**. The test explicitly
+checks local content and unchecks server deletion before confirming. The actual
+downloaded file disappears and the Files row returns to **Available**.
+Independent reads still find exactly one target member and one resource row with
+the original bytes; the five comparison feeds still have zero matches. Local
+delete is not remote withdrawal or secure erasure of every possible cached copy.
+A fresh explicit Download/OK returns the same actual bytes again. The target
+keeps one matching member and the server one matching resource row, without
+creating a duplicate delivery claim or changing private TMM state.
+
 ## Remaining product gates
 
 The exact container still needs owner decisions C1–C3 before a production codec.
@@ -110,6 +123,6 @@ REST publisher or private Data Sync API is introduced as a workaround.
 
 This bounded loopback result does not prove target TAK Server 5.6 compatibility,
 physical two-phone behavior, arbitrary network failures, the 16 MiB maximum,
-native local-delete semantics or remote withdrawal for this container. Existing
+or remote withdrawal for this container. Existing
 [PNG lifecycle evidence](DATA_SYNC_IMAGE_FEED_TRIAL.md) remains separate. Keep #26
 open. Generated images, raw UI, exact private state and server data stay outside Git.
