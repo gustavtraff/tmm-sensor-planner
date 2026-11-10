@@ -16,6 +16,11 @@ now records actual standard-client native File Select, cancellation, chosen-feed
 membership and byte-identical generated Full HD PNG storage/reception. This narrows
 the transport uncertainty; it does not approve a TMM container, trusted association,
 receipt or product HTTP adapter, and does not activate image sharing.
+
+**Sender preparation, 2026-11-10:** the inactive
+[frozen image publication review](IMAGE_PUBLICATION_REVIEW.md) now joins actual
+owned bytes, sanitized preview, exact metadata and one-shot current-state /
+destination confirmation. No new container, transport or sharing UI is enabled.
 Baseline: main `b37a1ef` (#117), including the approved #14 metadata profile and
 #15 import/local-state contracts. This work does not use the lab or change signing;
 agent 1 retains emulator and signed-v20 verification. F09/F10/F11/F12, N02/N03/N06.
