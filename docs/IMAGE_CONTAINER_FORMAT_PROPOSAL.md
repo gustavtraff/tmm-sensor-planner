@@ -19,6 +19,11 @@ content type. Neither identifies the device, supplies source authority or select
 a destination. A filename may change without changing any binding. If the native
 route refuses the type, do not silently rename it to PNG or add another route.
 
+**Native follow-up, 2026-11-10:** the [isolated standard-client trial](IMAGE_CONTAINER_NATIVE_TRIAL.md)
+now verifies a 6.2 MB `.tmmi` file, sender/recipient Cancel, chosen-feed membership,
+actual server/recipient byte equality and host restart. This narrows transport
+uncertainty without approving the format, source mapping or adoption.
+
 ## Exact bytes
 
 Integers are big-endian, four-byte nonnegative values checked against these bounds
