@@ -255,3 +255,11 @@ existing registry/receipt/local snapshots and reverify the selected actual stage
 pair. They introduce no persisted or wire fields, migration, new source authority,
 local image adoption or active UI/transport caller. Historical associations remain
 separate from current local metadata and unavailable links remain explicit.
+
+
+## Selected-feed image intake — 2026-11-12 (#206)
+
+[The bounded image reader and intake backend](SELECTED_FEED_IMAGE_INTAKE.md) use
+existing container, metadata receipt, stage and association formats. Observed image
+metadata is retained separately from active local drafts. No migration, image
+adoption, receipt format or source authority from arbitrary picked files is added.
