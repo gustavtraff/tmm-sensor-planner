@@ -1,40 +1,49 @@
-# Current implementation and next steps — 2026-10-30
+# Current implementation and next steps — 2026-11-12
 
-## Owner-prioritized image delivery — 2026-11-10
+## Owner-prioritized image delivery — 2026-11-12
 
-The owner prioritizes #26 for an exercise in about 1.5 weeks. This is a delivery
-target, not a tested date commitment. Metadata round-trip groundwork remains
-available; do not rebuild it or postpone images behind optional geometry/UI work.
+The owner prioritizes #26 for an exercise. This is a delivery target, not a tested
+date commitment. Metadata round-trip groundwork remains available; do not rebuild
+it or postpone images behind optional geometry/UI work.
 
-- #193 / PR #194 implements frozen sender preparation with exact owned-byte,
-  local-state and destination freshness checks. No image sender/UI is activated.
-- #197 / PR #198 implements byte-identical verified-PNG owned-copy preparation,
-  including real 1920-edge content over the unchanged 10 MiB source cap. It is not
-  an adoption transaction and has no UI/ingress caller.
-- [The native container trial](IMAGE_CONTAINER_NATIVE_TRIAL.md) verifies a 6.2 MB
-  file source → selected Data Sync feed → actual server → actual recipient,
-  cancellation and restart. Both standard clients load signed v29 and retain
-  private state. #178 configured-publication controls 1–8 remain open.
+- Frozen sender preparation and byte-identical verified-PNG owned-copy preparation
+  already exist (PRs #194/#198), including actual 1920-edge content. No image sender
+  UI or local adoption transaction is active.
+- The owner approved C1–C3; [the bounded container codec](IMAGE_CONTAINER_CODEC.md)
+  is merged in PR #199 and #195 is closed. It verifies the independent descriptor
+  and exact strict PNG bytes; it is not source authority or a delivery receipt.
+- [Read-only received-image review/opening](RECEIVED_IMAGE_REVIEW.md) is merged in
+  PR #203 and #202 is closed. It retains all UUID/source/delivery variants and
+  rechecks actual content against the exact retained metadata. No viewer or
+  network caller is activated and private active images remain unchanged.
+- [The native trial](IMAGE_CONTAINER_NATIVE_TRIAL.md) proves bounded actual file
+  transfer. The newer [first viewing-trial proposal](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)
+  records strict-TLS hash GET evidence: byte access alone does not prove membership
+  in the selected feed. Both tested clients were permitted; denial remains open.
 
-Next implementation sequence:
+Next decision/implementation sequence:
 
-1. Obtain explicit C1–C3 approval of [the exact container](IMAGE_CONTAINER_FORMAT_PROPOSAL.md),
-   then implement its bounded stream codec against the independent goldens.
-2. Review and implement the selected-feed resource receive boundary, binding the
-   authorized source and exact metadata M to the existing inbox/stage/registry.
-   Native file paths or importer hints do not provide that authority.
-3. Review the exact recoverable image-adoption transaction/history format before
-   its writer, then connect explicit current-state image preview/replace/keep UI.
-4. Resolve image-specific final-handoff freshness (a manual frozen-snapshot pilot
-   requires separate approval), integrate the sender/receiver, sign the resulting
-   UI candidate and run the full two-client path before the authorized phone trial.
+1. Obtain explicit **I1–I5** approval of the viewing-trial proposal (#200 / PR #201,
+   exact proposal head `afa20c4`). Merge is not approval. This separately covers
+   Downloads export/final native-handoff limitations, selected-feed image ingestion
+   and read-only viewing; C1–C3 did not approve those route decisions.
+2. After approval, connect reviewed frozen export and the supported bounded
+   selected-feed resource reader to existing inbox/stage/registry and image viewer.
+   Keep actual source/session/byte/metadata checks and cancellation explicit.
+3. Sign the active UI candidate, verify the integrated synthetic two-client path,
+   then run a separately authorized two-phone/server trial. Current signed v29 does
+   not gain image sharing from these inactive backend/documentation changes.
+4. Keep explicit local-image adoption/replacement and optional outbound receipts as
+   separate product work. The proposed first useful slice permits viewing a
+   received picture without overwriting a private attachment; it does not remove
+   the eventual adoption goal. No receipt means no verified delivery claim.
 
-Optional outbound receipts remain separate and disabled; absence of a receipt
-must not prevent honest local verification, but it prevents a delivery claim.
-The actual TAK Server 5.6 and physical-phone combination remains untested. This
-work is not permission for operational images, feeds or server access.
+[Partial signed v29 consent/connection/restart controls](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md#partial-signed-standard-client-controls--2026-11-12)
+now supplement #178; its full configured-publication matrix remains open. The
+actual target TAK Server 5.6/physical-phone combination remains untested. This work
+is not permission for operational images, feeds or server access.
 
-## Active sequence — 2026-11-08 (signed metadata round trip)
+## Metadata acceptance sequence — 2026-11-08 (historical checkpoint)
 
 1. **The signed v28 metadata lab round trip now works.**
    [Exact standard-client results](SIGNED_V28_METADATA_ROUND_TRIP.md) cover native
