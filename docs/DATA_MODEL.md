@@ -1,5 +1,9 @@
 # Data model
 
+The approved [image container codec](IMAGE_CONTAINER_CODEC.md) embeds the unchanged
+descriptor-v1 and exact verified PNG in one bounded frame. It adds no local-store,
+metadata XML, source authority, adoption-history or acknowledgment fields.
+
 The [connected local trial](CONNECTED_LOCAL_TRIAL.md) changes session access only.
 It adds no persisted consent, transport fields or migration; snapshot v1 and opaque
 local image handles are unchanged. Connected trial drafts remain local drafts.
