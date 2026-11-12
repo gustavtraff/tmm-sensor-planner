@@ -17,24 +17,25 @@ it or postpone images behind optional geometry/UI work.
   rechecks actual content against the exact retained metadata. No viewer or
   network caller is activated and private active images remain unchanged.
 - [The native trial](IMAGE_CONTAINER_NATIVE_TRIAL.md) proves bounded actual file
-  transfer. The newer [first viewing-trial proposal](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)
+  transfer. The newer [approved first viewing-trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)
   records strict-TLS hash GET evidence: byte access alone does not prove membership
   in the selected feed. Both tested clients were permitted; denial remains open.
 
 Next decision/implementation sequence:
 
-1. Obtain explicit **I1–I5** approval of the viewing-trial proposal (#200 / PR #201,
-   exact proposal head `afa20c4`). Merge is not approval. This separately covers
-   Downloads export/final native-handoff limitations, selected-feed image ingestion
-   and read-only viewing; C1–C3 did not approve those route decisions.
-2. After approval, connect reviewed frozen export and the supported bounded
-   selected-feed resource reader to existing inbox/stage/registry and image viewer.
-   Keep actual source/session/byte/metadata checks and cancellation explicit.
+1. **I1–I5 are now explicitly approved** against PR #201 / exact proposal head
+   `afa20c4`. [The owner decision](https://github.com/gustavtraff/tmm-sensor-planner/issues/200#issuecomment-6820302379)
+   covers Downloads export/final native-handoff limitations, selected-feed image
+   ingestion and read-only viewing. This came from explicit conversation approval,
+   not the proposal merge. Existing implementation/verification gates remain.
+2. Connect reviewed frozen export and the supported bounded selected-feed resource
+   reader to existing inbox/stage/registry and image viewer. Keep actual
+   source/session/byte/metadata checks and cancellation explicit.
 3. Sign the active UI candidate, verify the integrated synthetic two-client path,
    then run a separately authorized two-phone/server trial. Current signed v29 does
    not gain image sharing from these inactive backend/documentation changes.
 4. Keep explicit local-image adoption/replacement and optional outbound receipts as
-   separate product work. The proposed first useful slice permits viewing a
+   separate product work. The approved first useful slice permits viewing a
    received picture without overwriting a private attachment; it does not remove
    the eventual adoption goal. No receipt means no verified delivery claim.
 

@@ -1,8 +1,12 @@
-# First usable shared-image view — proposed trial contract (#200 / #26)
+# First usable shared-image view — approved trial contract (#200 / #26)
 
-**Proposal, not approved.** The owner approved container C1–C3, not the image
-HTTP adapter or the image-specific native-handoff exception below. Decisions
-I1–I5 require an explicit owner response against this document before activation.
+**I1–I5 explicitly approved by the owner on 2026-11-12**, against PR #201 /
+commit `afa20c435f5a4a48ea07cb4c194df40ed6788c88`, after clarification of the
+incremental user flow, snapshot limitations and separate later adoption work.
+See [the recorded owner decision](https://github.com/gustavtraff/tmm-sensor-planner/issues/200#issuecomment-6820302379).
+Approval authorizes implementation of this synthetic trial; it is not passing
+runtime acceptance, release approval or operational-server permission. The earlier
+C1–C3 approval and the proposal merge did not grant these route decisions.
 No new persisted format is proposed: reuse the approved container, inbox, stage
 and association registry. Active local-image adoption/history remains separate.
 
@@ -42,7 +46,7 @@ Shared/Delivered. Cancel before export confirmation creates no public export or
 native host object/upload; after export, cancelling a native dialog cannot undo
 the local file or recall an earlier upload. Local export deletion is not withdrawal.
 
-**Accepted pilot limitation to decide explicitly:** TMM cannot revalidate current
+**Owner-accepted pilot limitation:** TMM cannot revalidate current
 private state or destination at the final native Publish action. Later edits or
 deletion do not change/revoke the frozen export. This is a historical immutable
 offer, not a promise to publish the latest draft. The receiver retains its exact
@@ -82,7 +86,7 @@ disconnect does not rewrite their historical source evidence or publish feedback
 
 Use one live transfer, the existing 17,039,492-byte container bound, a 60-second
 overall attempt deadline and the existing five-second connect/read timeouts.
-No automatic fetch/retry/background polling. The proposed overview budget is
+No automatic fetch/retry/background polling. The approved overview budget is
 512 KiB / 256 resource entries; over-limit/partial/malformed input fails honestly,
 without silently accepting a partial list or changing existing metadata limits.
 Resource selection alone is not evidence of successful download or storage.
@@ -157,4 +161,5 @@ does not test a denied resource or approve a product adapter.
 
 The prior [native trial](IMAGE_CONTAINER_NATIVE_TRIAL.md) separately verifies
 File Select, actual server/recipient bytes, Cancel, restart and local-only deletion /
-repeat download. Neither record activates the UI/source bridge proposed here.
+repeat download. Neither record activates the UI/source bridge approved here; implementation and
+the I5 verification gates remain required.

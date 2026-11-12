@@ -4,8 +4,9 @@
 local-v2 snapshots for one device UUID. `ReceivedImageContent.open` then reopens a
 selected record's actual retained content. These are inactive backend components:
 no HTTP, native export, source adapter, UI, automatic application or receipt is
-enabled. The separate [first shared-image trial proposal](https://github.com/gustavtraff/tmm-sensor-planner/pull/201)
-still needs explicit route/handoff approval before its implementation/activation.
+enabled. The separate [first shared-image trial](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)
+now has explicit I1–I5 owner approval. Its implementation and runtime verification
+remain separate from this inactive backend.
 
 ## Review and opening guarantees
 
