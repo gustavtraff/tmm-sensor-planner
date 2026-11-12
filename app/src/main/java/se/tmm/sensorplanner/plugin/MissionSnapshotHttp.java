@@ -17,7 +17,7 @@ import se.tmm.sensorplanner.plugin.ingress.*;
 
 /** Explicit configured-source snapshot reader; no credential copies, subscription or storage operation. */
 @TargetApi(26)
-final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport {
+final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport, se.tmm.sensorplanner.plugin.local.ImageTrialUi.Transport {
     static final String BASE="https://127.0.0.1:8443";
     static boolean defaultProvider(){
         try{return CommsProviderFactory.isDefault()&&!CommsProviderFactory.getProvider().hasFeature(CommsProvider.CommsFeature.MISSION_API);}
@@ -30,14 +30,14 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
     @Override public String description(){return endpoint.base+" · ATAK TLS "+endpoint.stream;}
     @Override public List<MissionSnapshotInput.Feed> list(MissionReadAttempt attempt)throws IOException {try(Read read=begin(attempt)){return read.feeds();}}
     @Override public MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {try(Read read=begin(attempt)){return read.fetch(feed);}}
-    List<MissionImageInput.Resource> images(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {
+    public List<MissionImageInput.Resource> images(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {
         try(Read read=begin(attempt)) {
             if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
             return read.get("/api/missions/guid/"+feed.guid,"application/json",MissionImageInput.MAX_BYTES,
                     in->MissionImageInput.read(feed,in,read::active));
         }
     }
-    se.tmm.sensorplanner.plugin.images.ReceivedImagePayload image(MissionSnapshotInput.Feed feed,
+    public se.tmm.sensorplanner.plugin.images.ReceivedImagePayload image(MissionSnapshotInput.Feed feed,
             MissionImageInput.Resource selected,MissionReadAttempt attempt)throws IOException {
         try(Read read=begin(attempt)) {
             if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");

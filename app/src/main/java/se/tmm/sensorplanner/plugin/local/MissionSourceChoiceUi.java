@@ -16,8 +16,11 @@ public final class MissionSourceChoiceUi {
         List<String> profiles();
         void selected(MissionEndpoint endpoint);
     }
+    private final String purpose;
     private final Context context;private final Host host;private AlertDialog dialog;private boolean closed;
-    public MissionSourceChoiceUi(Context context,Host host){this.context=context;this.host=host;}
+    public MissionSourceChoiceUi(Context context,Host host){this(context,host,
+            "Endast uttrycklig hämtning av metadata. Dina utkast, positioner och bilder skickas inte. Ingen publicering, prenumeration eller bildhämtning startas. ");}
+    public MissionSourceChoiceUi(Context context,Host host,String purpose){this.context=context;this.host=host;this.purpose=purpose;}
     public boolean isBusy(){return dialog!=null&&dialog.isShowing();}
     public void show(){
         if(closed||isBusy()||!host.available())return;
@@ -35,7 +38,7 @@ public final class MissionSourceChoiceUi {
         if(closed||!host.available()){cancel();return;}
         LinearLayout body=new LinearLayout(context);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(24,16,24,16);
         TextView message=new TextView(context);message.setText("Vald ATAK-anslutning: "+stream
-                +"\n\nEndast uttrycklig hämtning av metadata. Dina utkast, positioner och bilder skickas inte. Ingen publicering, prenumeration eller bildhämtning startas. "
+                +"\n\n"+purpose
                 +"ATAK:s befintliga TLS-profil används utan att TMM kopierar nycklar eller lösenord. Bekräfta att du får använda servern för testet."
                 +"\n\nHTTPS-port för Mission API (ofta 8443). Detta är inte strömporten ovan. Fråga serverägaren vid behov.");body.addView(message);
         EditText input=new EditText(context);input.setContentDescription("HTTPS-port för Mission API");input.setInputType(InputType.TYPE_CLASS_NUMBER);input.setSingleLine(true);

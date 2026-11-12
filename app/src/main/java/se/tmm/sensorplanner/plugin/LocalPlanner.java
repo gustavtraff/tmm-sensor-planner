@@ -39,6 +39,7 @@ import se.tmm.sensorplanner.plugin.local.ServerTrialConsentUi;
 import se.tmm.sensorplanner.plugin.local.LocalStorageUi;
 import se.tmm.sensorplanner.plugin.local.SnapshotInboxUi;
 import se.tmm.sensorplanner.plugin.local.MissionSourceChoiceUi;
+import se.tmm.sensorplanner.plugin.local.ImageTrialUi;
 import se.tmm.sensorplanner.core.LocalV2.Selection;
 import se.tmm.sensorplanner.plugin.publication.PublicationMapCopy;
 
@@ -66,6 +67,7 @@ final class LocalPlanner {
     private final ConfiguredPublicationTrial serverTrial = new ConfiguredPublicationTrial();
     private UUID trialTarget;
     private final ServerTrialConnectionWatch trialWatch;
+    private volatile ImageTrialUi imageTrial;
     private SnapshotInboxUi inboxUi;
     private final MissionSourceChoiceUi sourceChoice;
     private LocalDraftLayer layer;
@@ -130,7 +132,7 @@ final class LocalPlanner {
                 return mapCopy.inspectUpdate(prepared, label);
             }
         });
-        trialWatch = new ServerTrialConnectionWatch(context, serverTrial::end);
+        trialWatch = new ServerTrialConnectionWatch(context, ()->{serverTrial.end();ImageTrialUi current=imageTrial;if(current!=null)current.sourceLost();});
         PublicationMapCopy trialCopy = new PublicationMapCopy(map, this::serverTrialAllowed).forServerTrial();
         trialCopyUi = new SavedDraftCopyUi(context, store, worker, new SavedDraftCopyUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
@@ -165,6 +167,17 @@ final class LocalPlanner {
                 BooleanSupplier sourceAllowed=()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream);
                 inboxUi=inboxFor(new MissionSnapshotHttp(sourceAllowed,endpoint),sourceAllowed);inboxUi.fetch();
             }
+        });
+        imageTrial=new ImageTrialUi(context,store,images,new java.io.File(context.getNoBackupFilesDir(),"se.tmm.sensorplanner").toPath(),
+                new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS),"TMM-Sensor-Planner").toPath(),worker,new ImageTrialUi.Host(){
+            public void post(Runnable action){ui.queueEvent(action);}public boolean available(){return !closed&&localAllowed.getAsBoolean();}
+            public java.util.List<String> profiles(){return ConfiguredMissionSource.profiles();}
+            public java.util.List<ConfiguredPublicationTrial.Stream> streams(){return ConfiguredMissionSource.trialStreams();}
+            public boolean defaultProvider(){return MissionSnapshotHttp.defaultProvider();}
+            public ImageTrialUi.Transport connect(se.tmm.sensorplanner.plugin.ingress.MissionEndpoint endpoint){return new MissionSnapshotHttp(()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream),endpoint);}
+            public String summary(ShareReview.Metadata metadata){return metadataSummary(metadata);}
+            public String coordinates(Position position){return positionText(position);}
+            public void changed(UUID uid){storageUi.load(false);}
         });
     }
     private SnapshotInboxUi inboxFor(MissionSnapshotHttp transport,BooleanSupplier sourceAllowed){
@@ -230,6 +243,7 @@ final class LocalPlanner {
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
         LinearLayout inboxActions = column(); inboxActions.addView(label(LocalStorageUi.warning(storage)));
+        inboxActions.addView(button("Bilddelning · test", () -> { dismiss(); imageTrial.show(null); }));
         inboxActions.addView(button("Mottagna metadata", () -> { dismiss(); inboxUi.show(); }));
         inboxActions.addView(button("Hämta metadata · test", () -> { dismiss(); inboxUi.cancel(); sourceChoice.show(); }));
         dialog = new AlertDialog.Builder(context).setTitle("TMM – lokala utkast (" + rows.length + ")"
@@ -275,6 +289,7 @@ final class LocalPlanner {
             content.addView(buttonRow(button("Visa bild", () -> imagesUi.view(draft)),
                     button("Ersätt bild", () -> imagesUi.pick(selected))));
         } else content.addView(button("Lägg till bild", () -> imagesUi.pick(selected)));
+        content.addView(button("Mottagna bilder", () -> { dismiss(); imageTrial.received(draft.uid); }));
         if (draft.type.supportsBearing()) {
             LinearLayout bearing = new LinearLayout(context);
             bearing.addView(label("Bäring: " + (draft.bearingDeg == null ? "Ej angiven" :
@@ -315,6 +330,7 @@ final class LocalPlanner {
             }));
             details.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
         }
+        details.addView(button("Bilddelning · test", () -> { dismiss(); imageTrial.show(draft.uid); }));
         details.addView(button("Publiceringsprov mot server", () -> startServerTrial(draft.uid)));
         details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(selected)));
         details.setVisibility(View.GONE);
@@ -714,14 +730,15 @@ final class LocalPlanner {
         else ui.showToast("Serverprovet avslutades: exakt en ansluten och vald server krävs");
     }
 
-    private boolean isBusy() { return storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy(); }
+    private boolean isBusy() { return imageTrial!=null&&imageTrial.isBusy() || storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy(); }
 
-    void cancelSharing() { sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
+    void cancelSharing() { if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
 
-    void disableSharing() { sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
+    void disableSharing() { if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
 
     void close() {
         closed = true;
+        if(imageTrial!=null)imageTrial.close();
         if (positionPicker != null) { positionPicker.close(); positionPicker = null; }
         dismiss();
         inboxUi.close();
