@@ -97,6 +97,30 @@ public final class ImageAssociationRegistry {
         return result;
     }
 
+    /** Runs a read-only stage action while this exact recorded association still belongs to the loaded registry. */
+    public synchronized <T> T withRecord(UUID registryId, UUID inboxId, Record expected, StageAction<T> action) throws IOException {
+        Objects.requireNonNull(registryId, "registryId"); Objects.requireNonNull(inboxId, "inboxId");
+        Objects.requireNonNull(expected, "expected");
+        Objects.requireNonNull(action, "action");
+        IOException[] failed = new IOException[1];
+        T result = locked(() -> {
+            Snapshot current = read(); boolean found = false;
+            if (current.registryId.equals(registryId) && current.inboxId.equals(inboxId)) {
+                for (Record record : current.records) {
+                    if (record.sameDelivery(expected) && record.sameBinding(expected)
+                            && record.stageLocalId.equals(expected.stageLocalId) && record.verifiedAt.equals(expected.verifiedAt)) {
+                        found = true; break;
+                    }
+                }
+            }
+            if (!found) throw new SafeFailure("Reviewed image association changed or is unavailable");
+            try { return action.run(); }
+            catch (IOException failure) { failed[0] = failure; return null; }
+        });
+        if (failed[0] != null) throw failed[0];
+        return result;
+    }
+
     private <T> T locked(Operation<T> operation) throws IOException {
         try {
             Files.createDirectories(directory);

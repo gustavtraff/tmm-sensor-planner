@@ -246,3 +246,12 @@ opaque inbox context. The former loopback context is unchanged. Different servic
 produce distinct receipts; server response URLs cannot change the selected source.
 This changes no frame, metadata bytes, image handles or migration. Session access
 is not a persisted credential/source registry or continuous permission lease.
+
+
+## Read-only received-image review — 2026-11-12 (#202)
+
+[The received-image review and content opener](RECEIVED_IMAGE_REVIEW.md) join the
+existing registry/receipt/local snapshots and reverify the selected actual stage
+pair. They introduce no persisted or wire fields, migration, new source authority,
+local image adoption or active UI/transport caller. Historical associations remain
+separate from current local metadata and unavailable links remain explicit.
