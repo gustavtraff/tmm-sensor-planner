@@ -23,6 +23,7 @@ android {
         test.resources.srcDir '../test-fixtures/synthetic/publication-envelope'
         test.resources.srcDir '../test-fixtures/synthetic/image-stage-proposal'
         test.resources.srcDir '../test-fixtures/synthetic/image-association-proposal'
+        test.resources.srcDir '../test-fixtures/synthetic/image-container-proposal'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/images'
         test.java.srcDir '../app/src/main/java/se/tmm/sensorplanner/plugin/local'
         androidTest.java.srcDir '../core/src/main/java'

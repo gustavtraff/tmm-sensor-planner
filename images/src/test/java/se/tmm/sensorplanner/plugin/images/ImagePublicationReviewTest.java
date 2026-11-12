@@ -30,6 +30,11 @@ public class ImagePublicationReviewTest {
         ReceivedImagePayload received = ReceivedImagePayload.read(new ByteArrayInputStream(confirmed.descriptor()),
                 new ByteArrayInputStream(confirmed.png()));
         assertArrayEquals(expected, received.image.bytes());
+        ByteArrayOutputStream container = new ByteArrayOutputStream(); confirmed.writeContainer(container);
+        ReceivedImagePayload contained = ImageContainerCodec.read(new ByteArrayInputStream(container.toByteArray()));
+        assertTrue(confirmed.offer.sameBinding(contained.offer));
+        assertEquals(confirmed.offer.deliveryId, contained.offer.deliveryId);
+        assertArrayEquals(expected, contained.image.bytes());
         assertTrue(review.offer.sameBinding(received.offer));
         assertEquals(review.offer.associationId, received.offer.associationId);
         assertEquals(review.offer.deliveryId, received.offer.deliveryId);

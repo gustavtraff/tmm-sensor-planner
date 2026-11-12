@@ -2,6 +2,7 @@ package se.tmm.sensorplanner.plugin.images;
 
 import android.annotation.TargetApi;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
@@ -79,6 +80,10 @@ public final class ImagePublicationReview implements AutoCloseable {
         }
         public byte[] descriptor() { return ImageOfferCodec.encode(offer); }
         public byte[] png() { return image.bytes(); }
+        /** Writes only this already frozen pair; does not select a file, route or start transport. */
+        public void writeContainer(OutputStream output) throws IOException {
+            ImageContainerCodec.write(output, offer, image);
+        }
     }
 
     private static byte[] digest(byte[] bytes) {

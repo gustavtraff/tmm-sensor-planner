@@ -1,8 +1,11 @@
 # One-file image container v1 — proposal (#195 / #26)
 
-**Not approved.** Merge is not format approval. Decision H requires the owner's
-explicit approval of C1–C3 below against a named commit before a production codec
-or writer. The synthetic fixture generator/oracle is test-only reference material.
+**Approved for the inactive codec.** On 2026-11-10 the owner explicitly approved
+C1–C3 against PR #196 / `c89e32d`, recorded in
+[#195](https://github.com/gustavtraff/tmm-sensor-planner/issues/195#issuecomment-6777892348).
+The exact wire fields/bounds were unchanged by later evidence commits. Approval
+comes from that answer, not from merge. Source mapping, adoption and receipts
+remain separate. [The codec](IMAGE_CONTAINER_CODEC.md) implements these bytes.
 
 ## Purpose and recommendation
 
