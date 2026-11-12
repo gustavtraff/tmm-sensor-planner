@@ -5,12 +5,14 @@ import java.util.concurrent.TimeUnit;
 
 /** One non-reusable read lifetime; late resource registration cannot escape cancellation. */
 public final class MissionReadAttempt {
-    private final long startedNanos;
+    private final long startedNanos,timeoutNanos;
     private volatile boolean cancelled;
     private Runnable abort;
     private Future<?> worker,deadline,guard;
-    public MissionReadAttempt(long startedNanos){this.startedNanos=startedNanos;}
-    public boolean active(long nowNanos){long elapsed=nowNanos-startedNanos;return !cancelled&&elapsed>=0&&elapsed<TimeUnit.SECONDS.toNanos(12);}
+    public MissionReadAttempt(long startedNanos){this(startedNanos,12);}
+    private MissionReadAttempt(long startedNanos,int seconds){this.startedNanos=startedNanos;timeoutNanos=TimeUnit.SECONDS.toNanos(seconds);}
+    public static MissionReadAttempt forImage(long startedNanos){return new MissionReadAttempt(startedNanos,60);}
+    public boolean active(long nowNanos){long elapsed=nowNanos-startedNanos;return !cancelled&&elapsed>=0&&elapsed<timeoutNanos;}
     public void bindAbort(Runnable value){
         if(value==null)throw new NullPointerException();
         boolean stop;synchronized(this){if(abort!=null)throw new IllegalStateException();abort=value;stop=cancelled;}

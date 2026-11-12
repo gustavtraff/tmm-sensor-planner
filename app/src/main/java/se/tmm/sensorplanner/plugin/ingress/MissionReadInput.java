@@ -52,14 +52,17 @@ public final class MissionReadInput {
         }catch(Exception invalid){throw new IOException("Lab response could not be verified");}
     }
     static String readText(InputStream input,BooleanSupplier active) throws IOException {
+        return readText(input,active,MAX_BYTES);
+    }
+    static String readText(InputStream input,BooleanSupplier active,int limit) throws IOException {
         if(input==null||active==null)throw new IOException("Lab input unavailable");
         ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[4096];int total=0;
         while(true){
             requireActive(active);
-            int n=input.read(buffer,0,Math.min(buffer.length,MAX_BYTES+1-total));
+            int n=input.read(buffer,0,Math.min(buffer.length,limit+1-total));
             if(n<0)break;
             if(n==0){int value=input.read();if(value<0)break;buffer[0]=(byte)value;n=1;}
-            total+=n;if(total>MAX_BYTES)throw new IOException();out.write(buffer,0,n);
+            total+=n;if(total>limit)throw new IOException();out.write(buffer,0,n);
         }
         requireActive(active);
         return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)

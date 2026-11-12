@@ -23,7 +23,6 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
         try{return CommsProviderFactory.isDefault()&&!CommsProviderFactory.getProvider().hasFeature(CommsProvider.CommsFeature.MISSION_API);}
         catch(RuntimeException unavailable){return false;}
     }
-    interface Decoder<T>{T read(InputStream input)throws IOException;}
     private final BooleanSupplier allowed;
     private final MissionEndpoint endpoint;
     MissionSnapshotHttp(BooleanSupplier allowed){this(allowed,MissionEndpoint.fromProfile(ShareLabRoute.STREAM,8443));}
@@ -31,6 +30,24 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
     @Override public String description(){return endpoint.base+" · ATAK TLS "+endpoint.stream;}
     @Override public List<MissionSnapshotInput.Feed> list(MissionReadAttempt attempt)throws IOException {try(Read read=begin(attempt)){return read.feeds();}}
     @Override public MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {try(Read read=begin(attempt)){return read.fetch(feed);}}
+    List<MissionImageInput.Resource> images(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {
+        try(Read read=begin(attempt)) {
+            if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
+            return read.get("/api/missions/guid/"+feed.guid,"application/json",MissionImageInput.MAX_BYTES,
+                    in->MissionImageInput.read(feed,in,read::active));
+        }
+    }
+    se.tmm.sensorplanner.plugin.images.ReceivedImagePayload image(MissionSnapshotInput.Feed feed,
+            MissionImageInput.Resource selected,MissionReadAttempt attempt)throws IOException {
+        try(Read read=begin(attempt)) {
+            if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
+            return MissionImageFetch.read(feed,selected,new MissionImageFetch.Exchange() {
+                public <T>T get(String path,String accept,int maxBytes,MissionImageFetch.Decoder<T> decoder)throws IOException {
+                    return read.get(path,accept,maxBytes,decoder);
+                }
+            },read::active);
+        }
+    }
     final class Read implements AutoCloseable {
         final MissionReadAttempt attempt;
         private final AtomicReference<HttpGet> current=new AtomicReference<>();
@@ -48,7 +65,10 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
             Set<String> after=get(route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
             if(!before.equals(after))throw new IOException("Mission membership changed; fetch again");require();return new MissionSnapshotInput.Snapshot(feed,after,values);
         }
-        private <T>T get(String path,String accept,Decoder<T> decoder)throws IOException {
+        private <T>T get(String path,String accept,MissionImageFetch.Decoder<T> decoder)throws IOException {
+            return get(path,accept,MissionReadInput.MAX_BYTES,decoder);
+        }
+        private <T>T get(String path,String accept,int maxBytes,MissionImageFetch.Decoder<T> decoder)throws IOException {
             HttpGet request=null;TakHttpClient client=null;TakHttpResponse response=null;
             T result=null;boolean failed=false;
             try{
@@ -62,7 +82,7 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
                 request.getParams().setIntParameter(CoreConnectionPNames.MAX_HEADER_COUNT,32);request.getParams().setIntParameter(CoreConnectionPNames.MAX_LINE_LENGTH,4096);
                 response=client.execute(request,false);require();String type=response.getContentType(),encoding=response.getHeaderString("Content-Encoding");
                 if(response.getStatusCode()!=200||type==null||!type.toLowerCase(Locale.ROOT).matches(accept+"(?:\\s*;\\s*charset=utf-8)?")
-                        ||(encoding!=null&&!encoding.isEmpty()&&!encoding.equalsIgnoreCase("identity"))||response.getLength()>MissionReadInput.MAX_BYTES)throw new IOException();
+                        ||(encoding!=null&&!encoding.isEmpty()&&!encoding.equalsIgnoreCase("identity"))||response.getLength()>maxBytes)throw new IOException();
                 result=decoder.read(response.getBody());require();
             }catch(Exception unavailable){failed=true;}
             finally{
