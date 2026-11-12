@@ -148,8 +148,8 @@ server**.
 
 Automated evidence: `sh scripts/test.sh`, `sh scripts/check-sdk.sh` (SDK checks, debug
 build, lint and APK contract), the image and UI suite (460 cases, no failures, one
-existing skip) and `assembleCivRelease`, all on the 5.6.0.24 SDK. **Controls 1–8 have
-not been run.** They need a signed candidate on standard clients.
+existing skip) and `assembleCivRelease`, all on the 5.6.0.24 SDK. **At that point controls 1–8 had not been run.** The bounded signed-client
+consent/lifetime results below are newer; the full control matrix remains open.
 
 **Pre-signing smoke, debug build on the 5.6.0.24 SDK emulator with the isolated
 loopback lab server (2026-11-09).** The action stayed disabled with three of four
@@ -168,3 +168,31 @@ server.
 all Data Sync, Mission API and snapshot evidence comes from the lab's 5.8-RELEASE-92.
 That evidence does not transfer. No 5.6 server package is available locally, so the
 first contact with that server must be treated as an untested combination.
+
+
+## Partial signed-standard-client controls — 2026-11-12
+
+One retained isolated client ran standard ATAK-CIV **5.6.0.25 (238484ee)**,
+Data Sync **3.7.4 (58746181) [5.6.0]**, Android API **35** and the previously signed TMM **versionCode 29 /
+`0.1.0-configured-publication-trial.1`**. The client had a verified loopback-only
+IPv4/IPv6 output guard and local tunnels to the owned 5.8 lab server. No operational
+server/phone was accessed. The sole retained lab stream was restored enabled
+after the zero-stream check; no credentials or profile contents were replaced. This does not substitute for the reported 5.6.0.12 phone
+or the target 5.6 server. No new candidate/signature was needed for these checks.
+
+| Matrix part | Actual bounded result |
+|---|---|
+|1: statement gating | Continue stayed disabled after 1, 2 and 3 statements; it enabled only with all 4 checked. |
+|1: consent Cancel | Cancel confirmed no SDK write; all 5 existing private plugin files had identical before/after hashes. Reopening required server selection and 4 unchecked statements. |
+|2: zero-stream entry | With the sole existing profile disabled, entry refused with `Ingen ansluten TLS-server`; no consent/review proceeded. At-commit and two-stream controls remain open. |
+|3: cold restart | Force-stop/cold start during an unconfirmed review did not resume it. Server selection and 4 unchecked statements were required; all 5 private files were unchanged. |
+|3: connection cycle | While an unconfirmed review was open, the owned local relay was stopped and restarted, with no trial UI check in between. A subsequent **read-only update inspection**, not a mutation confirmation, was refused. New server selection and 4 unchecked statements were required. |
+
+These are signed-client gating results only. The connection cycle does not prove a
+continuous permission lease or every profile/provider transition. No SDK mutation,
+HTTP write or native Publish confirmation was requested. The test intentionally
+examined only consent/review controls, so it did not authorize a multi-feed profile
+for publishing or infer feed isolation from the checkboxes. The positive
+non-loopback publish, two-enabled-stream and at-commit stream cases, profile/Unload cases, native
+prompt/retry/permission/output controls and target-server/phone acceptance remain
+open. **#178 is not complete and operational publishing is not approved.**
