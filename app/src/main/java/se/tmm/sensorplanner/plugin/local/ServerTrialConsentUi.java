@@ -25,12 +25,20 @@ public final class ServerTrialConsentUi {
             "Profilen har en server och en testfeed, och Auto-publicera är av.",
             "Jag förstår att TMM inte kan verifiera eller begränsa destinationen."};
 
+    private final String notice;
     private final Context context;
     private final Host host;
     private AlertDialog dialog;
     private boolean closed;
 
-    public ServerTrialConsentUi(Context context, Host host) { this.context = context; this.host = host; }
+    public ServerTrialConsentUi(Context context, Host host) { this(context,host,
+            "ATAK:s egna funktioner kan publicera kartkopian. TMM kan inte verifiera eller begränsa feed. Nej i Data Sync-frågan ångrar inte SDK-ändringen. Bilder delas inte."); }
+    public ServerTrialConsentUi(Context context,Host host,String notice){this.context=context;this.host=host;this.notice=notice;}
+    public void showFor(String stream){
+        if(closed||isBusy()||!host.available())return;
+        if(!host.profiles().contains(stream))return;
+        consent(stream);
+    }
 
     public boolean isBusy() { return dialog != null && dialog.isShowing(); }
 
@@ -60,8 +68,7 @@ public final class ServerTrialConsentUi {
         body.setPadding(24, 16, 24, 16);
         TextView message = new TextView(context);
         message.setText("Vald server: " + stream
-                + "\n\nATAK:s egna funktioner kan publicera kartkopian. TMM kan inte verifiera eller begränsa feed. "
-                + "Nej i Data Sync-frågan ångrar inte SDK-ändringen. Bilder delas inte.\n\n"
+                + "\n\n" + notice + "\n\n"
                 + "Godkännandet gäller bara denna session. Det upphör vid Avbryt, Unload, omstart och ändrad anslutning.");
         body.addView(message);
         List<CheckBox> boxes = new ArrayList<>();

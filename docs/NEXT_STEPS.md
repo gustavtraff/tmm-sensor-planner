@@ -12,6 +12,7 @@ it or postpone images behind optional geometry/UI work.
 - The owner approved C1–C3; [the bounded container codec](IMAGE_CONTAINER_CODEC.md)
   is merged in PR #199 and #195 is closed. It verifies the independent descriptor
   and exact strict PNG bytes; it is not source authority or a delivery receipt.
+- [Selected-feed receive backend](SELECTED_FEED_IMAGE_INTAKE.md) is merged in PR #207; #206 is closed. It adds bounded authenticated-source composition and existing-store intake without a UI caller in that slice.
 - [Read-only received-image review/opening](RECEIVED_IMAGE_REVIEW.md) is merged in
   PR #203 and #202 is closed. It retains all UUID/source/delivery variants and
   rechecks actual content against the exact retained metadata. No viewer or
@@ -28,9 +29,11 @@ Next decision/implementation sequence:
    covers Downloads export/final native-handoff limitations, selected-feed image
    ingestion and read-only viewing. This came from explicit conversation approval,
    not the proposal merge. Existing implementation/verification gates remain.
-2. Connect reviewed frozen export and the supported bounded selected-feed resource
-   reader to existing inbox/stage/registry and image viewer. Keep actual
-   source/session/byte/metadata checks and cancellation explicit.
+2. [Candidate30 image-trial UI](SHARED_IMAGE_TRIAL_UI.md) connects frozen export,
+   selected-feed resource intake, separate received viewing and independently
+   confirmed metadata Add. Its actual isolated SDK-host controls now cover FullHD receive/readback, repeat,
+   offline/cold start, separate viewer, export Cancel/real file and pending-read
+   cancellation. Complete review/signing and standard-client acceptance next.
 3. Sign the active UI candidate, verify the integrated synthetic two-client path,
    then run a separately authorized two-phone/server trial. Current signed v29 does
    not gain image sharing from these inactive backend/documentation changes.
