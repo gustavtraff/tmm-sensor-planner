@@ -140,6 +140,33 @@ public class ImageTrialUiTest {
         deliverHeldPosts();assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertTrue(worker.isEmpty());
         assertNull(field("viewer"));assertEmptyReceivedHistory();preserved();
     }
+    @Test public void dismissedReceivedListCannotOpenViewerInFreshFlow()throws Exception {
+        AlertDialog old=dismissedReceivedList();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getListView().performItemClick(null,0,0);idle();
+        assertTrue("Dismissed selection must not queue another image read",worker.isEmpty());
+        assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertNull(field("viewer"));preserved();
+    }
+    @Test public void dismissedReceivedListCloseCannotCancelFreshFlow()throws Exception {
+        AlertDialog old=dismissedReceivedList();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,dialog());assertTrue("Dismissed close must not cancel fresh UI",fresh.isShowing());
+        assertNull(field("viewer"));preserved();
+    }
+    @Test public void dismissedReceiveResultCannotOpenViewerInFreshFlow()throws Exception {
+        receive();AlertDialog old=dialog();ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_POSITIVE).performClick();idle();
+        assertTrue("Dismissed result must not queue another image read",worker.isEmpty());
+        assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertNull(field("viewer"));preserved();
+    }
+    @Test public void dismissedReceiveResultCloseCannotCancelFreshFlow()throws Exception {
+        receive();AlertDialog old=dialog();ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,dialog());assertTrue("Dismissed result close must not cancel fresh UI",fresh.isShowing());preserved();
+    }
+    private AlertDialog dismissedReceivedList()throws Exception {
+        receive();ui.cancel();ui.received(incoming.offer.metadata.uid);
+        await("Mottagna bilder – separata varianter",true);AlertDialog old=dialog();ui.cancel();return old;
+    }
     private void queuedImageResult()throws Exception {
         // Isolate terminal delivery from the independent periodic source-loss observer.
         ScheduledThreadPoolExecutor timer=(ScheduledThreadPoolExecutor)field("timer");

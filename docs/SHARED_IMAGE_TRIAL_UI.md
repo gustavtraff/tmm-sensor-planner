@@ -132,3 +132,11 @@ source observer is disabled only in the queued-delivery tests to isolate the
 terminal callback; production polling and the connection observer are unchanged.
 These deterministic host-JVM tests are not signed-client, real permission-loss,
 physical-device or server acceptance.
+
+## Dismissed received-image dialog actions — #212
+
+Received-image list and successful-intake result callbacks must belong to the current
+dialog. A delayed action from a dismissed list cannot open a viewer or cancel a
+new explicit flow. Both defects reproduced on API26/35 before the identity guards;
+the guards also cover the result dialog’s metadata and viewer buttons. Private draft/image
+bytes remain unchanged. This changes no content, source or persistence contract.
