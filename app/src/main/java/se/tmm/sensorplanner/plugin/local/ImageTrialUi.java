@@ -166,9 +166,9 @@ public final class ImageTrialUi {
             if(!missing[0]&&!missing[1]&&!missing[2]){next.run();return;}
             replace(new AlertDialog.Builder(context).setTitle("Starta mottagen bildhistorik?")
                     .setMessage("Läsbar historik saknas helt eller delvis. Det kan vara första start eller förlorad historik. Starta bara om du uttryckligen vill börja utan den saknade historiken. Befintliga filer ersätts inte och lokala enheter/bilder ändras inte.")
-                    .setNegativeButton("Avbryt",(d,w)->cancel()).setPositiveButton("Starta saknad historik",(d,w)->work("Startar bildhistorik",true,token->{
+                    .setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).setPositiveButton("Starta saknad historik",(d,w)->{if(dialog!=d||!source())return;work("Startar bildhistorik",true,token->{
                         writing=true;require(token,true);if(missing[0])inbox.initializeNew();require(token,true);if(missing[2])stage.initializeNew();require(token,true);if(missing[1])registry.initializeNew(inbox.load().inboxId);return true;
-                    },ignored->next.run(),()->{})).create());
+                    },ignored->next.run(),()->{});}).create());
         },()->{});
     }
     private void download(Feed feed,Resource resource){read("Hämtar och verifierar bildpaket",a->transport.image(feed,resource,a),payload->{
