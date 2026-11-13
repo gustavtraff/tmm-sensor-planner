@@ -133,10 +133,10 @@ terminal callback; production polling and the connection observer are unchanged.
 These deterministic host-JVM tests are not signed-client, real permission-loss,
 physical-device or server acceptance.
 
-## Dismissed list actions — #212
+## Dismissed received-image dialog actions — #212
 
-Received-image list selection and Close callbacks must belong to the current
+Received-image list and successful-intake result callbacks must belong to the current
 dialog. A delayed action from a dismissed list cannot open a viewer or cancel a
 new explicit flow. Both defects reproduced on API26/35 before the identity guards;
-the complete focused controller suite then passed32 cases. Private draft/image
+the guards also cover the result dialog’s metadata and viewer buttons. Private draft/image
 bytes remain unchanged. This changes no content, source or persistence contract.

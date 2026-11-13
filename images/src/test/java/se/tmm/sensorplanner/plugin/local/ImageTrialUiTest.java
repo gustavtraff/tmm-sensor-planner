@@ -152,6 +152,17 @@ public class ImageTrialUiTest {
         assertSame(fresh,dialog());assertTrue("Dismissed close must not cancel fresh UI",fresh.isShowing());
         assertNull(field("viewer"));preserved();
     }
+    @Test public void dismissedReceiveResultCannotOpenViewerInFreshFlow()throws Exception {
+        receive();AlertDialog old=dialog();ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_POSITIVE).performClick();idle();
+        assertTrue("Dismissed result must not queue another image read",worker.isEmpty());
+        assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertNull(field("viewer"));preserved();
+    }
+    @Test public void dismissedReceiveResultCloseCannotCancelFreshFlow()throws Exception {
+        receive();AlertDialog old=dialog();ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,dialog());assertTrue("Dismissed result close must not cancel fresh UI",fresh.isShowing());preserved();
+    }
     private AlertDialog dismissedReceivedList()throws Exception {
         receive();ui.cancel();ui.received(incoming.offer.metadata.uid);
         await("Mottagna bilder – separata varianter",true);AlertDialog old=dialog();ui.cancel();return old;

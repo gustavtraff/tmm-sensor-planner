@@ -181,8 +181,8 @@ public final class ImageTrialUi {
             grantedReview=(ReceivedImageReview)result[0];grantedItem=(ReceivedImageReview.Item)result[1];
             replace(new AlertDialog.Builder(context).setTitle("Bild verifierad för granskning")
                     .setMessage("Bilden hör till "+grantedItem.metadata.displayId+"\nUUID: "+grantedReview.deviceUid+"\nIngen lokal bild eller metadata har ersatts. Mottagna varianter behålls; ingen kvittens skickades.")
-                    .setNegativeButton("Stäng",(d,w)->cancel()).setNeutralButton("Granska metadata",(d,w)->reviewMetadata())
-                    .setPositiveButton("Visa mottagen bild",(d,w)->open(grantedReview,grantedItem)).create());
+                    .setNegativeButton("Stäng",(d,w)->{if(dialog==d)cancel();}).setNeutralButton("Granska metadata",(d,w)->{if(dialog==d)reviewMetadata();})
+                    .setPositiveButton("Visa mottagen bild",(d,w)->{if(dialog==d)open(grantedReview,grantedItem);}).create());
         },()->{});
     });}
     private void reviewMetadata(){
