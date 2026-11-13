@@ -163,6 +163,26 @@ public class ImageTrialUiTest {
         old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
         assertSame(fresh,dialog());assertTrue("Dismissed result close must not cancel fresh UI",fresh.isShowing());preserved();
     }
+    @Test public void dismissedHistoryConfirmationCannotInitializeInFreshSourceFlow()throws Exception {
+        AlertDialog old=dismissedHistoryConfirmation();start(false);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_POSITIVE).performClick();idle();
+        assertTrue("Old consent must not queue history initialization",worker.isEmpty());
+        assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertMissingHistory();preserved();
+    }
+    @Test public void dismissedHistoryCancelCannotCancelFreshSourceFlow()throws Exception {
+        AlertDialog old=dismissedHistoryConfirmation();start(false);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,dialog());assertTrue("Old Cancel must not close fresh flow",fresh.isShowing());assertMissingHistory();preserved();
+    }
+    private AlertDialog dismissedHistoryConfirmation()throws Exception {
+        start(false);pick(0);await("Välj bildpaket i Synthetic images",true);pick(0);click(AlertDialog.BUTTON_POSITIVE);
+        await("Starta mottagen bildhistorik?",true);AlertDialog old=dialog();ui.cancel();return old;
+    }
+    private void assertMissingHistory(){
+        assertFalse(Files.exists(privateRoot.resolve("metadata-inbox-v1/inbox.bin")));
+        assertFalse(Files.exists(privateRoot.resolve("received-image-association-v1/associations.bin")));
+        assertFalse(Files.exists(privateRoot.resolve("received-image-stage-v1")));
+    }
     private AlertDialog dismissedReceivedList()throws Exception {
         receive();ui.cancel();ui.received(incoming.offer.metadata.uid);
         await("Mottagna bilder – separata varianter",true);AlertDialog old=dialog();ui.cancel();return old;

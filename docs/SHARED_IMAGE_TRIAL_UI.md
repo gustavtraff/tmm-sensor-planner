@@ -140,3 +140,11 @@ dialog. A delayed action from a dismissed list cannot open a viewer or cancel a
 new explicit flow. Both defects reproduced on API26/35 before the identity guards;
 the guards also cover the result dialog’s metadata and viewer buttons. Private draft/image
 bytes remain unchanged. This changes no content, source or persistence contract.
+
+## Fresh history-initialization consent — #214
+
+Only the current missing-history confirmation may queue initialization; a delayed
+confirmation from an earlier canceled source flow cannot borrow a new source
+session. Its old Cancel action cannot close the new flow. API26/35 controls
+reproduced both defects before the guards and verify that no inbox, registry or
+stage is created. This changes no format, recovery/reset policy or active image.
