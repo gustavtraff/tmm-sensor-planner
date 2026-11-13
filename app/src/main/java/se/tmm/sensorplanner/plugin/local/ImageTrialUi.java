@@ -204,7 +204,7 @@ public final class ImageTrialUi {
             List<ReceivedImageReview> owners=new ArrayList<>();List<ReceivedImageReview.Item> items=new ArrayList<>();List<String> labels=new ArrayList<>();
             for(ReceivedImageReview r:reviews)for(ReceivedImageReview.Item item:r.images){owners.add(r);items.add(item);labels.add((item.metadata==null?"Metadata saknas":item.metadata.displayId)+"\nUUID: "+r.deviceUid+"\n"+item.record.contextId+"\n"+item.record.verifiedAt);}
             if(items.isEmpty()){info("Inga mottagna bilder för valet","Den lästa historiken innehåller inga bildposter för detta UUID. Ingen historik har återskapats.");return;}
-            replace(new AlertDialog.Builder(context).setTitle("Mottagna bilder – separata varianter").setItems(labels.toArray(new String[0]),(d,n)->open(owners.get(n),items.get(n))).setNegativeButton("Stäng",(d,w)->cancel()).create());
+            replace(new AlertDialog.Builder(context).setTitle("Mottagna bilder – separata varianter").setItems(labels.toArray(new String[0]),(d,n)->{if(dialog==d&&available())open(owners.get(n),items.get(n));}).setNegativeButton("Stäng",(d,w)->{if(dialog==d)cancel();}).create());
         },()->{});
     }
     private void open(ReceivedImageReview selected,ReceivedImageReview.Item item){
