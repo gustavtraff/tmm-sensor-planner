@@ -252,12 +252,14 @@ public final class ImageTrialUi {
             attempt.bindDeadline(timer.schedule(()->{attempt.cancel();postFailure(token);},60,TimeUnit.SECONDS));
             attempt.bindWorker(network.submit(()->{
                 try{require(token,true);T result=operation.run(attempt);require(token,true);if(!attempt.active(System.nanoTime()))throw new IOException();host.post(()->{
-                    if(!valid(token)||pending!=attempt||!source())return;pending=null;attempt.clearTimers();busy=false;done.accept(result);
+                    if(generation.get()!=token||pending!=attempt)return;
+                    if(!available()||!source()||!attempt.active(System.nanoTime())){postFailure(token);return;}
+                    pending=null;attempt.clearTimers();busy=false;done.accept(result);
                 });}catch(Exception|OutOfMemoryError failed){attempt.cancel();postFailure(token);}
             }));
         }catch(RejectedExecutionException stopping){attempt.cancel();postFailure(token);}
     }
-    private void postFailure(long token){host.post(()->{if(!valid(token))return;cancel();info("Bildåtgärden kunde inte bekräftas","Kontrollera källa, behörighet, lagringsutrymme och historik. En export, metadatamottagning eller bildpost kan redan vara sparad. Befintliga privata bilder/enheter ersätts inte. Inget återförsöks automatiskt. Ofullständiga exporter i Hämtningar måste granskas/raderas manuellt.");});}
+    private void postFailure(long token){host.post(()->{if(closed||generation.get()!=token)return;cancel();info("Bildåtgärden kunde inte bekräftas","Kontrollera källa, behörighet, lagringsutrymme och historik. En export, metadatamottagning eller bildpost kan redan vara sparad. Befintliga privata bilder/enheter ersätts inte. Inget återförsöks automatiskt. Ofullständiga exporter i Hämtningar måste granskas/raderas manuellt.");});}
     public void sourceLost(){
         if(!trial.live()&&pending==null&&pendingReview==null&&transport==null)return;
         long token=generation.get();trial.end();MissionReadAttempt a=pending;if(a!=null)a.cancel();grantedReview=null;grantedItem=null;

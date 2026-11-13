@@ -111,3 +111,24 @@ API/security bypass. The earlier native container transfer remains separate
 evidence. New signed-candidate standard-client A→feed→B, permission/lifecycle
 matrix, target 5.6 server and physical-phone acceptance remain open under #200/#26.
 These actual SDK controls do not close those gates.
+
+## Terminal callback lifecycle — 2026-11-13 (#210)
+
+A completed network read may still be queued for UI delivery when its 60-second
+deadline expires. Delivery now rechecks the exact attempt's active state and the
+current source before allowing intake. A terminal failure releases the matching
+operation even when host access is temporarily unavailable; it does not leave the
+controller busy after access returns. Generation checks keep an old result or
+failure from canceling a newer explicit flow. No automatic retry, history mutation,
+format change or active-image operation is added.
+
+The focused controller suite passed **28 API 26/35 cases**, without failures,
+errors or skips. Before the correction, both API levels reproduced a stranded
+busy state after unavailable local work and a canceled read still queuing intake.
+New controls also exercise the actual deadline callback after network completion,
+unavailable UI delivery and stale result/failure delivery after a fresh flow.
+They preserve actual synthetic private bytes and empty inbox/stage/registry state. The periodic
+source observer is disabled only in the queued-delivery tests to isolate the
+terminal callback; production polling and the connection observer are unchanged.
+These deterministic host-JVM tests are not signed-client, real permission-loss,
+physical-device or server acceptance.

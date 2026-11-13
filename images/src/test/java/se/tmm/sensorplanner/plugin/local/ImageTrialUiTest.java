@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.BooleanSupplier;
+import java.util.concurrent.*;
 import org.json.*;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
@@ -32,9 +33,11 @@ public class ImageTrialUiTest {
     @Rule public TemporaryFolder temp=new TemporaryFolder();
     private static final String STREAM="lab.example.invalid:8089:ssl";
     private final Deque<Runnable> worker=new ArrayDeque<>();
+    private final Queue<Runnable> heldPosts=new ConcurrentLinkedQueue<>();
+    private volatile boolean holdPosts;
     private Activity activity;private ImageTrialUi ui;private LocalV2Store local;private TmmDraft draft;
     private Path root,privateRoot,downloads,owned;private byte[] source,container,localBefore;
-    private volatile boolean connected=true,available=true,secondEnabled;private int listCalls,imageCalls,changed;
+    private volatile boolean connected=true,available=true,secondEnabled;private volatile int listCalls,imageCalls;private int changed;
     private final MissionSnapshotInput.Feed feed=new MissionSnapshotInput.Feed("Synthetic images","00000000-0000-4000-8000-000000000208","https://lab.example.invalid:8443");
     private ReceivedImagePayload incoming;
     @Before public void setup()throws Exception {
@@ -45,7 +48,7 @@ public class ImageTrialUiTest {
         local=new LocalV2Store(privateRoot.resolve("local-drafts-v1"));LocalV2.Snapshot initial=local.initializeNew();local.save(initial.storeId,initial.state(draft.uid),draft);localBefore=Files.readAllBytes(privateRoot.resolve("local-drafts-v1/drafts.bin"));
         activity=Robolectric.buildActivity(Activity.class).setup().get();Handler handler=new Handler(Looper.getMainLooper());
         ui=new ImageTrialUi(activity,local,new LocalImages(owned),privateRoot,downloads,worker::add,new ImageTrialUi.Host(){
-            public void post(Runnable r){handler.post(r);}public boolean available(){return available;}
+            public void post(Runnable r){if(holdPosts)heldPosts.add(r);else handler.post(r);}public boolean available(){return available;}
             public List<String> profiles(){return connected?Collections.singletonList(STREAM):Collections.emptyList();}
             public List<ConfiguredPublicationTrial.Stream> streams(){List<ConfiguredPublicationTrial.Stream> streams=new ArrayList<>();streams.add(new ConfiguredPublicationTrial.Stream(true,connected,STREAM));if(secondEnabled)streams.add(new ConfiguredPublicationTrial.Stream(true,false,"other.example.invalid:8089:ssl"));return streams;}
             public boolean defaultProvider(){return true;}
@@ -106,6 +109,59 @@ public class ImageTrialUiTest {
         start(false);pick(0);await("Välj bildpaket i Synthetic images",true);pick(0);click(AlertDialog.BUTTON_POSITIVE);await("Starta mottagen bildhistorik?",true);click(AlertDialog.BUTTON_POSITIVE);worker.remove().run();idle();
         await("Sparar mottagen bild för granskning",false);assertFalse(worker.isEmpty());ui.close();drain();idle();
         assertTrue(new ImageAssociationRegistry(privateRoot.resolve("received-image-association-v1")).load().records.isEmpty());assertTrue(new ImageStageStore(privateRoot.resolve("received-image-stage-v1")).inspect().ready.isEmpty());assertNull(field("viewer"));preserved();
+    }
+    @Test public void failedOfflineReadWhileUnavailableReleasesBusyAndAllowsFreshOpen()throws Exception {
+        ui.received(draft.uid);assertFalse(worker.isEmpty());available=false;worker.remove().run();idle();
+        available=true;assertFalse("Failed unavailable work must not strand the controller",ui.isBusy());
+        ui.show(draft.uid);assertEquals("Bilddelning · syntetiskt prov",shadowOf(dialog()).getTitle().toString());preserved();
+    }
+    @Test public void cancelledAttemptCannotDeliverQueuedImageResult()throws Exception {
+        queuedImageResult();MissionReadAttempt attempt=(MissionReadAttempt)field("pending");attempt.cancel();
+        deliverHeldPosts();assertTrue("Canceled result must not queue private intake",worker.isEmpty());
+        assertFalse((Boolean)field("busy"));assertNull(field("pending"));
+        assertEquals("Bildåtgärden kunde inte bekräftas",shadowOf(dialog()).getTitle().toString());assertEmptyReceivedHistory();preserved();
+    }
+    @Test public void unavailableHostAtQueuedImageDeliveryReleasesAttempt()throws Exception {
+        queuedImageResult();available=false;deliverHeldPosts();available=true;
+        assertFalse("Unavailable delivery must release pending work",ui.isBusy());
+        assertNull(field("pending"));assertTrue(worker.isEmpty());assertEmptyReceivedHistory();preserved();
+    }
+    @Test public void deadlineAfterNetworkCompletionRejectsQueuedImageResult()throws Exception {
+        queuedImageResult();MissionReadAttempt attempt=(MissionReadAttempt)field("pending");
+        Field deadline=MissionReadAttempt.class.getDeclaredField("deadline");deadline.setAccessible(true);
+        ((Runnable)deadline.get(attempt)).run();deliverHeldPosts();
+        assertTrue(worker.isEmpty());assertNull(field("pending"));assertFalse((Boolean)field("busy"));
+        assertEquals("Bildåtgärden kunde inte bekräftas",shadowOf(dialog()).getTitle().toString());assertEmptyReceivedHistory();preserved();
+    }
+    @Test public void oldNetworkResultAndFailureCannotCancelNewExplicitFlow()throws Exception {
+        queuedImageResult();MissionReadAttempt attempt=(MissionReadAttempt)field("pending");
+        Field deadline=MissionReadAttempt.class.getDeclaredField("deadline");deadline.setAccessible(true);
+        ((Runnable)deadline.get(attempt)).run();ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        deliverHeldPosts();assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertTrue(worker.isEmpty());
+        assertNull(field("viewer"));assertEmptyReceivedHistory();preserved();
+    }
+    private void queuedImageResult()throws Exception {
+        // Isolate terminal delivery from the independent periodic source-loss observer.
+        ScheduledThreadPoolExecutor timer=(ScheduledThreadPoolExecutor)field("timer");
+        for(Runnable task:timer.getQueue())if(((RunnableScheduledFuture<?>)task).isPeriodic())((Future<?>)task).cancel(false);
+        InboxStore inbox=new InboxStore(privateRoot.resolve("metadata-inbox-v1"));
+        new ImageAssociationRegistry(privateRoot.resolve("received-image-association-v1")).initializeNew(inbox.initializeNew().inboxId);
+        new ImageStageStore(privateRoot.resolve("received-image-stage-v1")).initializeNew();
+        start(false);pick(0);await("Välj bildpaket i Synthetic images",true);pick(0);click(AlertDialog.BUTTON_POSITIVE);
+        ThreadPoolExecutor network=(ThreadPoolExecutor)field("network");
+        for(int n=0;n<400&&network.getCompletedTaskCount()<2;n++)Thread.sleep(5);
+        assertEquals(2,network.getCompletedTaskCount());
+        holdPosts=true;worker.remove().run();
+        while(field("pending")==null){Runnable callback=heldPosts.poll();assertNotNull(callback);callback.run();}
+        for(int n=0;n<400&&network.getCompletedTaskCount()<3;n++)Thread.sleep(5);
+        assertEquals("Network result must be queued before the control",3,network.getCompletedTaskCount());
+        assertNotNull(field("pending"));assertEquals(1,imageCalls);assertFalse(heldPosts.isEmpty());
+    }
+    private void deliverHeldPosts(){holdPosts=false;for(Runnable r;(r=heldPosts.poll())!=null;)r.run();idle();}
+    private void assertEmptyReceivedHistory()throws Exception {
+        assertTrue(new InboxStore(privateRoot.resolve("metadata-inbox-v1")).load().receipts.isEmpty());
+        assertTrue(new ImageAssociationRegistry(privateRoot.resolve("received-image-association-v1")).load().records.isEmpty());
+        assertTrue(new ImageStageStore(privateRoot.resolve("received-image-stage-v1")).inspect().ready.isEmpty());
     }
     private void exportPreview()throws Exception{start(true);pick(0);await("Granska bildexport – inte publicerad",true);}
     private void receive()throws Exception {
