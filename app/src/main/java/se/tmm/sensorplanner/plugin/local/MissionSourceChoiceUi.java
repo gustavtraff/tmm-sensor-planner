@@ -30,7 +30,7 @@ public final class MissionSourceChoiceUi {
             if(streams.size()>32||new HashSet<>(streams).size()!=streams.size())throw new IllegalArgumentException();
             for(String stream:streams)MissionEndpoint.fromProfile(stream,8443);
             AlertDialog next=new AlertDialog.Builder(context).setTitle("Välj ansluten ATAK-server")
-                    .setItems(streams.toArray(new String[0]),null).setNegativeButton("Avbryt",(d,w)->cancel()).create();replace(next);
+                    .setItems(streams.toArray(new String[0]),null).setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).create();replace(next);
             next.getListView().setOnItemClickListener((parent,view,n,id)->{if(!closed&&dialog==next&&host.available())port(streams.get(n));});
         }catch(RuntimeException unavailable){info("Servervalet kunde inte verifieras","Ingen server kontaktades. Kontrollera ATAK:s anslutningar och prova igen.");}
     }
@@ -46,7 +46,7 @@ public final class MissionSourceChoiceUi {
         input.setOnEditorActionListener((v,action,event)->{if(action!=EditorInfo.IME_ACTION_DONE)return false;InputMethodManager keyboard=(InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);if(keyboard!=null)keyboard.hideSoftInputFromWindow(input.getWindowToken(),0);input.clearFocus();return true;});body.addView(input);
         TextView error=new TextView(context);body.addView(error);
         AlertDialog next=new AlertDialog.Builder(context).setTitle("Bekräfta server för hämtning").setView(body)
-                .setNegativeButton("Avbryt",(d,w)->cancel()).setPositiveButton("Läs tillgängliga feeds",null).create();replace(next);
+                .setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).setPositiveButton("Läs tillgängliga feeds",null).create();replace(next);
         next.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
             if(closed||dialog!=next)return;if(!host.available()){cancel();return;}
             MissionEndpoint endpoint;
@@ -58,8 +58,8 @@ public final class MissionSourceChoiceUi {
             cancel();try{host.selected(endpoint);}catch(RuntimeException unavailable){info("Starten är obekräftad","Servervalet kunde inte slutföras. Kontrollera anslutningen och inkorgen före ett nytt försök. Ingen annan källa väljs automatiskt.");}
         });
     }
-    private void info(String title,String message){replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng",(d,w)->cancel()).create());}
-    private void replace(AlertDialog next){cancel();dialog=next;next.setCanceledOnTouchOutside(false);next.setOnCancelListener(d->cancel());next.show();}
+    private void info(String title,String message){replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng",(d,w)->{if(dialog==d)cancel();}).create());}
+    private void replace(AlertDialog next){cancel();dialog=next;next.setCanceledOnTouchOutside(false);next.setOnCancelListener(d->{if(dialog==d)cancel();});next.show();}
     public void cancel(){if(dialog!=null){dialog.dismiss();dialog=null;}}
     public void close(){closed=true;cancel();}
 }

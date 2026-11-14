@@ -148,3 +148,24 @@ confirmation from an earlier canceled source flow cannot borrow a new source
 session. Its old Cancel action cannot close the new flow. API26/35 controls
 reproduced both defects before the guards and verify that no inbox, registry or
 stage is created. This changes no format, recovery/reset policy or active image.
+
+## Retired viewer and source-dialog controls — #216
+
+A delayed **Uppgifter** click from a closed received-image viewer previously could
+open its old metadata after Unload or replace a fresh image-trial dialog. Remaining
+Cancel/Close callbacks in image menus and the shared source/consent dialogs could
+also dismiss a newer explicit choice. Each callback now requires its current
+owning dialog; viewer controls additionally require the current visible viewer
+and available host. Current details/return/close behavior is preserved.
+
+The new regressions first reproduced 16 failures across API 26/35, including both
+shared dialog components used by the metadata trial. They exercise delayed old
+buttons after replacement/Unload, fresh source choices and unchanged synthetic
+private draft/image bytes. No stored format, source authority, transport, image
+adoption or automatic retry changes. These deterministic UI tests do not establish
+signed standard-client or physical-device lifecycle acceptance.
+
+Full image/UI verification on 2026-11-14: **614 cases, zero failures/errors, one
+existing opt-in skip**, plus `lintDebug`. The three focused controller suites
+contribute 78 passing cases. These are host-JVM API 26/35 tests, not new emulator
+or signed-runtime observations.
