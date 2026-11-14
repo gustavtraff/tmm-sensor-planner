@@ -1,8 +1,9 @@
 # Reviewed position and bearing updates — proposal
 
-**Status: proposal awaiting owner decisions G1–G5. Merging it approves nothing.** No
-code changes with this document. The existing update path still refuses any change
-to position, bearing or type.
+**G1–G5 approved by the owner on 2026-11-14.** See the
+[recorded decision](https://github.com/gustavtraff/tmm-sensor-planner/issues/189#issuecomment-6878986721).
+The measurement tool below does not enable production updates. The existing update
+path still refuses changes to position, bearing or type.
 
 ## Problem
 
@@ -82,3 +83,53 @@ PR, a signed candidate, then standard-client controls.
 
 Reading of the update code and existing documents, plus the `javap` inspection above.
 No build, emulator, server, phone or signing step was run for this proposal.
+
+## Actual SDK geometry measurement — 2026-11-14
+
+A separate permission-free instrumentation APK, signed locally with the inspected
+SDK’s existing developer certificate, ran against the retained **5.6.0.24/API35**
+developer host. Only public version-matched SDK methods were used. It created one
+fixed synthetic marker in the isolated lab and removed that same live object.
+No private draft, inbox, stage, registry or image file changed.
+
+The actual observations were:
+
+- A bearing-only payload update plus `refresh`/`persist` preserved the outer point.
+- Moving only the point left old metadata; the existing decoder rejected that
+  intermediate mismatch. This is an observed partial state, not an atomic-update
+  or future error-UI guarantee. A manual native drag was not performed.
+- Passing raw private-coordinate precision to `setPoint` left the actual in-memory
+  CoT object inconsistent with `PublicationCot.read`. XML serialization rounded
+  its point and hid that difference. A valid XML file alone would miss this case.
+- Setting the point from the candidate event’s existing seven-decimal outgoing
+  projection, then retaining the exact metadata and requesting persistence, passed
+  immediate readback with the same MapItem instance and UUID.
+- Independent XML checks preserved every exact offered coordinate/bearing value
+  and verified the expected outer-point rounding, including the deliberately
+  inconsistent intermediate export.
+
+The future writer should therefore use the candidate event’s point coordinates,
+not raw private draft coordinates. No persisted/wire format change is needed.
+These are actual developer-host SDK observations, not merely method inspection.
+They do **not** prove native Data Sync prompt/server behavior, durable persistence,
+standard-client compatibility or the receiving client’s selected-field workflow.
+The two-client/native/target-server matrix above remains open under #189.
+
+## Reproduce the bounded measurement
+
+`sh scripts/build-geometry-sdk-probe.sh /private/output.apk` builds an **unsigned**
+APK using the cached toolchain and inspected external `TMM_ATAK_SDK_DIR`. It
+packages the core, existing envelope adapter and measurement source only; it does
+not sign, install, request permissions or include the SDK/key. Local deployment
+requires the matching inspected developer-host certificate; no signing bypass is
+supported. Never submit this measurement APK as the ordinary TMM plugin.
+
+On an explicitly owned isolated developer host with existing approvals, after
+independent runtime ownership/deadline/loopback checks, the instrumentation command
+is `am instrument -w -e confirmSyntheticLab G1-G5-20261114
+se.tmm.sensorplanner.geometryprobe/se.tmm.sensorplanner.tools.GeometrySdkInstrumentation`.
+It requires an empty host external-files `tmm-geometry189` directory and refuses a
+pre-existing fixture UUID. Proof and fixed synthetic CoT exports are written there.
+Keep actual captures private; independently compare the exports and private-file
+baseline, then clean only the owned APK/runtime. The live-map removal result is
+not a promise of remote withdrawal or deletion of every historical copy.
