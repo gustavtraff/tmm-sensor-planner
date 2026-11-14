@@ -174,6 +174,60 @@ public class ImageTrialUiTest {
         old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
         assertSame(fresh,dialog());assertTrue("Old Cancel must not close fresh flow",fresh.isShowing());assertMissingHistory();preserved();
     }
+    @Test public void unloadedViewerCannotReopenDetails()throws Exception {
+        receive();click(AlertDialog.BUTTON_POSITIVE);awaitViewer();Dialog old=(Dialog)field("viewer");
+        Button details=button(old.getWindow().getDecorView(),"Uppgifter");ui.close();idle();
+        details.performClick();idle();
+        assertNull("Unloaded viewer must not reopen metadata",field("dialog"));assertNull(field("viewer"));preserved();
+    }
+    @Test public void dismissedViewerCannotReplaceFreshFlowWithOldDetails()throws Exception {
+        receive();click(AlertDialog.BUTTON_POSITIVE);awaitViewer();Dialog old=(Dialog)field("viewer");
+        Button details=button(old.getWindow().getDecorView(),"Uppgifter");
+        button(old.getWindow().getDecorView(),"Stäng").performClick();idle();
+        ui.show(draft.uid);AlertDialog fresh=dialog();details.performClick();idle();
+        assertSame("Retired viewer must not replace fresh UI",fresh,field("dialog"));assertTrue(fresh.isShowing());preserved();
+    }
+    @Test public void currentViewerDetailsReturnAndCloseStillWork()throws Exception {
+        receive();click(AlertDialog.BUTTON_POSITIVE);awaitViewer();Dialog full=(Dialog)field("viewer");
+        button(full.getWindow().getDecorView(),"Uppgifter").performClick();idle();
+        assertEquals("Bildens mottagna uppgifter",shadowOf(dialog()).getTitle().toString());
+        assertTrue(allText(shadowOf(dialog()).getView()).contains(incoming.offer.metadata.uid.toString()));
+        click(AlertDialog.BUTTON_POSITIVE);assertTrue(full.isShowing());assertNull(field("dialog"));
+        button(full.getWindow().getDecorView(),"Stäng").performClick();idle();assertNull(field("viewer"));preserved();
+    }
+    @Test public void retiredMenuAndFeedCancelCannotCancelFreshFlow()throws Exception {
+        ui.show(draft.uid);AlertDialog menu=dialog();ui.cancel();start(false);AlertDialog feedDialog=dialog();
+        menu.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(feedDialog,field("dialog"));assertTrue(feedDialog.isShowing());
+        ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        feedDialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,field("dialog"));assertTrue(fresh.isShowing());preserved();
+    }
+    @Test public void retiredExportCancelCannotCancelFreshFlow()throws Exception {
+        exportPreview();AlertDialog old=dialog();ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,field("dialog"));assertTrue(fresh.isShowing());assertFalse(Files.exists(downloads));preserved();
+    }
+    @Test public void retiredResourceDialogsCannotCancelFreshFlow()throws Exception {
+        start(false);pick(0);await("Välj bildpaket i Synthetic images",true);AlertDialog resources=dialog();pick(0);AlertDialog confirmation=dialog();
+        ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();
+        resources.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,field("dialog"));assertTrue(fresh.isShowing());
+        confirmation.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,field("dialog"));assertTrue(fresh.isShowing());assertMissingHistory();preserved();
+    }
+    @Test public void retiredOutcomeCloseCannotCancelFreshFlow()throws Exception {
+        ui.received(draft.uid);await("Bildåtgärden kunde inte bekräftas",true);AlertDialog old=dialog();
+        ui.cancel();ui.show(draft.uid);AlertDialog fresh=dialog();old.getButton(AlertDialog.BUTTON_POSITIVE).performClick();idle();
+        assertSame(fresh,field("dialog"));assertTrue(fresh.isShowing());preserved();
+    }
+    private Button button(View view,String label){
+        if(view instanceof Button&&label.contentEquals(((Button)view).getText()))return (Button)view;
+        if(view instanceof ViewGroup)for(int n=0;n<((ViewGroup)view).getChildCount();n++){
+            Button found=button(((ViewGroup)view).getChildAt(n),label);if(found!=null)return found;
+        }
+        return null;
+    }
     private AlertDialog dismissedHistoryConfirmation()throws Exception {
         start(false);pick(0);await("Välj bildpaket i Synthetic images",true);pick(0);click(AlertDialog.BUTTON_POSITIVE);
         await("Starta mottagen bildhistorik?",true);AlertDialog old=dialog();ui.cancel();return old;

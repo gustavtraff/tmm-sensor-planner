@@ -50,12 +50,12 @@ public final class ServerTrialConsentUi {
         if (streams.isEmpty()) {
             replace(new AlertDialog.Builder(context).setTitle("Ingen ansluten TLS-server")
                     .setMessage("Anslut exakt en SSL-server i ATAK först. Ingenting har skrivits eller skickats.")
-                    .setPositiveButton("Stäng", (d, w) -> cancel()).create());
+                    .setPositiveButton("Stäng", (d, w) -> { if (dialog == d) cancel(); }).create());
             return;
         }
         final List<String> choices = streams;
         AlertDialog next = new AlertDialog.Builder(context).setTitle("Välj server för publiceringsprov")
-                .setItems(choices.toArray(new String[0]), null).setNegativeButton("Avbryt", (d, w) -> cancel()).create();
+                .setItems(choices.toArray(new String[0]), null).setNegativeButton("Avbryt", (d, w) -> { if (dialog == d) cancel(); }).create();
         replace(next);
         next.getListView().setOnItemClickListener((parent, view, n, id) -> {
             if (!closed && dialog == next && host.available()) consent(choices.get(n));
@@ -82,7 +82,7 @@ public final class ServerTrialConsentUi {
         ScrollView scroll = new ScrollView(context);
         scroll.addView(body);
         AlertDialog next = new AlertDialog.Builder(context).setTitle("Publiceringsprov · syntetiska data").setView(scroll)
-                .setNegativeButton("Avbryt", (d, w) -> cancel()).setPositiveButton("Fortsätt till granskning", null).create();
+                .setNegativeButton("Avbryt", (d, w) -> { if (dialog == d) cancel(); }).setPositiveButton("Fortsätt till granskning", null).create();
         replace(next);
         Button proceed = next.getButton(AlertDialog.BUTTON_POSITIVE);
         proceed.setEnabled(false);
@@ -106,7 +106,7 @@ public final class ServerTrialConsentUi {
         if (dialog != null) dialog.dismiss();
         dialog = next;
         dialog.setCanceledOnTouchOutside(false);
-        dialog.setOnCancelListener(d -> cancel());
+        dialog.setOnCancelListener(d -> { if (dialog == d) cancel(); });
         dialog.show();
     }
 

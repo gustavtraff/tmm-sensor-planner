@@ -43,6 +43,14 @@ public class MissionSourceChoiceUiTest {
         ui.show();click(AlertDialog.BUTTON_NEGATIVE);assertFalse(ui.isBusy());ui.show();choose();click(AlertDialog.BUTTON_NEGATIVE);
         assertTrue(selected.isEmpty());ui.show();choose();Button pending=dialog().getButton(AlertDialog.BUTTON_POSITIVE);ui.close();pending.performClick();assertTrue(selected.isEmpty());
     }
+    @Test public void retiredSourceAndPortCancelCannotDismissFreshChoices(){
+        ui.show();AlertDialog source=dialog();choose();AlertDialog port=dialog();
+        source.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertTrue("Retired source Cancel must preserve port choice",port.isShowing());assertTrue(ui.isBusy());
+        ui.cancel();ui.show();AlertDialog fresh=dialog();
+        port.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertTrue("Retired port Cancel must preserve fresh source choice",fresh.isShowing());assertTrue(selected.isEmpty());
+    }
     @Test public void invalidPortsAndLostProfileCannotStartARequest(){
         ui.show();choose();EditText port=input(dialog().getWindow().getDecorView());
         for(String bad:new String[]{"","0","65536"}){port.setText(bad);click(AlertDialog.BUTTON_POSITIVE);assertTrue(selected.isEmpty());assertTrue(ui.isBusy());}

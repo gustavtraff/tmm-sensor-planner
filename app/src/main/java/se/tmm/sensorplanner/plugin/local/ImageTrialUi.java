@@ -99,7 +99,7 @@ public final class ImageTrialUi {
             if(dialog!=d||!available())return;
             if(uid==null){if(n==0)requestSource(false);else received(null);}
             else if(n==0)requestSource(true);else if(n==1)requestSource(false);else received(uid);
-        }).setNegativeButton("Stäng",(d,w)->cancel()).create());
+        }).setNegativeButton("Stäng",(d,w)->{if(dialog==d)cancel();}).create());
     }
     private void requestSource(boolean sending){cancel();this.sending=sending;sourceChoice.show();}
     private void listFeeds(){read("Läser feeds",a->transport.list(a),feeds->{
@@ -108,7 +108,7 @@ public final class ImageTrialUi {
         replace(new AlertDialog.Builder(context).setTitle("Välj testfeed").setItems(labels,(d,n)->{
             if(dialog!=d||!source())return;
             if(sending)prepareExport(feeds.get(n));else resources(feeds.get(n));
-        }).setNegativeButton("Avbryt",(d,w)->cancel()).create());
+        }).setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).create());
     });}
     private static final class Preview implements AutoCloseable {
         final ImagePublicationReview review;final Bitmap bitmap;
@@ -126,7 +126,7 @@ public final class ImageTrialUi {
                     +"Välj sedan filen manuellt i Data Sync: Add Items → File Select → OK → Publish. TMM kan inte verifiera sista destinationen, leverans eller senare ändringar. Privat bild ersätts inte."));
             ImageView image=new ImageView(context);image.setImageBitmap(p.bitmap);image.setAdjustViewBounds(true);image.setContentDescription("Granskad bild för export");body.addView(image);
             replace(new AlertDialog.Builder(context).setTitle("Granska bildexport – inte publicerad").setView(scroll(body))
-                    .setNegativeButton("Avbryt",(d,w)->cancel()).setPositiveButton("Spara export i Hämtningar",(d,w)->{
+                    .setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).setPositiveButton("Spara export i Hämtningar",(d,w)->{
                         if(preview!=p||!source())return;preview=null;image.setImageDrawable(null);p.bitmap.recycle();
                         confirmExport(feed,p);
                     }).create());
@@ -153,8 +153,8 @@ public final class ImageTrialUi {
             Resource r=values.get(n);replace(new AlertDialog.Builder(context).setTitle("Hämta och granska bild?")
                     .setMessage(destination(feed)+"\n"+r.name+"\n"+r.length+" byte\nSHA-256: "+r.hash
                             +"\nBild och metadata sparas separat för granskning. Högst 16 bildposter/256 MiB; inga äldre poster raderas för att göra plats. Lokala utkast/bilder ändras inte och ingen kvittens skickas.")
-                    .setNegativeButton("Avbryt",(x,w)->cancel()).setPositiveButton("Hämta bildpaket",(x,w)->{if(dialog==x&&source())ensureReceiving(()->download(feed,r));}).create());
-        }).setNegativeButton("Avbryt",(d,w)->cancel()).create());
+                    .setNegativeButton("Avbryt",(x,w)->{if(dialog==x)cancel();}).setPositiveButton("Hämta bildpaket",(x,w)->{if(dialog==x&&source())ensureReceiving(()->download(feed,r));}).create());
+        }).setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).create());
     });}
     private void ensureReceiving(Runnable next){
         work("Kontrollerar bildhistoriken",true,token->{
@@ -224,7 +224,7 @@ public final class ImageTrialUi {
         TextView title=text("Mottagen bild – "+item.metadata.displayId+"\nUUID: "+item.record.deviceUid+"\nErbjuden metadata: "+item.metadata.updatedAt
                 +"\n"+(item.sameCurrentMetadata?"Vid öppning: samma metadata som lokalt":"Historisk/annan metadata – ingen lokal bild har ersatts")+"\nNyp/dubbeltryck för zoom. Dra för att flytta.");title.setTextColor(Color.WHITE);body.addView(title);
         ZoomImageView image=new ZoomImageView(context,bitmap);image.setContentDescription("Mottagen bild för "+item.metadata.displayId);body.addView(image,new LinearLayout.LayoutParams(-1,0,1));
-        LinearLayout controls=new LinearLayout(context);for(String label:new String[]{"Zooma in","Zooma ut","Anpassa","Uppgifter","Stäng"}){Button button=new Button(context);button.setText(label);button.setMinWidth(0);button.setMinimumWidth(0);button.setOnClickListener(v->{if(label.equals("Zooma in"))image.zoomBy(2);else if(label.equals("Zooma ut"))image.zoomBy(.5f);else if(label.equals("Anpassa"))image.fit();else if(label.equals("Uppgifter"))viewerDetails(item);else full.dismiss();});controls.addView(button,new LinearLayout.LayoutParams(0,-2,1));}body.addView(controls);
+        LinearLayout controls=new LinearLayout(context);for(String label:new String[]{"Zooma in","Zooma ut","Anpassa","Uppgifter","Stäng"}){Button button=new Button(context);button.setText(label);button.setMinWidth(0);button.setMinimumWidth(0);button.setOnClickListener(v->{if(viewer!=full||!full.isShowing()||!available())return;if(label.equals("Zooma in"))image.zoomBy(2);else if(label.equals("Zooma ut"))image.zoomBy(.5f);else if(label.equals("Anpassa"))image.fit();else if(label.equals("Uppgifter"))viewerDetails(item);else full.dismiss();});controls.addView(button,new LinearLayout.LayoutParams(0,-2,1));}body.addView(controls);
         full.setContentView(body);full.setOnDismissListener(d->{image.clearImage();bitmap.recycle();if(viewer==full)viewer=null;});viewer=full;full.show();full.getWindow().setLayout(-1,-1);body.requestApplyInsets();
     }
     private void viewerDetails(ReceivedImageReview.Item item){
@@ -266,7 +266,7 @@ public final class ImageTrialUi {
         host.post(()->{if(!closed&&generation.get()==token){cancel();info("Källåtkomsten avbröts","Välj källa och granska på nytt. Historik behålls; en export, mottagning eller ett bekräftat lokalt metadataval kan redan vara sparat. Läs om aktuellt tillstånd.");}});
     }
     private void progress(String title){replace(new AlertDialog.Builder(context).setTitle(title).setMessage("Kan avbrytas. Inget publiceras automatiskt.").setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancelWithNotice();}).create());}
-    private void info(String title,String message){if(!available())return;replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng",(d,w)->cancel()).create());}
+    private void info(String title,String message){if(!available())return;replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng",(d,w)->{if(dialog==d)cancel();}).create());}
     private void replace(AlertDialog next){dismiss();dialog=next;next.setCanceledOnTouchOutside(false);next.setOnCancelListener(d->{if(dialog==d)cancelWithNotice();});next.show();}
     private void dismiss(){if(dialog!=null){dialog.dismiss();dialog=null;}}
     private LinearLayout column(){LinearLayout body=new LinearLayout(context);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(24,16,24,16);return body;}

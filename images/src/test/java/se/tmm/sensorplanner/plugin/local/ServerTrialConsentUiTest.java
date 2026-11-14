@@ -57,6 +57,14 @@ public class ServerTrialConsentUiTest {
         assertEquals(0, calls); assertFalse(consent.isBusy());
     }
 
+    @Test public void retiredChoiceAndConsentCancelPreserveFreshConsent() throws Exception {
+        consent.show();AlertDialog choice=dialog();choice.getListView().performItemClick(null,0,0);idle();
+        AlertDialog old=dialog();choice.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(old,dialog());assertTrue(old.isShowing());
+        consent.cancel();consent.showFor(STREAM);AlertDialog fresh=dialog();
+        old.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();idle();
+        assertSame(fresh,dialog());assertTrue(fresh.isShowing());assertEquals(0,calls);consent.close();
+    }
     @Test public void lostAccessBeforeProceedingGrantsNothing() throws Exception {
         List<CheckBox> boxes = choose();
         for (CheckBox box : boxes) box.setChecked(true);
