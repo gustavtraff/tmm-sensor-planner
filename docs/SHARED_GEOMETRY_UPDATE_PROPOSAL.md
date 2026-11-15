@@ -133,3 +133,32 @@ pre-existing fixture UUID. Proof and fixed synthetic CoT exports are written the
 Keep actual captures private; independently compare the exports and private-file
 baseline, then clean only the owned APK/runtime. The live-map removal result is
 not a promise of remote withdrawal or deletion of every historical copy.
+
+## Standard-client native file handoff attempt — 2026-11-15
+
+An owned retained ATAK-CIV **5.6.0.25**, TMM **29**, Data Sync **3.7.4**
+client attempted the ordinary Import → Local SD → Copy route with the actual
+SDK measurement's synthetic base CoT export. Only the outer delivery time/start/
+stale headers were refreshed; the fixed UUID, all exact metadata and projected
+point were unchanged. The selected feed and four known comparison feeds had
+Auto-publish new content disabled; no setting or role was changed.
+
+ATAK logged the fixed UUID's CoT import attempt, but its native Data Sync overlay
+selector did not expose that fixture, including a root search by its exact callsign.
+No Add Items/Done publication was confirmed. The selected feed and an independently
+read comparison feed both remained without the fixture UUID, and every private
+TMM file remained byte-identical. This does **not** establish the importer failure's
+root cause, successful native map-item creation, geometry transport, native update
+prompt behavior or the other client's selected-field result. No second client was
+started and the production geometry restriction remains in place.
+
+The owned hash-verified Downloads fixture was removed, and the emulator, dedicated
+ADB listener and three lab containers were independently verified stopped. Actual
+captures and ownership records remain private. There was no signing submission,
+APK installation, new permission grant or external server access.
+
+The next measurement must exercise the actual existing host-item update route in
+a compatible synthetic standard-client candidate; importing an exported CoT file
+cannot substitute for the direct SDK/persist route. Retain the existing SDK rounding
+result rather than rerunning it, and keep activation behind the separately reviewed
+implementation and remaining two-client controls.

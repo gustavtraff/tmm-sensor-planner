@@ -1,25 +1,32 @@
 # Backlog and remaining work
 
-## Current implementation and remaining gates — 2026-11-05
+## Current implementation and remaining gates — 2026-11-15
 
-Live GitHub Issues track current task status; project-plan decisions still take
-precedence. The table and notes under Historical setup below preserve earlier planning; they must not be read as current missing
-implementation. [Phone feedback](PHONE_ACCEPTANCE.md) already confirms the bounded
-local workflow; newer signed-lab results are linked from the relevant feature docs.
+Live GitHub Issues track task status; project-plan decisions and explicit owner
+approvals govern scope. Older setup notes below are historical, not a list of
+missing implementations. Local phone feedback already confirms the bounded MVP.
 
 | Area / open parent | Implemented or observed | Next concrete gate |
 |---|---|---|
-| Image sharing #26 | Approved descriptor codec, strict PNG/pair verification and private unassociated stage-v1 writer and inactive one-shot discard backend; fault/concurrency/core checks, actual six-point Android process-kill and guest-reboot/Full-HD evidence | Source/exact-M proof; reviewed association/receipt formats, cleanup/adoption UI/integration and supported feed image route; no actual Data Sync image transfer yet |
-| Data Sync #25 | Bounded two-client metadata/feed, reconnect, conflict and removal experiments; guarded source observer, full four-canary Mission reader and connected v26 snapshot/inbox/review pilot | Snapshot-first receive semantics owner-approved. Correct subscribed new-UID control passes; snapshot intake/review is wired in the lab. Finish native publication/update/restart evidence and signed standard-v26, then operational host/source selection; see SNAPSHOT_INTAKE.md |
-| Local UI #12/#52/#66/#67 | Map/forms, MGRS/map placement, 6400-mil details, camera normalization, 1920-edge storage and zoom viewer implemented; bounded owner phone acceptance recorded | Remaining targeted accessibility, physical-phone Unload, exact rotated-map/field and compatibility gates ([emulator Unload record](LOCAL_ACCEPTANCE_PLAN.md#execution-record--2026-11-08)); do not describe the features as unimplemented |
-| Governance #55 | Protected required core/images checks, owner workflow and contribution guidance; #152 adds required abrupt-worker regression and standalone probe compilation | License/contribution terms, separate automation identity, Gradle/security scanning and isolated SDK status publishing remain separate decisions/work |
-| SDK #2 | Supplied SDK inspected/fingerprinted; toolchain pinned and repeated local builds plus bounded signed-host evidence available | Original SDK archive provenance/checksum and distribution-term evidence remain missing; no fabricated provenance or license conclusion |
+| Image sharing #200 / #26 | Candidate 30 connects reviewed frozen Downloads export, manual native file publication, bounded selected-feed receive, exact metadata/inbox/stage/registry association and a separate read-only UUID viewer. Actual SDK Full HD/export/Cancel/source-loss/retry/repeat/offline controls passed; private active images remain unchanged. See [the trial UI](SHARED_IMAGE_TRIAL_UI.md). | Complete the approved signing handoff and verify the integrated synthetic standard-client A→feed→B flow. Permission-role, target-server 5.6 and physical-phone gates remain explicit. Active-image adoption and optional receipts are separate later work. |
+| Data Sync #25 / #171 / #178 | Signed v28 metadata publication→Fetch/inbox/review/Add→edit→reviewed host update→native republication round trip is verified. Candidate 29 adds the owner-approved configured-source synthetic trial; partial consent/connection/restart controls are recorded. | Finish the remaining configured-publication and role controls, then separately authorized phone/target-server acceptance. Do not rebuild the working metadata codec, inbox or review transaction. |
+| Shared geometry #189 | G1–G5 approved. Actual 5.6.0.24 SDK measurement verifies same MapItem/UUID, bearing-only point preservation, partial mismatch refusal and exact readback with the existing outgoing point projection. Raw in-memory coordinates need explicit rounding even when XML looks correct. | Native Data Sync/second-client measurement and separately reviewed update implementation. Current production updates still refuse position, bearing and type changes. See [the geometry trial](SHARED_GEOMETRY_UPDATE_PROPOSAL.md). |
+| Local UI #12 / #52 / #66 / #67 | Map/forms, MGRS placement, 6400-mil details, camera normalization, 1920-edge storage and zoom are implemented; bounded owner phone acceptance is recorded. | Remaining targeted physical/accessibility/rotation/lifecycle and compatibility gates; do not describe the local features as unimplemented. |
+| Governance #55 | Required protected core/images checks, contribution guidance and owner review workflow are in place. | License/contribution decisions, separate automation identity, scanning and isolated SDK status publishing remain separate work. |
+| SDK #2 | Supplied SDK inspected/fingerprinted, cached toolchain pinned, repeated local builds and bounded signed-host evidence available. | Original SDK archive provenance/checksum and distribution-term evidence remain missing; do not invent provenance or licensing conclusions. |
 
-Candidate v23 is documented in [the signing handoff](STAGE_FOUNDATION_CANDIDATE.md).
-It enables no new image ingress, association, adoption, receipt or transport caller.
-The immediate signing/lab step serves #25's source evidence; it is not an operational
-phone/server rollout. Follow [NEXT_STEPS.md](NEXT_STEPS.md) for the sequence and
-retain original source/ZIP/APK hashes when recording evidence.
+Candidate 30 is the current image pilot; the latest returned signed package observed
+is 29. The owner approved the exact reviewed candidate 30 source snapshot `e407bda`
+for the private signing service. Submission and returned APK verification are still
+external gates; an approved source archive is not a signed artifact. Later
+measurement-only/documentation work does not itself add plugin features or justify
+another signing cycle. Follow [the current next steps](NEXT_STEPS.md).
+
+Prioritize the complete signed synthetic image trial. While that external gate is
+pending, approved geometry work can advance independently. Use checks relevant to
+the actual change and retain required core/images CI; do not repeat already passed
+local suites or codecs without a new concern. These lab milestones do not authorize
+operational data/server access or erase the separate physical acceptance gates.
 
 ## Historical setup and planning notes
 
