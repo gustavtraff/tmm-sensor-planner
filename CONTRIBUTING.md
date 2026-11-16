@@ -1,9 +1,12 @@
 # Contributing
 
-The maintainer and sole authoritative human reviewer/merge decision maker is
+The maintainer and sole authoritative human decision maker is
 [@gustavtraff](https://github.com/gustavtraff). Other users may propose changes
-and provide feedback; only the maintainer accepts a change, merges it or approves
-a release. Agent review comments are supporting evidence, not human approval.
+and provide feedback; only the maintainer accepts external changes, approves
+gated-class merges and approves releases. Agent review comments are supporting
+evidence, not human approval. The merge rule for the maintainer's own and agent
+PRs is in [AGENTS.md](AGENTS.md): self-merge once required checks are green,
+except gated classes, which need explicit owner approval in the PR.
 
 ## Before contributing
 
@@ -35,8 +38,8 @@ Once contribution terms are agreed:
    evidence, data/schema impact and remaining device/SDK limitations. Use synthetic
    fixtures. Keep APKs, SDKs, keys and raw sensitive evidence outside Git.
 7. Resolve feedback and rerun affected checks after changes or an updated base.
-   Both `core` and `images` should pass. The maintainer makes the final review and
-   squash-merge decision; automated or agent reviews do not authorize a merge.
+   Both `core` and `images` must pass. The maintainer decides whether to squash-merge
+   an external PR; automated or agent reviews do not authorize that merge.
 
 Do not add automatic sharing, relax the offline guard, alter a data contract or
 claim an ATAK API without the approvals/evidence required by the project plan.
@@ -55,9 +58,10 @@ rights. Squash is the only merge method; auto-merge is off and merged task branc
 are deleted automatically. [The settings evidence](docs/REPOSITORY_GOVERNANCE.md)
 records the API verification, Actions restrictions and remaining decisions.
 
-Keep zero formal approvals while the owner also authors PRs (including PRs opened
-with the owner's token): GitHub prevents self-approval. Human review and a deliberate
-merge remain required by project policy. If technical enforcement of the owner's
+The ruleset requires zero formal approvals because the owner and agents author
+PRs under the same account and GitHub prevents self-approval. This matches the
+self-merge rule in [AGENTS.md](AGENTS.md); gated-class approval is procedural,
+written in the PR, not technically enforced. If technical enforcement of the owner's
 approval is needed, first use a separate bot/App identity for contributor PRs,
 then review required code-owner approval and stale-approval dismissal without
 creating a bypass. Do not add another human reviewer automatically: the owner
@@ -109,7 +113,7 @@ committing. Push only the task branch and open one PR referencing the Issue.
 
 After another PR merges, update this task branch from `origin/main` in its own
 worktree, resolve overlaps and rerun the affected checks. The strict required
-`core` check must pass against current `main` before human squash merge. Remove
+`core` check must pass against current `main` before squash merge. Remove
 the task worktree/branch only after merge or deliberate abandonment.
 
 The current protection evidence, separate SDK procedure and unresolved owner
