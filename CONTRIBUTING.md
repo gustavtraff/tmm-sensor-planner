@@ -10,7 +10,7 @@ except gated classes, which need explicit owner approval in the PR.
 
 ## Before contributing
 
-The project-code license and contribution terms are still undecided in [LICENSE](LICENSE).
+All rights to the project code are reserved ([LICENSE](LICENSE)); contribution terms are undecided.
 Agree those terms with the maintainer **before submitting code for acceptance**;
 public visibility is not an approved contribution or distribution policy. Synthetic
 bug reports and product feedback are welcome. Do not send private SDK material,
