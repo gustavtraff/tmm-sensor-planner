@@ -703,20 +703,3 @@ unchanged controller. No storage-format, golden fixture or transport change was
 made. No full app/SDK build, emulator, Docker, phone test or signing submission
 was performed; the targeted standalone Android-library test build is separate.
 A future signed APK still needs actual host/device regression verification.
-
-## Required self-hosted plugin build (#221)
-
-The owner selected a self-hosted SDK build on 2026-11-16. Follow
-[SDK runner setup and activation](SDK_RUNNER.md). The proposed Windows Dell uses
-an isolated Linux VM and an owner-approved, manually dispatched exact-PR-head
-build. A GitHub-hosted coordinator publishes `sdk` commit status; requiring that
-status in the main ruleset makes a missing/failed build block merge.
-
-No runner is currently registered and `sdk` is not yet required. The workflow
-must not be described as enforced until successful/failing build tests and the
-ruleset update in that checklist have actually been completed. SDK inputs, keys,
-APKs and raw build logs are never uploaded by the workflow. Device/signing and
-physical acceptance gates remain separate.
-
-`python3 scripts/test-sdk-ci.py` verifies log containment and cleanup with
-synthetic success/failure, without SDK access.
