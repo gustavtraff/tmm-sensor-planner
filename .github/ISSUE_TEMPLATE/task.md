@@ -6,14 +6,17 @@ labels: ""
 assignees: ""
 ---
 
-## Goal and requirement IDs
+## Problem
+
+Describe the user-visible problem or decision. Define shorthand on first use.
 
 ## Scope
 
-## Acceptance criteria
+Describe the bounded outcome, dependencies and documents affected.
 
-## Synthetic test data and test evidence
+## Acceptance
 
-## Security impact
+- [ ] State observable completion criteria and relevant verification.
 
-## Dependencies and documents to update
+Keep this body short. Put progress, test results and dated status updates in comments.
+Use synthetic test data and follow AGENTS.md for privacy and approval gates.
