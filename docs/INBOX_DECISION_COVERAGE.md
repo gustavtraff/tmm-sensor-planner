@@ -1,5 +1,8 @@
 # Read-only inbox decision coverage (#15)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `InboxDecisionCoverage.assess(inboxSnapshot, localV2Snapshot)` associates current
 received variants with existing committed decisions and the supplied current local
 state. It is SDK-independent, performs no file I/O and changes no decision, receipt,

@@ -1,5 +1,8 @@
 # Device review and 6400-mil bearing (#67)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 VersionCode 15 / `0.1.0-device-details.1` prioritizes position, image and bearing.
 The manual ID remains a wrapping title. Type and explicit lifecycle status appear
 first, separate from **Lokalt utkast · delas inte automatiskt**. Server connectivity

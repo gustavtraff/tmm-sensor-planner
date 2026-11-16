@@ -1,7 +1,10 @@
 # Verified image content boundary (#26 / #126 / #130)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The owner approved PR #118's logical recommendations A–F/H on 2026-10-29,
-with **Data Sync-feed as the target for G**. The [decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md#owner-decision-record--2026-10-29)
+with **Data Sync-feed as the target for G**. The [decision record](IMAGE_SHARING_CONTRACT.md#owner-decision-record--2026-10-29)
 keeps exact wire/container/receipt and private recovery formats gated before their
 writers. This first implementation covers only preparation and verification of
 image **content**, not the association or delivery of that content.

@@ -1,5 +1,8 @@
 # Local planner prototype (Issues #12 / #4)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The toolbar now opens a local draft list instead of the disposable single-point
 map experiment. This is a **local test prototype**, not a field release. Use
 synthetic data only. No domain record is published, exported or added as a normal

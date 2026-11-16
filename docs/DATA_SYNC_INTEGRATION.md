@@ -1,5 +1,8 @@
 # Data Sync integration investigation — 2026-10-23
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Tracking: #25, with #4/#7 privacy/compatibility and #14/#15 metadata/import.
 **Result:** there are concrete documented user and server workflows to investigate.
 A supported callable third-party Data Sync 3.7.4 Android API remains unidentified.

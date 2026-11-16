@@ -1,5 +1,8 @@
 # Reviewed publication path — #14
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Status: publication boundary proposed in merged PR #91; core private preparation
 implemented for human review, 2026-10-25.
 Implementation baseline: main `5dde0b0`. The preceding slice defined the outbound
@@ -198,7 +201,7 @@ SDK route can consume an in-memory event; this slice adds no persistent preparat
 cache. Actual Android codec execution passed on API 35; standard ATAK/phone dialog
 acceptance and the production new-tag host/feed handoff remain pending.
 
-A [concrete metadata XML profile](PUBLICATION_FORMAT_PROPOSAL.md) and independent
+A [concrete metadata XML profile](PUBLICATION_FORMAT.md) and independent
 fixtures were reviewed in #98. The owner authorized the
 [core codec](PUBLICATION_CODEC.md), which now encodes/decodes that profile without
 a writer or transport. No new source-context authority or native-handoff approval

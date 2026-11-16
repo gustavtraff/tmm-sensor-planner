@@ -1,5 +1,8 @@
 # Reviewed unassociated-stage discard backend (#156 / #26)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The accepted image decision F permits explicit bounded local retention/cleanup.
 This makes **one unassociated entry** concrete on the unchanged approved stage-v1
 layout. It is an inactive backend API: no cleanup UI, ingress caller, automatic
@@ -42,7 +45,7 @@ are used; there is no new on-disk field, delete journal or format migration.
   ready pairs fail closed. This is not a best-effort repair/reset API for damaged
   roots; a new confirmation cannot bypass those validation failures.
 - `discard(plan, registry)` is the only public discard. It refuses an entry referenced
-  by an [association record](IMAGE_ASSOCIATION_REGISTRY_PROPOSAL.md) under the registry
+  by an [association record](IMAGE_ASSOCIATION_REGISTRY.md) under the registry
   lock, and refuses when the registry is absent or invalid. Matching names, UUIDs or
   image bytes alone do not prove eligibility.
 - Existing active local image handles/files, drafts, inbox metadata, gallery sources,

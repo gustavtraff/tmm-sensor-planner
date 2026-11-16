@@ -1,5 +1,8 @@
 # In-memory import-choice and exact-preview UI — #15
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Based on main `2592daf`, after #107's preparation engine and #108's read-only
 browser. The owner authorized this next UI slice on 2026-10-27. It uses the
 existing approved `ImportDecisionPreparation` actions, fields, time/identity rules

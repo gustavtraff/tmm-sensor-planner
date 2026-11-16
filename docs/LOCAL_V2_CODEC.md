@@ -1,7 +1,10 @@
 # Approved local v2 in-memory codec (#15/D)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 On 2026-10-27 the owner explicitly approved the exact local TMMD v2 frame and TMMR
-fingerprint format in [LOCAL_V2_FORMAT_PROPOSAL.md](LOCAL_V2_FORMAT_PROPOSAL.md),
+fingerprint format in [LOCAL_V2_FORMAT.md](LOCAL_V2_FORMAT.md),
 including the independent test material from merged PR #102. Approval is recorded
 in the conversation, not inferred from merging a proposal. This implementation
 encodes/decodes bytes in memory and computes fingerprints only. The separate

@@ -1,5 +1,8 @@
 # Private metadata preparation UI — #14
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Version 17 / `0.1.0-private-preparation.1`, based on main `65390ec` after #99/#100.
 This adds a saved-device review action and verifies the codec on actual Android.
 It creates a private **in-memory** metadata snapshot; no file, ordinary host map

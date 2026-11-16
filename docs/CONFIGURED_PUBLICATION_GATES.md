@@ -1,5 +1,8 @@
 # Next configured-server publication gate — #178
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Status: investigation and proposed experiment only. No non-loopback publication,
 new publisher, stored format or operational access is enabled by this document.
 

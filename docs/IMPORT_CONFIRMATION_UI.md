@@ -1,5 +1,8 @@
 # Optional local import confirmation and recovery UI — #15
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Based on main `cf49067` after the versioned planner integration (#112). The owner
 assigned this slice while agent 2 independently works on read-only decision
 coverage. Existing approved field/time/identity, TMMD v2 and TMMI formats remain

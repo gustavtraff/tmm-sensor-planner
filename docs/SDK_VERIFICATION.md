@@ -1,5 +1,8 @@
 # ATAK-CIV 5.6.0 SDK verification
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Tracking Issue: [#2](https://github.com/gustavtraff/tmm-sensor-planner/issues/2).
 Status on 2026-10-12: the owner has provided a local SDK directory labeled
 `ATAK-CIV-5.6.0.24-SDK`, containing the host APK, developer guide, API JAR, tooling

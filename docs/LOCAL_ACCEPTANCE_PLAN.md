@@ -1,5 +1,8 @@
 # Offline lifecycle and rotated-map acceptance preparation — 2026-10-25
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Tracking: #12, #52 and #66; supporting A02/A05/N02/N08. **L01–L07 were later run
 on signed v28; see [the execution record](#execution-record--2026-11-08). L08/L09
 remain NOT RUN.** The original preparation text follows. The owner requested preparation without

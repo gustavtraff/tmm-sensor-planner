@@ -1,5 +1,8 @@
 # Saved-marker restoration on plugin startup (#50)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 **Acceptance update — 2026-10-30:** merged startup restoration has actual SDK /
 standard-host and [owner-reported phone](PHONE_ACCEPTANCE.md) acceptance. The
 [signed-v21 run](SIGNED_V21_VERIFICATION.md) also shows restored markers before

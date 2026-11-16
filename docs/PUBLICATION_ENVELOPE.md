@@ -1,8 +1,11 @@
 # Production-format SDK envelope experiment — #14
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Version **18**, `0.1.0-publication-envelope.1`, based on main `510558f`.
 This implements the next synthetic SDK-path candidate, not a saved-draft publisher.
-The approved [metadata XML v1](PUBLICATION_FORMAT_PROPOSAL.md) is carried unchanged
+The approved [metadata XML v1](PUBLICATION_FORMAT.md) is carried unchanged
 inside a CoT envelope. The old `tmmShareLab` experiment remains available unchanged;
 its signed runtime evidence does **not** establish preservation of the new tag.
 

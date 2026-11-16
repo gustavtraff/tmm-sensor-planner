@@ -1,9 +1,12 @@
 # Durable private review inbox (#15)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 On 2026-10-25 the repository owner explicitly approved decisions A–C and the
 concrete format from PR #92 in the conversation. D, applying received metadata to
-local drafts, remains deferred. [The rationale](IMPORT_PERSISTENCE_PROPOSAL.md)
-and [exact format 1](INBOX_FORMAT_PROPOSAL.md) define that boundary.
+local drafts, remains deferred. [The rationale](IMPORT_PERSISTENCE.md)
+and [exact format 1](INBOX_FORMAT.md) define that boundary.
 
 `core/InboxStore` stages metadata for later review. There is no Android caller,
 receiver, transport acknowledgment, resolution UI or draft application. Existing

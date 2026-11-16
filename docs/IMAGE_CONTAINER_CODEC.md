@@ -1,7 +1,10 @@
 # Approved one-file image container codec — #195 / #26
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `ImageContainerCodec` implements the owner's approved
-[container v1](IMAGE_CONTAINER_FORMAT_PROPOSAL.md). It has no UI, network, native
+[container v1](IMAGE_CONTAINER_FORMAT.md). It has no UI, network, native
 importer or storage caller. The codec returns only coherent immutable descriptor /
 PNG content, not source authority, association, adoption or acknowledgment.
 

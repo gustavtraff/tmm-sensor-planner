@@ -1,5 +1,8 @@
 # Device catalogue
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Tracking Issue: [#8](https://github.com/gustavtraff/tmm-sensor-planner/issues/8).
 The repository owner selected exactly **Mini, Scout, PIR and Gateway** on 2026-10-12.
 These are the plugin's display names. Other devices mentioned in the manual are

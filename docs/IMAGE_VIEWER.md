@@ -1,5 +1,8 @@
 # Local image inspection (#66)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 VersionCode 12 / `0.1.0-image-viewer.1` adds read-only inspection. **Visa bild**
 opens a large window directly. Tap a pending image preview or **Visa större bild**
 to inspect it before saving. Pinch to zoom, drag to pan, double-tap to zoom/reset,

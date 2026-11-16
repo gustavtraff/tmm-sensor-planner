@@ -1,5 +1,8 @@
 # Configured-server metadata trial contract — proposal (#178)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 **Status: approved by the owner on 2026-11-08 (D1–D5).** This document alone enables
 nothing: a separate reviewed implementation PR, a new signed candidate and controls
 1–8 still follow. No server is contacted. [The gates document](CONFIGURED_PUBLICATION_GATES.md) records

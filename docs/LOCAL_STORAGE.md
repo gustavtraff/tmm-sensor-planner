@@ -1,5 +1,8 @@
 # Local draft storage
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Issue #11 adds `core/DraftStore`, a dependency-free local snapshot store. It has
 no ATAK, network, image-decoding or publishing operations. The [offline planner
 adapter](LOCAL_PLANNER.md) now calls it on Android API 26+ using host-private
@@ -104,17 +107,17 @@ survive restart. Future schema migration and physical-phone A02/A09 remain open.
 The owner explicitly approved A–C and the PR #92 byte format for a separate
 [durable review inbox](INBOX_STORAGE.md). Its own file, lock, codec and tests leave
 this DraftStore v1 format, snapshot behavior and current local image handles
-unchanged; no draft migration is involved. The [inbox format](INBOX_FORMAT_PROPOSAL.md)
+unchanged; no draft migration is involved. The [inbox format](INBOX_FORMAT.md)
 has an independent golden fixture plus restart, concurrency and write-failure checks.
 
 D, application to local drafts, remains deferred. Independent inbox and DraftStore
 saves are not an import transaction. Later apply work needs explicit review of
 revision/deletion reuse, fresh-image preservation, timestamp invariants and recovery;
-see [the contract rationale](IMPORT_PERSISTENCE_PROPOSAL.md).
+see [the contract rationale](IMPORT_PERSISTENCE.md).
 
 ## D application storage follow-up — proposed 2026-10-25
 
-[The D contract proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md) recommends a local v2
+[The D contract proposal](IMPORT_APPLY_CONTRACT.md) recommends a local v2
 snapshot with persistent per-UUID mutation versions/deleted slots and atomic
 application/decision evidence. This is not an implemented format or adopted
 migration. A new v1 characterization in DraftStoreTest proves that exact
@@ -125,7 +128,7 @@ then exact encoding/independent migration fixtures, before any v2 writer.
 
 ## Exact local v2 format follow-up — proposed 2026-10-26
 
-[The exact local v2 proposal](LOCAL_V2_FORMAT_PROPOSAL.md) separates file version 2
+[The exact local v2 proposal](LOCAL_V2_FORMAT.md) separates file version 2
 from the unchanged TmmDraft domain schema. It specifies active/deleted slots,
 persistent versions, committed decisions and canonical TMMR fingerprints, with
 [independent golden/expected-migration fixtures](../test-fixtures/synthetic/storage-v2/README.md)
@@ -136,7 +139,7 @@ No production v2 writer/migrator or mission-cleanup activation is added.
 
 ## Approved local v2 in-memory implementation — 2026-10-27
 
-The owner explicitly approved [the exact local v2/TMMR formats](LOCAL_V2_FORMAT_PROPOSAL.md)
+The owner explicitly approved [the exact local v2/TMMR formats](LOCAL_V2_FORMAT.md)
 and PR #102 fixtures. [LocalV2Codec and LocalStateFingerprint](LOCAL_V2_CODEC.md)
 now implement bounded encoding/decoding and hashing entirely in memory. This
 DraftStore v1 implementation/fixture, missing-file behavior and image ownership

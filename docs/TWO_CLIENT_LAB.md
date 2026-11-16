@@ -1,5 +1,8 @@
 # Isolated two-client lab (Issue #4)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The laboratory uses two separate AOSP API 35 arm64 Android emulators, SDK developer
 ATAK-CIV 5.6.0.24, and the owner's locally supplied TAK Server Docker package
 `takserver-docker-hardened-5.8-RELEASE-92`. Server package metadata reads

@@ -1,5 +1,8 @@
 # Connected local privacy trial (#4 / #7)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 This procedure tests private drafts while ATAK is connected to an isolated test
 server. It does not enable production synchronization or authorize operational
 data sharing. Use synthetic records and a separate test environment only.

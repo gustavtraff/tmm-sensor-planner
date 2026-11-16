@@ -1,6 +1,9 @@
 # Private unassociated image-pair storage (#146 / #26)
 
-The owner explicitly approved [stage-v1's exact layout](IMAGE_STAGE_LAYOUT_PROPOSAL.md)
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
+The owner explicitly approved [stage-v1's exact layout](IMAGE_STAGE_LAYOUT.md)
 after PR #143. `ImageStageStore` implements that format in the app image adapter,
 reusing `ReceivedImagePayload` and the approved descriptor codec. It has no UI,
 ingress or transport caller. It never opens drafts, an inbox, active attachments,

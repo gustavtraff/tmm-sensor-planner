@@ -11,7 +11,6 @@ review. Sharing may only be added after an approved technical investigation.
 Hardware control, telemetry, optimization, radio/coverage modeling and a dedicated server
 are outside the first version. Distance says nothing about radio links or terrain.
 
-The initial core implements parts of F01/F02/F03/F07/F08, without a user interface.
 Accepted display names: Mini, Scout, PIR and Gateway, selected on 2026-10-12.
 See [the device catalogue](DEVICE_CATALOGUE.md). On 2026-10-16 the owner confirmed
 the five statuses (planned, deployed, active, retrieved, cancelled), manual status
@@ -23,18 +22,11 @@ separate copy without EXIF/embedded metadata; sharing remains deferred.
 
 MVP defaults for owner text, duplicate warnings, manual deployment time, true-north
 bearing, original symbols and bounded image decoding are recorded in
-[ADR 0006](decisions/0006-local-mvp-product-rules.md), adopted by human merge of PR #28. Exact Mini
-manual-symbol identification, sharing targets and editing received objects remain
-outside those local defaults. Existing core implementation limits are recorded in
+[ADR 0006](decisions/0006-local-mvp-product-rules.md), adopted by human merge of PR #28. Mini symbol mapping is recorded in [DEVICE_SYMBOLS.md](DEVICE_SYMBOLS.md).
+Sharing targets and editing received objects have separate contracts. Existing core implementation limits are recorded in
 [the data model](DATA_MODEL.md).
 
-The core now implements validated local edits and accepted status-filtered distances.
-A [local snapshot store](LOCAL_STORAGE.md) now persists the core model and passes
-separate-process reopen tests. The [guarded offline prototype](LOCAL_PLANNER.md) connects Android storage, forms,
-review and local map selection on API 26+, including normalized local images.
-The [manual metadata-sharing lab](METADATA_SHARE_LAB.md) adds explicitly reviewed
-saved metadata to one isolated SDK-lab recipient; images are excluded. Production
-sharing and physical-phone restart/field acceptance remain open.
+Implementation status and verification gates are in [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## Form entry (#51)
 
@@ -46,7 +38,3 @@ cleared. Both selector confirmations are required; cancellation changes nothing.
 The timezone and selected UTC offset are displayed. Storage remains a UTC Instant
 with no schema change. [FORM_ENTRY.md](FORM_ENTRY.md) records minute precision for
 new selections, daylight-saving handling and actual-client verification limits.
-
-## Local physical evidence — 2026-10-22
-
-The owner reports the signed version 15 offline phone workflow working, including camera images, zoom, MGRS/map movement and 6400-mil bearing. See [PHONE_ACCEPTANCE.md](PHONE_ACCEPTANCE.md) for scope and limitations. Earlier statements about pending local physical acceptance are historical; production connected privacy, sharing, import/conflicts, image delivery and full coexistence remain open.

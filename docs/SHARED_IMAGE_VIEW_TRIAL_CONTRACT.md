@@ -1,5 +1,8 @@
 # First usable shared-image view — approved trial contract (#200 / #26)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 **I1–I5 explicitly approved by the owner on 2026-11-12**, against PR #201 /
 commit `afa20c435f5a4a48ea07cb4c194df40ed6788c88`, after clarification of the
 incremental user flow, snapshot limitations and separate later adoption work.
