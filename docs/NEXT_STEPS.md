@@ -59,10 +59,11 @@ without treating that as an activated production writer or closing the image gat
 
 - #221: owner selected a required self-hosted SDK build. No runner is registered;
   the proposed host is a Windows Dell with 32 GB RAM, using an isolated Linux VM.
-  Workflow, runner provisioning and failing-build enforcement must be verified.
-- #224/#225: documentation and issue cleanup are in progress. #231 consolidates
-  remaining local physical/accessibility/rotation/active-dialog unload acceptance;
-  #12/#52/#66/#67 are closed as implemented.
+  Draft PR #235 prepares the workflow; runner provisioning and failing-build
+  enforcement must still be verified.
+- #224: documentation consolidation is in PR #234 for review. #225 is complete
+  (merged PR #232). #231 consolidates remaining local physical/accessibility/
+  rotation/active-dialog unload acceptance; #12/#52/#66/#67 are closed as implemented.
 - #226: inventory merged/closed PR branches and stale worktrees. Owner confirmation
   of the exact list is required before deletion. #227 waits until after the exercise.
 - #2/#220: SDK provenance/distribution terms and repository visibility remain open;
