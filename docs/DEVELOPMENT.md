@@ -217,3 +217,29 @@ map-event signatures without registering callbacks, constructing a host or start
 a network. It is included in `scripts/check-sdk.sh`. [Source-path evidence and
 runtime limits](INGRESS_SOURCE_VERIFICATION.md) distinguish these checks from
 trusted feed identity, complete receipt coverage and actual runtime acceptance.
+
+## Worktree and branch cleanup
+
+After a task merges, confirm its remote branch disappears in GitHub. A local
+`origin/task-branch` can remain until a fetch prunes remote-tracking refs; it is
+not proof that the server branch still exists. Inspect actual remote branches
+with `git ls-remote --heads origin` and PR state/head in GitHub. Squash merges
+cannot be identified reliably with `git branch --merged`.
+
+For #226, list exact proposed targets and get owner confirmation before any
+branch/ref/worktree deletion. Recheck them immediately before cleanup:
+
+1. Check the PR is merged/closed, its branch/head matches the proposed target,
+   and no new open PR or work has reused the branch.
+2. Inspect `git worktree list --porcelain` and each existing worktree's
+   `git status --short`, including untracked files. Preserve dirty or unreadable
+   trees and private ignored inputs; a clean Git status alone does not authorize
+   removing a directory containing ignored files.
+3. Preview stale tracking refs with `git remote prune origin --dry-run` and
+   missing-directory registrations with `git worktree prune --dry-run`.
+4. After confirmation, remove only the listed clean worktrees and approved stale
+   refs/registrations. Do not force-remove worktrees or bulk-delete local branches.
+5. Re-query GitHub after the next normal merge to verify server auto-deletion.
+
+Keep the exact reviewed list in the issue comment; do not publish file contents,
+private paths, operational data or credentials in the inventory.
