@@ -43,21 +43,21 @@ Without the required rule this workflow alone does not enforce anything.
 3. Set the runner service environment's `JAVA_HOME`, `ANDROID_HOME` and
    `TMM_ATAK_SDK_DIR` to those external installations. Verify permissions with the
    service account; never paste its environment or SDK contents into a public log.
-4. In repository Settings → Actions → Runners, follow GitHub's current Linux x64
+4. Create environment `sdk-build` with the owner as required reviewer; turn off
+   self-review prevention for this owner-dispatched flow. Restrict deployment
+   branches to `main`. Verify these protections **before registering/starting the
+   runner**; an environment name in YAML does not create reviewer protection.
+5. In repository Settings → Actions → Runners, follow GitHub's current Linux x64
    registration instructions. Register only for this repository with the extra
    label `atak-sdk-5-6`; the workflow also requires `linux` and `x64`.
-   Use an ephemeral runner/clean VM snapshot per approved job. Never commit or
+   Use `config.sh --ephemeral` when registering and a clean VM snapshot per approved job. Never commit or
    quote the registration token; do not store GitHub/SSH credentials in the VM.
-5. Restrict the VM's network to the runner service and approved build dependency
+6. Restrict the VM's network to the runner service and approved build dependency
    endpoints, excluding the home/operational LAN. Preload permitted dependencies
    and restore the clean snapshot after each job. Guest isolation protects the
    Windows host; PR approval remains necessary to protect SDK inputs from code
    executed inside the guest. A persistent general-purpose home runner is not the
    intended setup.
-6. Create environment `sdk-build` with the owner as required reviewer; turn off
-   self-review prevention for this owner-dispatched flow. Restrict deployment
-   branches to `main`. Verify these protections **before registering/starting the
-   runner**; an environment name in YAML does not create reviewer protection.
 
 Raw SDK check output is redirected into a mode-600 temporary file and deleted by
 `scripts/check-sdk-ci.sh`. The public result contains fixed pass/fail text only.
