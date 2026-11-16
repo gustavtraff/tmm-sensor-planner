@@ -28,6 +28,8 @@ jobs:
         run: |
           export JAVA_HOME="$JAVA_HOME_17_X64"
           python3 scripts/test-datasync-metadata-probe.py
+      - name: Check SDK CI log containment without private inputs
+        run: python3 scripts/test-sdk-ci.py
       - name: Check local auth helper without network
         run: python3 scripts/test-github-auth.py
       - name: Check signing-source archive boundaries without network
