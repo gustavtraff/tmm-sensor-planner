@@ -68,7 +68,7 @@ passing public CI alone does not prove plugin compilation or runtime compatibili
 ## Contributions and security
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code. `@gustavtraff` is the
-sole authoritative human decision maker for external changes, gated-class merges and releases. License and
-contribution terms remain [undecided](LICENSE); no new license is granted here.
+sole authoritative human decision maker for external changes, gated-class merges and releases.
+All rights are reserved ([LICENSE](LICENSE)); contribution terms remain undecided.
 Use [SECURITY.md](SECURITY.md) for information handling and sensitive reporting.
 Only synthetic examples belong in this public repository, logs and attachments.

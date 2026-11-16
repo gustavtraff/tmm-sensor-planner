@@ -4,6 +4,13 @@ Issue: [E0-08 / #9](https://github.com/gustavtraff/tmm-sensor-planner/issues/9).
 Latest settings verification: 2026-10-18; historical evidence starts on 2026-10-17.
 This document records observed settings and open human decisions; it does not authorize a merge, release or operational data sharing.
 
+## Visibility and license — 2026-11-16 (#220)
+
+| Decision | Recorded position |
+|---|---|
+| License | All rights reserved (see [LICENSE](../LICENSE)) until SDK distribution terms in #2 are settled. No open-source license is selected. |
+| Visibility | Open. Making the repository private on a personal Free plan would stop enforcing the main ruleset and remove secret-scanning push protection and private vulnerability reporting. The owner decides between staying public, upgrading the plan, or going private with those controls lost. |
+
 ## Verified settings after owner configuration — 2026-10-18 (#55)
 
 The owner completed the manual settings, then a read-only GitHub API check

@@ -1,6 +1,8 @@
-License decision pending.
+Copyright (c) 2026 the tmm-sensor-planner authors. All rights reserved.
 
-No open-source license has been selected for the project's own code.
-This document grants no license or distribution rights for the ATAK SDK,
-TAK products, or third-party content. Choose a license and replace this text
-with the approved license before external distribution.
+No license is granted to use, copy, modify or distribute this project's code or
+documentation. Public visibility of the repository does not grant such rights.
+Contact the repository owner for permission.
+
+This notice grants no rights for the ATAK SDK, TAK products or other third-party
+content, which remain under their own terms.
