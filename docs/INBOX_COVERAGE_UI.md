@@ -1,5 +1,8 @@
 # Inbox decision coverage in review UI (#15)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `InboxReviewUi` now accepts `show(review, coverage)` in addition to the existing
 `show(review)`. It renders [InboxDecisionCoverage](INBOX_DECISION_COVERAGE.md)
 without changing InboxReview, core coverage logic, LocalV2Store, import preparation/

@@ -63,8 +63,8 @@ copying SDK-derived files into this public repository.
 | Android SDK | HelloWorld compileSdk 36, minSdk 21, targetSdk 34; local platform 36 and build-tools 35.0.0 installed and used |
 | SDK plugin build tool | takdevVersion 3.6.0, Git-Version 853d6ffa from its JAR manifest |
 | Plugin API | `ATAK_VERSION = '5.6.0'` in the HelloWorld app build.gradle |
-| Phone and companion plugins | Owner-reported versions in [RELEASES.md](RELEASES.md); coexistence not tested |
-| TAK Server | Version unknown; not a prerequisite for local compilation, required evidence for later server tests |
+| Phone and companion plugins | See [current gates](NEXT_STEPS.md) and [archived exact-version evidence](archive/2026-11-16/RELEASES.md) |
+| TAK Server | Lab: 5.8-RELEASE-92; target reported as 5.6 release, exact full build and target acceptance pending |
 
 The local pure-Java core remains Java 8-compatible. Its passing tests do not prove
 Android/ATAK compatibility. Use the actual SDK guide and sample to determine the

@@ -1,8 +1,11 @@
 # Publication metadata codec v1 — #14
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The owner authorized codec implementation after the format review in PR #98 and
 its merge on 2026-10-25. `PublicationCodec` implements the unchanged
-[XML v1 profile](PUBLICATION_FORMAT_PROPOSAL.md). This is an SDK-independent core
+[XML v1 profile](PUBLICATION_FORMAT.md). This is an SDK-independent core
 codec, not an Android preparation UI, private artifact writer or publishing path.
 
 ## API and ownership

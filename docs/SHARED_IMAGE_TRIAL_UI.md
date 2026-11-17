@@ -1,5 +1,8 @@
 # Synthetic shared-image trial UI — candidate 30 (#208 / #200 / #26)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Candidate 30 (`0.1.0-shared-image-view-trial.1`) connects the approved I1–I5 trial
 through the existing planner. It is an incremental **synthetic-only test** flow,
 not release/operational acceptance or automatic synchronization. No data formats,

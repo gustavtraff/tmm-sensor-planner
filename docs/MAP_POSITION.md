@@ -1,5 +1,8 @@
 # MGRS and graphical local placement (#52)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 VersionCode 14 / `0.1.0-mgrs-position.1` replaces the local form's separate decimal
 latitude/longitude fields and saved-review coordinates with WGS84 MGRS.
 

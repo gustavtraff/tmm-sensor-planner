@@ -1,5 +1,8 @@
 # Form keyboard and deployment time (#51)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 This changes the guarded local form only. Snapshot v1, the UTC Instant contract,
 manual status changes and optional deployment time are unchanged. There is no
 sharing, synchronization or automatic deployment timestamp.

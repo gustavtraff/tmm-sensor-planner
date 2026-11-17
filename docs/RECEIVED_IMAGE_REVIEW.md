@@ -1,5 +1,8 @@
 # Read-only received-image review (#202 / #26)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `ReceivedImageReview.assess` joins already loaded association-registry, inbox and
 local-v2 snapshots for one device UUID. `ReceivedImageContent.open` then reopens a
 selected record's actual retained content. These are inactive backend components:

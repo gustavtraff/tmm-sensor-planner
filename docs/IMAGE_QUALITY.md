@@ -1,5 +1,8 @@
 # Full HD local image copies (#66)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 VersionCode 13 / `0.1.0-full-hd-images.1` changes new owned PNGs to a maximum
 **1920-pixel longest edge**, maintaining aspect ratio and never enlarging smaller
 sources. A 3840 × 2160 image becomes 1920 × 1080; an orientation-6 3072 × 4096

@@ -1,5 +1,8 @@
 # Prepare source for the third-party build/signing service
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Tracking: [#7](https://github.com/gustavtraff/tmm-sensor-planner/issues/7), with SDK
 provenance in #2 and historical developer-host loading in #3. The owner supplied
 TAK.gov's **Source Archive Requirements** on 2026-10-17, repeated on 2026-10-18, from

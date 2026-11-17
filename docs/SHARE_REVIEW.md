@@ -1,5 +1,8 @@
 # Metadata sharing review preparation
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Status: core preparation adopted by human merge of PR #38 for
 [Issue #14](https://github.com/gustavtraff/tmm-sensor-planner/issues/14), F05/F12.
 Date: 2026-10-17. Human PR review may adopt this preparation; it does not approve

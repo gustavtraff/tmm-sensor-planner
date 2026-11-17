@@ -1,74 +1,29 @@
 # TMM Sensor Planner
 
-An ATAK-CIV plugin for planning and maintaining local TMM device drafts:
-**Mini, Scout, PIR and Gateway**. The current application is a **local test
-prototype**, not an approved field release. The active target is ATAK API 5.6.0;
-planning requires Android 8 / API 26 or later.
+An ATAK-CIV API 5.6.0 plugin for planning Mini, Scout, PIR and Gateway devices.
+Local planning requires Android 8 / API 26 or later. This is a trial prototype.
 
-Local features include manual device IDs, status/owner/position edits, bearing for
-PIR/Scout (6400-mil UI), MGRS/map placement, map symbols, nearest-device/gateway distances, persistent drafts and one
-metadata-cleaned image per device. New image copies are reviewed before saving
-and limited to a 1,920-pixel longest side; original files remain untouched.
+Start with [current status, next step and open gates](docs/NEXT_STEPS.md).
+The [product requirements](docs/PRODUCT.md) describe the intended workflow.
 
-## What has been verified
+## Development
 
-| Area | Evidence and limits |
-|---|---|
-| Public CI | Java core/storage, auth/archive/fixture checks and separate Android helper/UI tests and lint; no private ATAK SDK |
-| SDK development | Local 5.6.0.24 build/lint and bounded developer-host emulator results |
-| Signed standard client | [Signed v28](docs/SIGNED_V28_METADATA_ROUND_TRIP.md) verifies in-place updates and the bounded two-client metadata publish/Fetch/review/local-edit/native-republication/return path on ATAK-CIV 5.6.0.25; current host publication remains loopback-only |
-| Physical phone | [Owner-reported signed-v15 offline acceptance](docs/PHONE_ACCEPTANCE.md) includes camera images, restored markers, MGRS, map placement, bearing and device details; newer sharing candidates still need phone acceptance |
-| Connected use | [Signed v20 connected privacy](docs/CONNECTED_SIGNED20_VERIFICATION.md) has bounded two-client evidence. [v28 explicit snapshot intake](docs/CONFIGURED_SNAPSHOT_SOURCE.md) now has signed-standard round-trip evidence; actual-server/phone rollout remains open |
-
-Use synthetic data. Offline is the default; connected testing requires the separate
-isolated procedure and explicit session consent linked above.
-**TMM CoT-labb** and the metadata-sharing action are isolated-lab tools. Do not use
-them on an operational server/feed. Local installation does not publish the APK.
-No public APK release or automatic distribution channel is provided here.
-
-## Current shared-workflow boundary
-
-The [snapshot receiver](docs/CONFIGURED_SNAPSHOT_SOURCE.md) lets the operator choose
-an already connected SSL profile, confirm the separate HTTPS API port and select
-a feed before an explicit Fetch. Received metadata is preserved in the existing
-review inbox; local application needs a separate preview/Save. Images stay local.
-[Reviewed metadata updates of a host map copy](docs/REVIEWED_HOST_UPDATES.md) remain
-an isolated-loopback lab pilot. Native Data Sync destination/republication and
-an owner-authorized two-phone/server trial are still required before shared use.
-See [the current sequence and remaining gates](docs/NEXT_STEPS.md).
-
-## Development checks
-
-With JDK 17 (core compiled for Java 8):
+With JDK 17:
 
 ```sh
 sh scripts/test.sh
 ```
 
-This requires no ATAK SDK. For the independent Android image library, configure
-the public Android SDK as in [development setup](docs/DEVELOPMENT.md), then run:
+For Android setup, image-library checks and the separate private SDK build, follow
+[development](docs/DEVELOPMENT.md) and [testing](docs/TESTING.md).
 
-```sh
-./gradlew -p images --no-daemon testDebugUnitTest lintDebug
-```
+## Documentation
 
-Full plugin development also needs the separately obtained version-matched ATAK
-SDK. Use [the local SDK check](docs/REPOSITORY_GOVERNANCE.md#separate-sdk-check);
-passing public CI alone does not prove plugin compilation or runtime compatibility.
+- [Project plan](docs/PROJECT_PLAN.md), [architecture](docs/ARCHITECTURE.md) and [contracts](docs/DATA_MODEL.md)
+- [Signing](docs/SIGNING_SOURCE.md), [release procedure](docs/RELEASES.md) and [governance](docs/REPOSITORY_GOVERNANCE.md)
+- [Open work](https://github.com/gustavtraff/tmm-sensor-planner/issues) and [archived evidence](docs/archive/README.md)
 
-## Project documentation
-
-- [Product and requirements](docs/PRODUCT.md) and [project plan](docs/PROJECT_PLAN.md)
-- [Development environment](docs/DEVELOPMENT.md) and [test gates](docs/TESTING.md)
-- [Local planner](docs/LOCAL_PLANNER.md), [images](docs/LOCAL_IMAGES.md) and [storage](docs/LOCAL_STORAGE.md)
-- [Data contract](docs/DATA_MODEL.md) and [decision records](docs/decisions)
-- [Signing procedure](docs/SIGNING_SOURCE.md) and [release gates](docs/RELEASES.md)
-- [Open work](https://github.com/gustavtraff/tmm-sensor-planner/issues) and [governance audit](docs/REPOSITORY_GOVERNANCE.md)
-
-## Contributions and security
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code. `@gustavtraff` is the
-sole authoritative human decision maker for external changes, gated-class merges and releases.
-All rights are reserved ([LICENSE](LICENSE)); contribution terms remain undecided.
-Use [SECURITY.md](SECURITY.md) for information handling and sensitive reporting.
-Only synthetic examples belong in this public repository, logs and attachments.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) before
+contributing. [All rights reserved](LICENSE); contribution terms remain undecided.
+Use only synthetic data in public artifacts. Releases and operational data sharing
+require the owner's decision; merge rules are in [AGENTS.md](AGENTS.md).

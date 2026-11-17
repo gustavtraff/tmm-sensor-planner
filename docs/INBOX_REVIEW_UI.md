@@ -1,5 +1,8 @@
 # Read-only inbox review UI component — #15
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Based on merged main `52a9ec5` (#105/#106). The owner assigned this component on
 2026-10-27 alongside agent 2's independent import-decision preparation work.
 `InboxReviewUi` browses the existing immutable `InboxReview` result. It does not

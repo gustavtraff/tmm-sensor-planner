@@ -1,5 +1,8 @@
 # Coherent descriptor and PNG receive candidate (#138 / #26)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `ReceivedImagePayload.read(descriptorStream, pngStream)` joins the approved
 [descriptor codec](IMAGE_OFFER_CODEC.md) with the bounded actual
 [PNG verifier](IMAGE_TRANSFER_CONTENT.md). It returns one immutable in-memory
@@ -39,7 +42,7 @@ sent it, which authorized feed it came from, that the pictured scene is authenti
 that an exact metadata variant is retained in the inbox, that bytes/binding survive
 readback/restart, or that an operator adopted it. No positive association receipt
 or Delivered/Shared state follows. The independent trusted-source, exact-M and
-durable-storage gates in [the image contract](IMAGE_SHARING_CONTRACT_PROPOSAL.md)
+durable-storage gates in [the image contract](IMAGE_SHARING_CONTRACT.md)
 still precede verified association for review. Current local attachments remain
 untouched, and received metadata/image content never applies automatically.
 

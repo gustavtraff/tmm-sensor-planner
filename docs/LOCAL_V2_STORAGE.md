@@ -1,8 +1,11 @@
 # Isolated local v2 storage and atomic import — #15/D
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The owner authorized this core-only implementation on 2026-10-27, after approving
-[the logical D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md) and the exact
-[TMMD v2 / TMMR formats](LOCAL_V2_FORMAT_PROPOSAL.md). `LocalV2Store` implements
+[the logical D contract](IMPORT_APPLY_CONTRACT.md) and the exact
+[TMMD v2 / TMMR formats](LOCAL_V2_FORMAT.md). `LocalV2Store` implements
 file persistence and the prepared import transaction using those existing bytes.
 No format, fixture, domain schema, inbox encoding or outgoing protocol changes.
 

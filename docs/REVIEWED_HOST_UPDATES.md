@@ -1,5 +1,8 @@
 # Reviewed metadata-only host updates — #173
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Candidate **27 / `0.1.0-reviewed-update-lab.1`** extends the saved-draft map-copy
 pilot with a separate in-memory existing-copy review. It is still restricted to
 the connected isolated loopback lab, default comms provider and synthetic data. It is not an operational

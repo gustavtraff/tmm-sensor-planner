@@ -11,7 +11,8 @@ fresh saved selection and explicit review. Native Data Sync's own feed/confirmat
 UI controls publication; an SDK persist/readback is not delivery acknowledgment.
 [Signed-v28 evidence](SIGNED_V28_METADATA_ROUND_TRIP.md) records the bounded
 standard-client metadata round trip, native publication prompt and No/retry behavior.
-Host-copy publication remains isolated-loopback-only, with no operational fallback.
+The configured-publication trial adds an explicitly reviewed session boundary;
+see [its approved contract](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md).
 
 [ADR 0012](decisions/0012-explicit-mission-snapshot-intake.md) records the owner's
 accepted explicit snapshot receive route. The supported SDK supplies strict TLS for
@@ -23,8 +24,9 @@ image handles. Source means configured logical service plus mission membership,
 not author identity, complete server history or a continuous permission lease.
 
 No supported private Android Data Sync caller contract is claimed or invoked.
-The Mission API adapter is GET-only; a direct REST publisher and actual image-feed
-association/adoption remain separate work. [The native source investigation](INGRESS_SOURCE_VERIFICATION.md)
+The Mission API adapter is GET-only; a direct REST publisher and active local-image adoption remain separate work.
+[Selected-feed image intake](SELECTED_FEED_IMAGE_INTAKE.md) uses the approved
+container/stage/association contracts; the received viewer does not replace active images. [The native source investigation](INGRESS_SOURCE_VERIFICATION.md)
 explains why importer/logger hints are not promoted to trusted inbox writes.
 
 The historical [local map probe](LOCAL_MAP_PROBE.md), [synthetic CoT experiment](COT_ROUND_TRIP.md)
@@ -46,14 +48,5 @@ Stage 0 must show that local map representations are not transmitted, that UUIDs
 survive a round trip, that the sharing target is selected manually and how attachments are transported.
 An ordinary CoT event is not assumed to become a Data Sync feed.
 
-The isolated lab uses TAK Server 5.8-RELEASE-92. The operational server version remains
-unknown; lab transport evidence does not establish operational compatibility.
-
-## Data Sync investigation — 2026-10-23
-
-[The integration investigation](DATA_SYNC_INTEGRATION.md) distinguishes a candidate
-user-mediated export into Data Sync's chosen feed from a separate Mission API
-adapter. The dated investigation below predates the current receive decision; see ADR 0012 above. [ADR 0010](decisions/0010-investigate-data-sync-workflows.md)
-is proposed for review; private storage/features and experimental wire contracts
-remain unchanged. Data Sync auto-publication and queued offline sends need explicit
-#4/#7 testing before any published MapItem representation is introduced.
+The isolated lab uses TAK Server 5.8-RELEASE-92. The target server was reported as a TAK Server 5.6 release on 2026-11-08;
+its exact full build and physical-client compatibility still require confirmation.

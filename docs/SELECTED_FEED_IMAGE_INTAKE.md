@@ -1,5 +1,8 @@
 # Selected-feed image intake backend (#206 / #200 / #26)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The owner-approved I1–I5 trial now has an inactive selected-feed reader and local
 intake composition. No public UI action or image export is activated by this slice.
 All current container/descriptor/inbox/stage/registry/local-v2 bytes are unchanged.
