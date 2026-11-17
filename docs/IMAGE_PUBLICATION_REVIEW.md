@@ -1,5 +1,8 @@
 # Frozen image publication preparation — #193 / #26
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `ImagePublicationReview` joins the existing saved-state selection, destination
 review, private owned-image reader, sanitized export and approved descriptor codec.
 It has no UI or transport caller. It does not write files, adopt images, register
@@ -43,7 +46,7 @@ make a future delayed native upload fresh, establish an authenticated feed,
 enforce destination routing, limit aggregate concurrent preparations, implement
 cancellation of a blocked provider or acknowledge recipient delivery.
 
-The approved [image contract](IMAGE_SHARING_CONTRACT_PROPOSAL.md), exact container
+The approved [image contract](IMAGE_SHARING_CONTRACT.md), exact container
 review, supported Data Sync-feed route, source/exact-metadata association, receiver
 adoption transaction and two-client acceptance still apply. Metadata-only sharing
 continues saying the image is not shared. Current signed v29 does not gain a new

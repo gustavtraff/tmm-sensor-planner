@@ -1,5 +1,8 @@
 # Configured TLS snapshot receive trial — #175
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Candidate **28 / `0.1.0-configured-receive-trial.1`** extends the explicit
 [snapshot receiver](SNAPSHOT_INTAKE.md), not the publisher. It uses an already
 configured, enabled and currently connected SSL stream from ATAK's public server

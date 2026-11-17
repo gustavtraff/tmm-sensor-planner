@@ -1,5 +1,8 @@
 # Local images in the offline planner
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The inactive [received-owned-image preparation](RECEIVED_OWNED_IMAGE.md) adds exact
 copies of already verified PNGs without changing ordinary input limits or enabling
 image adoption/sharing in this UI.
@@ -388,7 +391,7 @@ for this candidate remains pending.
 
 ## Image-sharing content follow-up — 2026-10-29 (#26 / #126)
 
-[The image-sharing decision record](IMAGE_SHARING_CONTRACT_PROPOSAL.md) adopts the
+[The image-sharing decision record](IMAGE_SHARING_CONTRACT.md) adopts the
 owner-approved logical rules and Data Sync-feed target. The first
 [content-only boundary](IMAGE_TRANSFER_CONTENT.md) separately verifies exact received
 PNG bytes and prepares a fresh export copy from an owned PNG. No app caller or

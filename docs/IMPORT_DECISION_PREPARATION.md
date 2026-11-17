@@ -1,7 +1,10 @@
 # In-memory import-decision preparation (#15/D)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `ImportDecisionPreparation` implements the memory-only review/preparation part of
-[the adopted D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md). It uses existing TMMD
+[the adopted D contract](IMPORT_APPLY_CONTRACT.md). It uses existing TMMD
 v2 state values, TMMR fingerprints, selected-field semantics and ImportReview
 metadata equality. It introduces no persisted fields, schema or product policy.
 This class performs no file operations. The separate [isolated v2 store](LOCAL_V2_STORAGE.md)

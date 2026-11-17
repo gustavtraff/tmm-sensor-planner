@@ -1,5 +1,8 @@
 # Device symbols (#43)
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Status: **artwork and palette approved by the owner on 2026-10-18**. The map now
 uses the approved pictograms in place of the provisional letter icons.
 

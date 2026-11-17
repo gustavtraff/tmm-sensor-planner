@@ -1,5 +1,8 @@
 # Metadata import review proposal
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Status: proposed for human review with the SDK-independent part of
 [Issue #15](https://github.com/gustavtraff/tmm-sensor-planner/issues/15), F10/F11.
 Date: 2026-10-17. No synchronization policy or production receiver is approved by
@@ -100,7 +103,7 @@ writes DraftStore or changes this pure classifier. Current local image reference
 remain in the live draft; historical observations intentionally omit image handles.
 The image-only-edit regression still verifies SAME_METADATA and stale-save rejection.
 
-[The contract rationale](IMPORT_PERSISTENCE_PROPOSAL.md) records the remaining gates.
+[The contract rationale](IMPORT_PERSISTENCE.md) records the remaining gates.
 D, live-draft application, remains deferred. There is no Android/transport caller,
 source authentication or acknowledgment. Staging a candidate is not accepting it.
 
@@ -169,7 +172,7 @@ resolution state, schema migration, historical-image pinning or UI in this chang
 
 ## D confirmation and recovery follow-up — proposed 2026-10-25
 
-The [application/recovery proposal](IMPORT_APPLY_CONTRACT_PROPOSAL.md) separates
+The [application/recovery proposal](IMPORT_APPLY_CONTRACT.md) separates
 the adopted receiving UX from still-proposed commit/storage decisions. It keeps
 this comparison and read-only grouping unchanged. A future command must bind to
 persisted local mutation identity, not reuse InboxReview or SAME_METADATA as a

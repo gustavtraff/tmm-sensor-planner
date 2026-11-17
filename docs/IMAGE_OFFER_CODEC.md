@@ -1,6 +1,9 @@
 # Approved image descriptor v1 codec (#136 / #26)
 
-The owner approved the exact [descriptor version 1](IMAGE_OFFER_FORMAT_PROPOSAL.md)
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
+The owner approved the exact [descriptor version 1](IMAGE_OFFER_FORMAT.md)
 on 2026-10-30. `ImageOffer` and `ImageOfferCodec` now implement those descriptor
 values/bytes in the Java core. This is an in-memory codec only: it does not register
 an importer, receive network data, stage files, apply images or acknowledge delivery.

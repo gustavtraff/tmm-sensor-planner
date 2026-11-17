@@ -1,8 +1,11 @@
 # Isolated v1-to-v2 migration — #15/D
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 The owner authorized this next implementation after #110 on 2026-10-27.
 `LocalV2Store.migrateV1()` now implements the migration specified by the adopted
-[D contract](IMPORT_APPLY_CONTRACT_PROPOSAL.md) and [exact local format](LOCAL_V2_FORMAT_PROPOSAL.md).
+[D contract](IMPORT_APPLY_CONTRACT.md) and [exact local format](LOCAL_V2_FORMAT.md).
 It reuses the [v2 store's](LOCAL_V2_STORAGE.md) permanent lock, bounded reader,
 projected-frame validation, file-sync and atomic replacement. No new format,
 domain schema, fixture bytes, dependency or activation sidecar is introduced.

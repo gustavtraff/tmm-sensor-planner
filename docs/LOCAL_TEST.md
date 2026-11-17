@@ -1,5 +1,8 @@
 # Private offline test: development loading probe
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Historical loading-only checklist for `0.1.0-dev`. The current development APK
 now includes the offline planner and separate synthetic lab tools. Use
 [LOCAL_PLANNER.md](LOCAL_PLANNER.md) for `0.1.0-local-planner.1`; the checklist below

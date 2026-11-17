@@ -1,11 +1,14 @@
 # Byte-identical received image copy — #197 / #26
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 `LocalImages.prepareReceived(ImageTransferPng.VerifiedContent)` prepares a new
 opaque owned PNG from already verified immutable content. It has no UI, ingress,
 transport or adoption caller. It does not prove source/association authority,
 select a device or change an existing attachment.
 
-The approved [image contract](IMAGE_SHARING_CONTRACT_PROPOSAL.md) requires this
+The approved [image contract](IMAGE_SHARING_CONTRACT.md) requires this
 separate entry point: verified sanitized PNGs may be up to 16 MiB, while ordinary
 JPEG/PNG input remains at most 10 MiB. The camera preparer would reject larger
 valid received PNGs and could change the bytes whose digest was verified.

@@ -1,5 +1,8 @@
 # Versioned planner storage and explicit upgrade — #15
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Candidate versionCode **20**, `0.1.0-versioned-storage.1`, builds on the isolated
 [v2 store](LOCAL_V2_STORAGE.md) and [v1 migration](LOCAL_V2_MIGRATION.md) from #110/#111.
 The planner now uses v2 for all its metadata and attachment mutations. Application

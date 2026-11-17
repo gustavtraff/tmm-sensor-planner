@@ -1,5 +1,8 @@
 # Reviewed saved-draft map-copy pilot — #14
 
+For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
+Approval and implementation notes below retain their stated scope and date.
+
 Version **19**, `0.1.0-saved-draft-copy.1`, based on main `2c85c0d` after the
 [signed four-type envelope result](PUBLICATION_ENVELOPE_RUNTIME.md). The owner
 approved this bounded implementation on 2026-10-27. It connects saved-device review
