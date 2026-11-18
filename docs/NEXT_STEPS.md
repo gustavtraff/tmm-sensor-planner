@@ -1,59 +1,51 @@
-# Current implementation and next steps — 2026-11-16
+# Current implementation and next steps — 2026-11-18
 
-## Owner-prioritized image delivery — current pilot
+## Target workflow (owner-confirmed 2026-11-18)
 
-The owner prioritizes #26 for an exercise. This is a delivery target, not a tested
-date commitment. Metadata round-trip groundwork remains available; do not rebuild
-it or postpone images behind optional geometry/UI work.
+Users share one existing Data Sync feed. The planner creates a device. The person who
+deploys it updates the same UUID with actual position, status, bearing and a placement
+photo, then publishes. Every connected client fetches automatically and shows that
+update as current when it does not conflict with unpublished local work. Conflicts
+keep both versions and ask the user. Publishing is always explicit. Offline clients
+keep their last data and catch up after reconnecting. The full statement is at the
+top of [the image contract](IMAGE_SHARING_CONTRACT.md).
 
-- Frozen sender preparation and byte-identical verified-PNG owned-copy preparation
-  already exist (PRs #194/#198), including actual 1920-edge content. Candidate 30 now
-  wires the sender export UI; local-image adoption remains separate.
-- The owner approved C1–C3; [the bounded container codec](IMAGE_CONTAINER_CODEC.md)
-  is merged in PR #199 and #195 is closed. It verifies the independent descriptor
-  and exact strict PNG bytes; it is not source authority or a delivery receipt.
-- [Selected-feed receive backend](SELECTED_FEED_IMAGE_INTAKE.md) is merged in PR #207; #206 is closed. It adds bounded authenticated-source composition and existing-store intake without a UI caller in that slice.
-- [Read-only received-image review/opening](RECEIVED_IMAGE_REVIEW.md) is merged in
-  PR #203 and #202 is closed. It retains all UUID/source/delivery variants and
-  rechecks actual content against the exact retained metadata. Candidate 30 connects
-  the separate viewer and selected-feed caller; private active images remain unchanged.
-- [The native trial](IMAGE_CONTAINER_NATIVE_TRIAL.md) proves bounded actual file
-  transfer. The newer [approved first viewing-trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)
-  records strict-TLS hash GET evidence: byte access alone does not prove membership
-  in the selected feed. Both tested clients were permitted; denial remains open.
+## Where the implementation is
 
-Next decision/implementation sequence:
+- **Candidate 30** (`0.1.0-shared-image-view-trial.1`, signed) has been received.
+  Its version, signature and static packaging checks pass, and its signer matches
+  v29. It has not been installed or tested at runtime. It provides manual frozen-file
+  export through native Data Sync, explicit selected-feed download and a separate
+  read-only received-image viewer ([trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md),
+  [UI](SHARED_IMAGE_TRIAL_UI.md)). It does not fetch automatically and does not make
+  a received image current. It is a bounded trial, not the finished workflow.
+- Metadata round trip, configured TLS Fetch ([source](CONFIGURED_SNAPSHOT_SOURCE.md)),
+  inbox, local v2 transactions, image stage, association registry and byte-identical
+  received copies are all in place. Automatic sync reuses them.
+- The real server is TAK Server 5.6. All Mission API evidence so far is from the 5.8
+  lab.
 
-1. **I1–I5 are now explicitly approved** against PR #201 / exact proposal head
-   `afa20c4`. [The owner decision](https://github.com/gustavtraff/tmm-sensor-planner/issues/200#issuecomment-6820302379)
-   covers Downloads export/final native-handoff limitations, selected-feed image
-   ingestion and read-only viewing. This came from explicit conversation approval,
-   not the proposal merge. Existing implementation/verification gates remain.
-2. [Candidate 30 image-trial UI](SHARED_IMAGE_TRIAL_UI.md) connects frozen export,
-   selected-feed resource intake, separate received viewing and independently
-   confirmed metadata Add. Its actual isolated SDK-host controls now cover Full HD receive/readback, repeat,
-   offline/cold start, separate viewer, export Cancel/real file and pending-read
-   cancellation. Complete review/signing and standard-client acceptance next.
-3. Complete the approved signing handoff for candidate 30 source `e407bda`, verify
-   the returned package/version/signature, and run the integrated synthetic two-client path,
-   then run a separately authorized two-phone/server trial. Current signed v29 does
-   not contain the image UI; SDK acceptance does not prove the signed standard route.
-4. Keep explicit local-image adoption/replacement and optional outbound receipts as
-   separate product work. The approved first useful slice permits viewing a
-   received picture without overwriting a private attachment; it does not remove
-   the eventual adoption goal. No receipt means no verified delivery claim.
+## Next steps
 
-[Partial signed v29 consent/connection/restart controls](CONFIGURED_PUBLICATION_TRIAL_CONTRACT.md#partial-signed-standard-client-controls--2026-11-12)
-now supplement #178; its full configured-publication matrix remains open. The
-actual target TAK Server 5.6/physical-phone combination remains untested. This work
-is not permission for operational images, feeds or server access.
+1. **Owner decision on #236:** approve or change U1–U8 in
+   [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) (fetch lifetime,
+   stored follow choice, base-based conflict rule, current-image rule, safe
+   replacement, sync-state file, offline, no outbound). No code before that.
+2. **Owner decision P1:** how the deployer publishes a photo without candidate 30's
+   Downloads and File Select steps. The options are a Mission API upload, which needs
+   an outbound proposal, or a guided native File Select step.
+3. Optionally run the candidate 30 two-client lab and the authorized 5.6 trial (#200,
+   #222) to check the GET routes on 5.6. This is useful evidence for #236, not the
+   product.
+4. After approval: sync-state v1 exact-format proposal, then a core decision function
+   with tests, then the app scheduler, apply and conflict UI, then a signed candidate on
+   two clients and the authorized 5.6 target. Write the user guide for that online
+   workflow, not for the trial steps.
 
-The next bounded deliverable is a usable **signed synthetic image trial**. Keep
-critical privacy/content/source/UUID checks and required CI, and defer unrelated
-polish, active-image adoption and receipts. Already passed local checks need not
-be repeated for documentation or unchanged code. G1–G5 for [#189 geometry](SHARED_GEOMETRY_UPDATE.md)
-are now approved; its lab measurements can progress while signing is pending,
-without treating that as an activated production writer or closing the image gate.
+Related tracking: #26 parent for images, #25 Data Sync route, #171 selected-feed Fetch,
+#178 configured publication (partial signed v29 controls; full matrix open).
+G1–G5 for [#189 geometry](SHARED_GEOMETRY_UPDATE.md) are approved; its lab measurements
+can continue in parallel.
 
 ## Maintenance and acceptance
 
@@ -61,9 +53,8 @@ without treating that as an activated production writer or closing the image gat
   the proposed host is a Windows Dell with 32 GB RAM, using an isolated Linux VM.
   Draft PR #235 prepares the workflow; runner provisioning and failing-build
   enforcement must still be verified.
-- #224: documentation consolidation is in PR #234 for review. #225 is complete
-  (merged PR #232). #231 consolidates remaining local physical/accessibility/
-  rotation/active-dialog unload acceptance; #12/#52/#66/#67 are closed as implemented.
+- #224 and #225 are complete (merged PRs #234 and #232). #231 consolidates remaining
+  local physical/accessibility/rotation/active-dialog unload acceptance; #12/#52/#66/#67 are closed as implemented.
 - #226: inventory merged/closed PR branches and stale worktrees. Owner confirmation
   of the exact list is required before deletion. #227 waits until after the exercise.
 - #2/#220: SDK provenance/distribution terms and repository visibility remain open;

@@ -3,6 +3,35 @@
 For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
 Approval and implementation notes below retain their stated scope and date.
 
+## Confirmed product direction — 2026-11-18
+
+The owner confirmed the intended shared workflow. It takes precedence over the
+earlier receive-side recommendations below where they conflict.
+
+- Users already share one Data Sync feed. Ordinary use needs no new feed.
+- The planner creates the planned device. The person who deploys it updates the
+  **same UUID** with actual position, status, bearing where applicable, and a photo
+  of the placement.
+- The goal is one common current view of each device and its image across users.
+- TMM fetches updates from the selected feed automatically.
+- Conflict-free incoming metadata and images are applied without asking, and a
+  received image can become the device's current local image.
+- Unpublished local work is preserved. If an incoming change conflicts with it,
+  both versions are kept and the user is asked to resolve it.
+- Publishing local changes stays explicit. Automatic fetching never publishes.
+- Offline users keep the last data they received and catch up after reconnecting.
+
+**What this supersedes.** Decision C's "no proactive TMM background fetch" and "no
+auto-attach", receive item 3, and the "explicit choice for every replacement" in
+receive item 4 and decision E no longer apply to conflict-free updates. These still
+apply: UUID identity, exact-M association, strict byte verification, retained variants,
+no winner chosen by arrival order or `updatedAt`, no deletion caused by missing
+members, receipts off by default, and the format gates in H. Conflict-free is defined
+against a stored base, not by time. The delivery mechanism and its gated decisions
+U1–U8 are in [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) (#236).
+Candidate 30's [read-only viewing trial](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md) stays
+a bounded trial. It is not evidence for automatic synchronization.
+
 **Decision update, 2026-10-29:** the owner explicitly approved recommendations
 **A–F and H**, with **Data Sync-feed as the target for G**. A contact transfer does
 not replace that target. This adopts the logical rules and format-review gates;
@@ -376,9 +405,9 @@ transport is introduced here. Exact container/receipt/registry formats remain se
 |---|---|
 | A. Association identity | Immutable source-scoped associationId + device UUID + exact M + content digest/length, with destination-bound deliveryId. No causal/newest-image counter and no binding by label. |
 | B. Bytes and quality | Exact-byte SHA-256, stricter clean RGB/RGBA PNG profile and accepted 1920/16 MiB quality bounds. Separate export/adoption APIs preserve 10 MiB original input rules; no automatic receive-side transform or active-image rewrite. |
-| C. Receive and local adoption | Bounded unassociated/verified-for-review stages, no proactive TMM background fetch, no auto-attach or bundled metadata Add change. Explicit full-state-bound image adoption; keep pending alternatives and warn on M conflicts. |
+| C. Receive and local adoption | Bounded unassociated/verified-for-review stages, no proactive TMM background fetch, no auto-attach or bundled metadata Add change. Explicit full-state-bound image adoption; keep pending alternatives and warn on M conflicts. *Background fetch and auto-attach superseded on 2026-11-18 for conflict-free updates; see the top of this document.* |
 | D. Receipt privacy and meaning | Positive association-stored-for-review evidence only; authenticated intended-peer binding and explicit session feedback consent, default off. No attached-locally disclosure by default, no “all feed users received” claim. |
-| E. Replacement/removal | New offer for replacement, manual choice rather than last-write-wins; no implicit remote deletion/withdrawal in first slice. Metadata-only/null/missing images never clear current attachments. |
+| E. Replacement/removal | New offer for replacement, manual choice rather than last-write-wins; no implicit remote deletion/withdrawal in first slice. Metadata-only/null/missing images never clear current attachments. *Manual choice superseded on 2026-11-18 for conflict-free updates; still required on conflict.* |
 | F. Capacity/retention | Proposed 256 MiB staging budget, 16 pending offers, 256 small history/delivery/receipt records; no silent eviction/expiry. Cleanup must disclose loss of replay/history and exactly which private bytes are removed. |
 | G. Initial route and evidence | **Data Sync-feed is the target.** A contact experiment cannot replace it. Final destination/freshness, source association, safe import and return receipts still need exact SDK/two-client proof; this is not production authorization. |
 | H. New protocol/storage gates | Keep current metadata/inbox/v2 formats unchanged now. Review exact offer/container/receipt and private registry/recovery bytes/fixtures before their writers; do not disguise these as existing metadata decisions or imageRef values. |
