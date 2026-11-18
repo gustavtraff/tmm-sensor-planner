@@ -17,7 +17,7 @@ import se.tmm.sensorplanner.plugin.ingress.*;
 
 /** Explicit configured-source snapshot reader; no credential copies, subscription or storage operation. */
 @TargetApi(26)
-final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport, se.tmm.sensorplanner.plugin.local.ImageTrialUi.Transport {
+final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport, se.tmm.sensorplanner.plugin.local.ImageTrialUi.Transport, se.tmm.sensorplanner.plugin.local.FeedFollowUi.Transport {
     static final String BASE="https://127.0.0.1:8443";
     static boolean defaultProvider(){
         try{return CommsProviderFactory.isDefault()&&!CommsProviderFactory.getProvider().hasFeature(CommsProvider.CommsFeature.MISSION_API);}
