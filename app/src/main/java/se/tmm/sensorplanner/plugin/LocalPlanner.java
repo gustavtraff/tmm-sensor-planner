@@ -123,7 +123,7 @@ final class LocalPlanner {
         });
         java.util.function.BooleanSupplier copyAllowed = () -> !closed && labAllowed.getAsBoolean()
                 && ShareLabRoute.connected(context) && MissionSnapshotHttp.defaultProvider();
-        PublicationMapCopy mapCopy = new PublicationMapCopy(map, copyAllowed);
+        PublicationMapCopy mapCopy = new PublicationMapCopy(map, copyAllowed).withGeometry();
         copyUi = new SavedDraftCopyUi(context, store, worker, new SavedDraftCopyUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
             @Override public boolean available() { return copyAllowed.getAsBoolean(); }
@@ -135,6 +135,8 @@ final class LocalPlanner {
             @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) {
                 return mapCopy.inspectUpdate(prepared, label);
             }
+            @Override public boolean geometryUpdates() { return true; }
+            @Override public String coordinates(Position position) { return positionText(position); }
         });
         trialWatch = new ServerTrialConnectionWatch(context, ()->{serverTrial.end();ImageTrialUi current=imageTrial;if(current!=null)current.sourceLost();},
                 ()->{FeedFollowUi current=feedFollow;if(current!=null)current.connectionChanged();});

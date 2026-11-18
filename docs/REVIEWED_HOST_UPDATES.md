@@ -26,7 +26,8 @@ promise a single destination or a native Done boundary from this UI.
 
 Only ID, status, owner, deployed time, comment and updated time may differ. UUID,
 creation time, device type, exact position and bearing must match the previous
-valid host metadata. Geometry/type changes need their own SDK/native verification;
+valid host metadata. Geometry/type changes need their own SDK/native verification
+(isolated-lab position and bearing updates now follow [G1–G5](SHARED_GEOMETRY_UPDATE.md#implementation--2026-11-18));
 refusal does not authorize deleting the old host object or changing UUIDs.
 SDK-reported host attachments must be absent at review and commit. The SDK caches
 these lists; its public cache invalidation is called before every guard query so
