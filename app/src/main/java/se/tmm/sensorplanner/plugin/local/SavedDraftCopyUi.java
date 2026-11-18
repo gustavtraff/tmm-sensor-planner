@@ -37,6 +37,9 @@ public final class SavedDraftCopyUi {
         /** Explicit Cancel or dismissal; the server trial ends its session consent here. */
         default void cancelled() { }
         default PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String label) { throw new UnsupportedOperationException(); }
+        /** True when this host's updates may change position and bearing (G1-G5); otherwise both stay refused. */
+        default boolean geometryUpdates() { return false; }
+        default String coordinates(Position position) { throw new UnsupportedOperationException(); }
     }
     private final Context context;
     private final LocalV2Store store;
@@ -131,7 +134,8 @@ public final class SavedDraftCopyUi {
                 if (inspected == null) throw new IllegalStateException();
                 pendingUpdate = inspected;
                 return "";
-            }, token, update ? "Inte uppdaterat: kräver en enda giltig kartkopia utan värdbilagor. Ändrad typ, position, bäring eller skapandetid stöds inte. Ingen uppdatering utfördes. Granska på nytt."
+            }, token, update ? "Inte uppdaterat: kräver en enda giltig kartkopia utan värdbilagor, vars position stämmer med dess metadata. Ändrad typ"
+                    + (geometry() ? "" : ", position, bäring") + " eller skapandetid stöds inte. Ingen uppdatering utfördes. Granska på nytt."
                     : "Skapande försökt – resultat oklart. Kontrollera kartan och feeds före nytt försök. Ingen automatisk återställning görs.");
             if (outcome != null) post(token, () -> {
                 if (update && pendingUpdate != null) reviewUpdate(pendingUpdate, prepared.metadata, selected, label, token);
@@ -144,23 +148,38 @@ public final class SavedDraftCopyUi {
     private void reviewUpdate(PendingUpdate update, ShareReview.Metadata proposed, LocalV2.Selection selected, String label, long token) {
         LinearLayout body = new LinearLayout(context); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(24,16,24,16);
         TextView text = new TextView(context);
-        text.setText("BEFINTLIG KARTKOPIA\nEtikett: " + update.previousLabel() + "\n" + host.summary(update.previous())
+        ShareReview.Metadata old = update.previous();
+        boolean moved = old.position.latitude != proposed.position.latitude || old.position.longitude != proposed.position.longitude;
+        boolean turned = !java.util.Objects.equals(old.bearingDeg, proposed.bearingDeg);
+        // G3: old and new geometry side by side before the general summaries.
+        String geometry = !geometry() || !moved && !turned ? "" : "ÄNDRAD GEOMETRI · före → efter"
+                + "\nPosition · MGRS: " + host.coordinates(old.position) + " → " + host.coordinates(proposed.position) + (moved ? "" : " (oförändrad)")
+                + "\nBäring: " + bearing(old.bearingDeg) + " → " + bearing(proposed.bearingDeg) + (turned ? "" : " (oförändrad)") + "\n\n";
+        text.setText(geometry + "BEFINTLIG KARTKOPIA\nEtikett: " + update.previousLabel() + "\n" + host.summary(old)
                 + "\n\nFÖRESLAGEN METADATA\nEtikett: " + label + "\n" + host.summary(proposed)
-                + "\n\nEndast metadata. Ändrad typ, position, bäring eller skapandetid stöds inte i detta prov. Privata TMM-bilder läses eller delas inte av uppdateringskoden. Befintliga värdbilagor måste saknas enligt SDK-kontrollen."
+                + (geometry() ? "\n\nSamma kartobjekt och UUID uppdateras. Ändrad typ eller skapandetid stöds inte. Positionen skrivs före metadata; avbryts skrivningen däremellan är resultatet oklart."
+                        : "\n\nEndast metadata. Ändrad typ, position, bäring eller skapandetid stöds inte i detta prov.")
+                + " Privata TMM-bilder läses eller delas inte av uppdateringskoden. Befintliga värdbilagor måste saknas enligt SDK-kontrollen."
                 + "\n\nTMM väljer ingen feed. Befintliga Data Sync-kopplingar och andra värdfunktioner kan publicera ändringen direkt eller senare. "
                 + mode("Kontrollera alla berörda labbfeeds före bekräftelse. Okända destinationer är inte godkända. Endast syntetiska data i isolerat loopback-labb.",
                         "Nej i Data Sync-frågan ångrar inte SDK-ändringen. Okända destinationer är inte godkända. Endast syntetiska data."));
         body.addView(text);
         CheckBox consent = new CheckBox(context); consent.setText(mode("Jag har kontrollerat berörda labbfeeds och godkänner uppdateringens möjliga publicering dit.", "Jag har kontrollerat testfeeden och godkänner uppdateringens möjliga publicering dit."));
         consent.setMinHeight(Math.round(48 * context.getResources().getDisplayMetrics().density)); body.addView(consent);
+        // G3: a moved position misplaces the device for everyone on the feed, so it needs its own acknowledgement.
+        CheckBox position = new CheckBox(context);
+        position.setText("Jag har kontrollerat den nya positionen. Den ersätter den gamla för alla som ser kartkopian.");
+        position.setMinHeight(consent.getMinHeight()); position.setChecked(!(geometry() && moved));
+        if (geometry() && moved) body.addView(position);
         ScrollView scroll = new ScrollView(context); scroll.addView(body);
         AlertDialog next = new AlertDialog.Builder(context).setTitle(mode("Granska befintlig uppdatering · labb", "Granska befintlig uppdatering · serverprov")).setView(scroll)
                 .setNegativeButton("Avbryt", (d,w)->cancel()).setPositiveButton("Uppdatera kartkopian", null).create();
         replace(next); next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-        consent.setOnCheckedChangeListener((button,checked)->next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(checked));
+        android.widget.CompoundButton.OnCheckedChangeListener enable = (button,checked)->next.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(consent.isChecked() && position.isChecked());
+        consent.setOnCheckedChangeListener(enable); position.setOnCheckedChangeListener(enable);
         next.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
             synchronized (lifecycle) {
-                if (!valid(token) || pendingUpdate != update || !consent.isChecked()) return;
+                if (!valid(token) || pendingUpdate != update || !consent.isChecked() || !position.isChecked()) return;
                 pendingUpdate = null;
             }
             replace(new AlertDialog.Builder(context).setTitle("Kontrollerar sparad enhet och kartkopia")
@@ -237,6 +256,8 @@ public final class SavedDraftCopyUi {
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }
     private String mode(String lab, String server) { return host.serverTrial() ? server : lab; }
+    private boolean geometry() { return host.geometryUpdates(); }
+    private static String bearing(Double degrees) { return degrees == null ? "Ej angiven" : BearingMilsEdit.format(degrees) + " mils"; }
     private void invalidate() {
         generation++;
         if (pending != null) { pending.close(); pending = null; }

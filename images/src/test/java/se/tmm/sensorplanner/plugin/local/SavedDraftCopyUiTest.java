@@ -27,9 +27,9 @@ public class SavedDraftCopyUiTest {
     private Activity activity;
     private LocalV2Store store;
     private SavedDraftCopyUi copy;
-    private TmmDraft draft;
+    private TmmDraft draft, previous;
     private Path file;
-    private boolean available = true, throwOnCreate, supportsUpdates, throwOnInspect, serverTrial;
+    private boolean available = true, throwOnCreate, supportsUpdates, throwOnInspect, serverTrial, geometry;
     private int imports, inspections, updates, closedUpdates, cancelled;
     private PublicationPreparationReview.Prepared handed;
     private String label;
@@ -50,11 +50,13 @@ public class SavedDraftCopyUiTest {
             }
             @Override public boolean supportsUpdates() { return supportsUpdates; }
             @Override public boolean serverTrial() { return serverTrial; }
+            @Override public boolean geometryUpdates() { return geometry; }
+            @Override public String coordinates(Position p) { return "MGRS " + p.latitude; }
             @Override public void cancelled() { cancelled++; }
             @Override public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared, String hostLabel) {
                 inspections++;
                 if (throwOnInspect) throw new IllegalStateException("PRIVATE-INSPECTION-ERROR");
-                ShareReview.Metadata before = new PublicationPreparationReview(draft).metadata;
+                ShareReview.Metadata before = new PublicationPreparationReview(previous == null ? draft : previous).metadata;
                 return new SavedDraftCopyUi.PendingUpdate() {
                     boolean ended;
                     public ShareReview.Metadata previous() { return before; }
@@ -180,6 +182,39 @@ public class SavedDraftCopyUiTest {
         android.widget.Button save=dialog().getButton(AlertDialog.BUTTON_POSITIVE);click(AlertDialog.BUTTON_POSITIVE);save.performClick();assertEquals(1,work.size());
         executeHandoff();assertEquals(1,updates);assertEquals(0,imports);assertEquals(1,closedUpdates);
         assertArrayEquals(before,Files.readAllBytes(file));assertEquals("synthetic-image",store.load().activeDrafts().get(0).imageRef);
+    }
+    private List<android.widget.CheckBox> boxes(android.view.View v, List<android.widget.CheckBox> found) {
+        if(v instanceof android.widget.CheckBox)found.add((android.widget.CheckBox)v);
+        else if(v instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)v;for(int i=0;i<g.getChildCount();i++)boxes(g.getChildAt(i),found);}
+        return found;
+    }
+    private void geometryReview(Position position, Double bearing) throws Exception {
+        geometry=true;previous=draft;
+        draft=draft.edit(draft.displayId,draft.type,draft.status,draft.owner,draft.deployedAt,draft.comment,position,bearing,draft.imageRef,draft.updatedAt);save(draft);
+        updateReview();
+    }
+    @Test public void positionChangeShowsOldAndNewAndNeedsItsOwnAcknowledgement() throws Exception {
+        geometryReview(new Position(0.5,1),90.0);
+        String text=text(shadowOf(dialog()).getView());
+        assertTrue(text.contains("ÄNDRAD GEOMETRI")&&text.contains("MGRS 0.0 → MGRS 0.5")&&text.contains("mils → ")&&!text.contains("oförändrad")&&!text.contains("Endast metadata"));
+        List<android.widget.CheckBox> boxes=boxes(shadowOf(dialog()).getView(),new ArrayList<>());assertEquals(2,boxes.size());
+        boxes.get(0).setChecked(true);assertFalse(dialog().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        click(AlertDialog.BUTTON_POSITIVE);assertTrue(work.isEmpty());
+        boxes.get(1).setChecked(true);boxes.get(0).setChecked(false);assertFalse(dialog().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        boxes.get(0).setChecked(true);assertTrue(dialog().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        click(AlertDialog.BUTTON_POSITIVE);assertEquals(1,work.size());executeHandoff();assertEquals(1,updates);assertEquals(0,imports);
+    }
+    @Test public void bearingOnlyChangeNeedsNoPositionAcknowledgement() throws Exception {
+        geometryReview(draft.position,90.0);
+        String text=text(shadowOf(dialog()).getView());
+        assertTrue(text.contains("ÄNDRAD GEOMETRI")&&text.contains("MGRS 0.0 → MGRS 0.0 (oförändrad)"));
+        List<android.widget.CheckBox> boxes=boxes(shadowOf(dialog()).getView(),new ArrayList<>());assertEquals(1,boxes.size());
+        boxes.get(0).setChecked(true);click(AlertDialog.BUTTON_POSITIVE);executeHandoff();assertEquals(1,updates);
+    }
+    @Test public void hostWithoutGeometryKeepsMetadataOnlyWording() throws Exception {
+        updateReview();String text=text(shadowOf(dialog()).getView());
+        assertTrue(text.contains("Endast metadata")&&!text.contains("ÄNDRAD GEOMETRI"));
+        assertEquals(1,boxes(shadowOf(dialog()).getView(),new ArrayList<>()).size());
     }
     @Test public void cancelledUpdateAndChangedPrivateStateCannotReachHost() throws Exception {
         updateReview();click(AlertDialog.BUTTON_NEGATIVE);assertEquals(1,closedUpdates);assertEquals(0,updates);

@@ -5,8 +5,10 @@ Approval and implementation notes below retain their stated scope and date.
 
 **G1–G5 approved by the owner on 2026-11-14.** See the
 [recorded decision](https://github.com/gustavtraff/tmm-sensor-planner/issues/189#issuecomment-6878986721).
-The measurement tool below does not enable production updates. The existing update
-path still refuses changes to position, bearing or type.
+The measurement tool below does not enable production updates. The bounded G1–G5
+writer is implemented for the isolated-lab update path only (see
+[Implementation](#implementation--2026-11-18)); the configured server trial and every
+type change still refuse.
 
 ## Problem
 
@@ -165,3 +167,35 @@ a compatible synthetic standard-client candidate; importing an exported CoT file
 cannot substitute for the direct SDK/persist route. Retain the existing SDK rounding
 result rather than rerunning it, and keep activation behind the separately reviewed
 implementation and remaining two-client controls.
+
+## Implementation — 2026-11-18
+
+`PublicationHostUpdate` follows G1–G5 for the isolated-lab update path
+(`PublicationMapCopy.withGeometry()`). The configured server trial keeps refusing
+position and bearing changes, because its contract lists them as refused; changing
+that needs its own owner decision.
+
+- **G1:** position, bearing or both may change. UUID, type and creation time must
+  still match the previous valid host metadata.
+- **G2:** the same MapItem is updated. When the rounded point changes, the writer
+  calls `PointMapItem.setPoint` first with the candidate event's seven-decimal
+  projection, keeping the host point's altitude, altitude reference, CE and LE.
+  Then the payload and callsign are written, then `refresh` and `persist`. Nothing
+  is deleted or reimported. The SDK result is `POINT_AND_METADATA_PERSIST_REQUESTED`
+  for a moved point and `METADATA_PERSIST_REQUESTED` otherwise.
+- **Bearing only:** the outer point is not written and stays exactly as exported.
+- **G3:** the update review shows old → new MGRS and bearing above the summaries.
+  A position change adds a second checkbox; confirmation stays disabled until both
+  are checked.
+- **G4:** a marker dragged in ATAK no longer matches its payload, so
+  `PublicationCot.read` refuses it at review. A drag or any other change after the
+  review fails the existing freshness check at commit. Neither is adopted.
+- Unchanged: one-use review, fresh saved-selection check, no attachments, no retry
+  after an uncertain write, no rollback and no delivery claim. A failure after the
+  point write and before persist is reported as an uncertain result.
+
+`sh scripts/test-publication-sdk.sh` covers these cases against real SDK envelopes
+and a counted fake write boundary; `SavedDraftCopyUiTest` covers the review and
+acknowledgement. Neither runs a native host. The native, recipient and 5.6 controls
+in the measurement table (1–5 and 8) remain open, so this is not yet signed-host
+acceptance of #189.
