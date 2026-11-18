@@ -70,7 +70,7 @@ bytes. The largest file is 35,929 bytes.
 As in the association registry, the inbox already keeps every exact variant M under
 one receipt ID per (context, device, M). Referencing it avoids a second spelling of
 every field. The remote image is not stored either: U4 derives it from the registry
-record bound to the remote M.
+records for the device, preferring one bound to the remote M.
 
 ## How the fields give the U3 decision
 
@@ -203,7 +203,7 @@ device is deleted and no image is cleared because something is missing. Robolect
 conflict leaving local files byte-identical, duplicate fetch leaving every file byte-identical,
 stale local state, a simulated process kill after each U5 step, and recovery after a user image change.
 
-**Known open issue (needs an owner decision):** under amended U4, while both the replaced and the new
-photo are still bound in the feed, the image that differs from the new base is the old one. After an
-adoption the next fetch therefore applies the old photo again, and the two alternate on every fetch
-until the old one leaves the feed (W4). No data is lost, but the photo flips. Tests avoid this window.
+The photo alternation found during review (old and new photo both in the feed) is fixed by the
+second U4 amendment: an image bound to the feed's current M is H, so the old photo no longer wins
+after an adoption. `FeedSyncApplyTest` covers photo 2 published with M2 while photo 1 is still in the
+feed, a byte-identical next fetch, and a later status-only M3 keeping photo 2.

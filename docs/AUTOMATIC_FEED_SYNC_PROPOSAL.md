@@ -102,15 +102,14 @@ Field-by-field merging is not proposed.
 
 ### U4 — Which image is current
 
-**Amended and approved by the owner on 2026-11-18**, replacing the first U4 text, which bound the image to exactly the feed's current M. That version left a correct photo marked stale after a status-only update.
+**Amended twice and approved by the owner on 2026-11-18.** The first text bound the image to exactly the current M and left a correct photo stale after a status-only update. The first amendment alternated between the old and new photo while both were in the feed.
 
-A device's remote images are the distinct verified `.tmmi` resources in the feed whose registry association binds the device UUID, for any M of that device in this source context.
+A device's remote images are the distinct verified `.tmmi` resources in the feed whose registry association binds the device UUID.
 
-- None: nothing changes. A missing image never clears a local image.
-- Exactly one: it is the remote image H for U3.
-- More than one: if exactly one of them differs from the image base, it is H. This covers the window before W4 removes the replaced photo. Otherwise it is a conflict: keep all, change nothing, ask the user.
+1. If any of them is bound to exactly the feed's current M for the device, that image is H. Several such images with different bytes are a conflict.
+2. Otherwise: no images → nothing changes, and a missing image never clears a local image. One image → it is H. Several images including the image base → the base stays current. Several without the base → conflict, which clears itself once W4 removes the replaced photo.
 
-Metadata and image are compared separately in U3. There is no "image from an earlier version" marker.
+Metadata and image are compared separately in U3.
 
 ### U5 — Safe automatic image replacement
 
@@ -186,7 +185,7 @@ Automatic receiving does not depend on it.
 
 The U3/U4 decision is `se.tmm.sensorplanner.core.FeedSyncDecision` (#240), a pure
 function over in-memory values with no SDK or file access. The caller passes the
-distinct verified digests bound to the device UUID for any M (amended U4). It returns separate
+verified digests bound to the current M and all digests bound to the device UUID (U4, amended twice). It returns separate
 metadata and image decisions, uses `ImportReview.sameMetadata` for equality, and
 documents its rule precedence in the class Javadoc. Tests are in `FeedSyncDecisionTest`
 (run by `sh scripts/test.sh`). An image deleted-locally case with an UNKNOWN image base
@@ -198,7 +197,7 @@ A known base, or a local image, still gives NOTHING: a missing image never clear
 `se.tmm.sensorplanner.core.FeedSyncPlan` (#242) turns one completed fetch into a per-device
 plan, again pure and without I/O. It looks up the base M from the inbox receipt, builds the
 image base from the sync record, calls `FeedSyncDecision` per device, and picks the remote
-image record for H (first in registry order when several share H). Its `nextSync` holds only
+image record for H (one bound to the current M first, then registry order). Its `nextSync` holds only
 bookkeeping that needs no local write: remote receipt ids and ADOPT_BASE bases. APPLY and ADD
 leave bases for the executor (U5). A missing base receipt fails closed. A new device that would
 exceed the 256-record limit gets NOTHING and is listed in `overCapacity`. Tests are in

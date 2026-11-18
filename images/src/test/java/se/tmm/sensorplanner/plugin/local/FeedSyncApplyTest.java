@@ -21,7 +21,7 @@ public class FeedSyncApplyTest {
     @Rule public TemporaryFolder temp=new TemporaryFolder();
     private static final String CONTEXT="mission-api-v1|https://lab.example.invalid:8443|00000000-0000-4000-8000-000000000242";
     private Path root;private LocalV2Store local;private LocalImages images;private InboxStore inbox;private ImageAssociationRegistry registry;private ImageStageStore stage;private FeedSyncState sync;
-    private ImageAssociationRegistry.Record h1,h2;private TmmDraft m1;private UUID r1;private byte[] png1,png2;
+    private ImageAssociationRegistry.Record h1,h2;private TmmDraft m1,deployed;private UUID r1,rDeployed;private byte[] png1,png2;
 
     @Before public void setup()throws Exception {
         root=temp.newFolder().toPath();
@@ -31,8 +31,10 @@ public class FeedSyncApplyTest {
         stage=new ImageStageStore(root.resolve("received-image-stage-v1"));stage.initializeNew();
         sync=new FeedSyncState(root.resolve("feed-sync-v1"));
         sync.create(new FeedSyncState.Snapshot(UUID.randomUUID(),inboxId,true,CONTEXT,"Synthetic follow","lab.example.invalid:8089:ssl",Collections.emptyList()));
-        h1=intake("/h1.tmmi");h2=intake("/h2.tmmi");
-        r1=h1.receiptId;m1=receipt(r1);assertEquals(h1.deviceUid,m1.uid);
+        h1=intake(container("/h1.tmmi",null));r1=h1.receiptId;m1=receipt(r1);assertEquals(h1.deviceUid,m1.uid);
+        // The deployer's photo 2 is bound to their new metadata M2, as a real publication would be.
+        deployed=changed(m1,"deployed",m1.updatedAt.plusSeconds(30));h2=intake(container("/h2.tmmi",deployed));rDeployed=h2.receiptId;
+        assertTrue(same(receipt(rDeployed),deployed));
         png1=stage.read(h1.stageLocalId).image.bytes();png2=stage.read(h2.stageLocalId).image.bytes();
     }
 
@@ -41,6 +43,22 @@ public class FeedSyncApplyTest {
         LocalV2.State state=local.load().state(m1.uid);
         assertEquals(LocalV2.Presence.ACTIVE,state.presence);assertTrue(same(state.draft,m1));assertNull(state.draft.imageRef);assertEquals(1,state.draft.revision);
         FeedSyncState.Record rec=record();assertEquals(r1,rec.baseReceiptId);assertEquals(FeedSyncState.IMAGE_NONE,rec.imageKind);
+    }
+    @Test public void deployerPhotoBoundToNewMetadataWinsWithoutFlipAndSurvivesStatusOnlyUpdate()throws Exception {
+        run(executor(),list(r1),list(h1));
+        // Photo 2 is published with M2 while photo 1 is still in the feed.
+        run(executor(),list(rDeployed),list(h1,h2));
+        TmmDraft draft=local.load().state(m1.uid).draft;assertTrue(same(draft,deployed));assertArrayEquals(png2,images.read(draft.imageRef));
+        Map<Path,byte[]> before=files(root);
+        FeedSyncApply apply=executor();run(apply,list(rDeployed),list(h1,h2));
+        assertSameFiles(before,files(root));assertEquals(0,apply.applied());assertTrue(apply.conflicts().isEmpty());
+        // A later status-only M3, with both photos still in the feed and neither bound to M3, keeps photo 2.
+        TmmDraft m3=new TmmDraft(deployed.uid,deployed.displayId,deployed.type,deployed.status==DeviceStatus.PLANNED?DeviceStatus.ACTIVE:DeviceStatus.PLANNED,
+                deployed.owner,deployed.createdAt,deployed.updatedAt.plusSeconds(30),deployed.deployedAt,deployed.comment,deployed.position,deployed.bearingDeg,null,1);
+        UUID r3=receive(m3);run(apply,list(r3),list(h1,h2));
+        TmmDraft after=local.load().state(m1.uid).draft;assertTrue(same(after,m3));assertEquals(draft.imageRef,after.imageRef);
+        assertEquals(r3,record().baseReceiptId);assertArrayEquals(h2.sha256(),record().imageDigest());
+        assertTrue(apply.conflicts().isEmpty());assertTrue(apply.unpublished().isEmpty());assertEquals(1,pngs());
     }
     @Test public void plannedDeviceWithoutPhotoThenDeployerPhotoIsAppliedNotConflict()throws Exception {
         // The planner created and published the device without a photo; this client already has it locally.
@@ -66,10 +84,10 @@ public class FeedSyncApplyTest {
     }
     @Test public void replacingTheImageDeletesTheOldCopyOnlyAfterCommit()throws Exception {
         run(executor(),list(r1),list(h1));String old=local.load().state(m1.uid).draft.imageRef;
-        run(executor(),list(r1),list(h1,h2));
+        run(executor(),list(rDeployed),list(h1,h2));
         TmmDraft draft=local.load().state(m1.uid).draft;assertNotEquals(old,draft.imageRef);
         assertArrayEquals(png2,images.read(draft.imageRef));assertArrayEquals(h2.sha256(),record().imageDigest());
-        assertTrue(same(draft,m1));assertEquals(1,pngs());
+        assertTrue(same(draft,deployed));assertEquals(1,pngs());
     }
     @Test public void applyMetadataKeepsTheLocalImageAndCreationIdentity()throws Exception {
         run(executor(),list(r1),list(h1));TmmDraft before=local.load().state(m1.uid).draft;
@@ -116,7 +134,7 @@ public class FeedSyncApplyTest {
             run(executor(),list(r1),list(h1));String old=local.load().state(m1.uid).draft.imageRef;
             boolean[] hit={false};
             FeedSyncApply killed=executor();killed.steps=s->{if(step.equals(s)){hit[0]=true;throw new IOException("killed at "+s);}};
-            run(killed,list(r1),list(h1,h2));
+            run(killed,list(rDeployed),list(h1,h2));
             assertTrue(step,hit[0]);
             boolean pendingAdoption=step.equals(FeedSyncApply.ADOPT_WRITTEN)||step.equals(FeedSyncApply.ATTACHED);
             assertEquals(step,pendingAdoption,record().adoptNew!=null);
@@ -131,8 +149,7 @@ public class FeedSyncApplyTest {
                 assertArrayEquals(step,png2,shown);assertArrayEquals(step,h2.sha256(),rec.imageDigest());
             }
             assertEquals(step+": no orphaned or lost copy",1,pngs());
-            // The replaced photo has left the feed (W4), so the next fetch sees only h2.
-            run(executor(),list(r1),list(h2));
+            run(executor(),list(rDeployed),list(h1,h2));
             current=local.load().state(m1.uid).draft.imageRef;assertArrayEquals(step,png2,images.read(current));
             assertArrayEquals(step,h2.sha256(),record().imageDigest());assertNull(step,record().adoptNew);assertEquals(step,1,pngs());
         }
@@ -154,10 +171,17 @@ public class FeedSyncApplyTest {
 
     private FeedSyncApply executor(){return new FeedSyncApply(sync,inbox,stage,local,images);}
     private void run(FeedSyncApply apply,List<UUID> receipts,List<ImageAssociationRegistry.Record> records)throws Exception {apply.apply(sync.read(),receipts,records,()->true);}
-    private ImageAssociationRegistry.Record intake(String name)throws Exception {
-        try(InputStream in=getClass().getResourceAsStream(name)){
-            return new ReceivedImageIntake(inbox,registry,stage,local).receive(CONTEXT,ImageContainerCodec.read(in),Instant.EPOCH,()->true);
-        }
+    private ImageAssociationRegistry.Record intake(ReceivedImagePayload payload)throws Exception {
+        return new ReceivedImageIntake(inbox,registry,stage,local).receive(CONTEXT,payload,Instant.EPOCH,()->true);
+    }
+    /** A synthetic container, optionally re-bound to other metadata with fresh association and delivery IDs. */
+    private ReceivedImagePayload container(String name,TmmDraft metadata)throws Exception {
+        ReceivedImagePayload p;try(InputStream in=getClass().getResourceAsStream(name)){p=ImageContainerCodec.read(in);}
+        if(metadata==null)return p;
+        ImageOffer offer=new ImageOffer(UUID.randomUUID(),UUID.randomUUID(),new ShareReview(metadata,"synthetic","synthetic").metadata,
+                p.offer.sha256(),p.offer.pngLength,p.offer.width,p.offer.height);
+        ByteArrayOutputStream out=new ByteArrayOutputStream();ImageContainerCodec.write(out,offer,p.image);
+        return ImageContainerCodec.read(new ByteArrayInputStream(out.toByteArray()));
     }
     private TmmDraft receipt(UUID id)throws IOException {for(InboxStore.Receipt r:inbox.load().receipts)if(r.id.equals(id))return r.incoming;throw new AssertionError();}
     private UUID receive(TmmDraft draft)throws IOException {return inbox.receiveBatch(CONTEXT,Collections.singletonList(draft),Collections.emptyMap(),Instant.EPOCH).get(0).id;}
