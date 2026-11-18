@@ -44,6 +44,7 @@ Core/image CI and successful compilation do not establish runtime compatibility.
 - Local physical checks: #231 and [phone evidence](PHONE_ACCEPTANCE.md).
 - Metadata publication/Fetch/conflicts: #25/#171/#178 and their approved contracts.
 - Image export/receive/view: #26/#200/#222 and [the viewing-trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md).
+- Exercise trial on the real server (about 15 minutes of checks, then go/no-go): [exercise trial protocol](EXERCISE_TRIAL_PROTOCOL.md) (#252).
 - Signing, coexistence, information review, migration/upgrade and owner release
   decisions remain applicable to the exact candidate being released.
 
