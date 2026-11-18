@@ -183,3 +183,12 @@ Automatic receiving does not depend on it.
 - An image download interrupted mid-transfer, a process kill during U5, a restart
   and an airplane-mode toggle lose no data and never show an image from another version.
 - A traffic capture during automatic fetching shows only GET requests.
+
+## Implementation
+
+The U3/U4 decision is `se.tmm.sensorplanner.core.FeedSyncDecision` (#240), a pure
+function over in-memory values with no SDK or file access. It returns separate
+metadata and image decisions, uses `ImportReview.sameMetadata` for equality, and
+documents its rule precedence in the class Javadoc. Tests are in `FeedSyncDecisionTest`
+(run by `sh scripts/test.sh`). An image deleted-locally case with an UNKNOWN image base
+returns NOTHING, because there is no base to compare against.
