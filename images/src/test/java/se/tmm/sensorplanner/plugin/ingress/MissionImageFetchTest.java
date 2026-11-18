@@ -98,4 +98,13 @@ public class MissionImageFetchTest {
         MissionReadAttempt image=MissionReadAttempt.forImage(start);assertTrue(image.active(start+TimeUnit.SECONDS.toNanos(59)));assertFalse(image.active(start+TimeUnit.SECONDS.toNanos(60)));image.cancel();assertFalse(image.active(start+1));
         assertEquals(65536,MissionReadInput.MAX_BYTES);
     }
+    @Test public void uploadReplyGivesOnlyAStrictLowercaseHash()throws Exception {
+        String h=hash(bytes());
+        assertEquals(h,MissionImageInput.uploadedHash(new ByteArrayInputStream(("{\"UID\":\"x\",\"Hash\":\""+h+"\",\"Name\":\"a.tmmi\"}").getBytes(StandardCharsets.UTF_8)),()->true));
+        for(String bad:new String[]{"{\"Hash\":\""+h.toUpperCase(Locale.ROOT)+"\"}","{\"hash\":\""+h+"\"}","{\"Hash\":\""+h+"\",\"Hash\":\""+h+"\"}",
+                "{\"Hash\":1}","[\""+h+"\"]","{\"Hash\":\""+h+"\"} x"}){
+            try{MissionImageInput.uploadedHash(new ByteArrayInputStream(bad.getBytes(StandardCharsets.UTF_8)),()->true);fail(bad);}catch(IOException expected){}
+        }
+        try{MissionImageInput.uploadedHash(new ByteArrayInputStream(("{\"Hash\":\""+h+"\"}").getBytes(StandardCharsets.UTF_8)),()->false);fail();}catch(IOException expected){}
+    }
 }

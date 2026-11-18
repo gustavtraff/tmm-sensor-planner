@@ -65,6 +65,17 @@ public final class IngressSdkCheck {
         check(TakHttpResponse.class, "getStatusCode", int.class);
         check(TakHttpResponse.class, "close", void.class);
         org.apache.http.client.methods.HttpGet.class.getConstructor(java.net.URI.class);
+        // #243 photo writes pass these to the same execute(HttpRequestBase, boolean).
+        org.apache.http.client.methods.HttpPost.class.getConstructor(java.net.URI.class);
+        org.apache.http.client.methods.HttpPut.class.getConstructor(java.net.URI.class);
+        org.apache.http.client.methods.HttpDelete.class.getConstructor(java.net.URI.class);
+        check(org.apache.http.client.methods.HttpEntityEnclosingRequestBase.class,"setEntity",void.class,org.apache.http.HttpEntity.class);
+        check(TakHttpResponse.class, "getContentType", String.class);
+        check(TakHttpResponse.class, "getHeaderString", String.class, String.class);
+        for (Class<?> request : new Class<?>[]{org.apache.http.client.methods.HttpPost.class,org.apache.http.client.methods.HttpPut.class,
+                org.apache.http.client.methods.HttpDelete.class}) {
+            if (!org.apache.http.client.methods.HttpRequestBase.class.isAssignableFrom(request)) throw new AssertionError("Write request is not an HttpRequestBase");
+        }
         for (DeviceType type : DeviceType.values()) {
             if (!IngressProbeState.isCanary(PublicationEnvelopeFixtures.draft(type).uid.toString())) {
                 throw new AssertionError("Ingress observer allowlist differs from actual publication canaries");
