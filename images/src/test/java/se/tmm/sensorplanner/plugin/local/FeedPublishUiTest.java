@@ -44,6 +44,8 @@ public class FeedPublishUiTest {
     /** What the followed feed's CoT shows for the device; the host write publishes the saved M when {@code nativePublishes}. */
     private volatile TmmDraft remote;private boolean nativePublishes=true,hostCopy=true,single=true;private ShareReview.Metadata previous;
     private int published;
+    /** The host copy's label; a commit with the same label and M is the real update's unchanged outcome. */
+    private String hostLabel;
 
     @Before public void setup()throws Exception {
         Activity activity=Robolectric.buildActivity(Activity.class).setup().get();
@@ -57,7 +59,7 @@ public class FeedPublishUiTest {
         // The device and photo 1 arrive from the feed: photo 1 is the image base, and the feed shows that M.
         h1=intake(container("/h1.tmmi"));device=h1.deviceUid;
         new FeedSyncApply(sync,inbox,stage,local,images).apply(sync.read(),Collections.singletonList(h1.receiptId),Collections.singletonList(h1),()->true);
-        remote=feedCopy(saved());previous=metadata(saved());
+        remote=feedCopy(saved());previous=metadata(saved());hostLabel=label(saved());
         photos=new FeedPhotoPublication(local,images,root,new FeedPhotoPublication.Host(){
             public boolean available(){return true;}public boolean defaultProvider(){return true;}
             public List<String> profiles(){return profiles;}
@@ -72,10 +74,14 @@ public class FeedPublishUiTest {
             public String coordinates(Position p){return "MGRS "+p.latitude;}
             public boolean hostCopyExists(UUID uid){assertEquals(device,uid);return hostCopy;}
             public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared,String label){
-                ShareReview.Metadata before=previous;
+                ShareReview.Metadata before=previous;String beforeLabel=hostLabel;
                 return new SavedDraftCopyUi.PendingUpdate(){
-                    public ShareReview.Metadata previous(){return before;}public String previousLabel(){return "Synthetic · r1";}
-                    public String commit(){calls.add("host-update");written(prepared);return "SDK-resultat: METADATA_PERSIST_REQUESTED\nFeedpublicering och leverans är obekräftade.";}
+                    public ShareReview.Metadata previous(){return before;}public String previousLabel(){return beforeLabel;}
+                    public String commit(){
+                        if(label.equals(beforeLabel)&&before.updatedAt.equals(prepared.metadata.updatedAt))return "Oförändrad kartkopia verifierad. Ingen SDK-uppdatering har begärts.";
+                        calls.add("host-update");previous=prepared.metadata;hostLabel=label;written(prepared);
+                        return "SDK-resultat: METADATA_PERSIST_REQUESTED\nFeedpublicering och leverans är obekräftade.";
+                    }
                     public void close(){}
                 };
             }
@@ -167,9 +173,33 @@ public class FeedPublishUiTest {
         // Automatic fetching shows both photos and applies; it never removes anything.
         nextFetch(fresh);photos.fetchCompleted(Arrays.asList(h1,fresh));drainUi();
         assertFalse(calls.contains("remove"));assertTrue(photos.awaitingRemoval(device));
+        calls.clear();String preview=open();confirm();
+        assertTrue(preview,preview.contains("Bilden är oförändrad"));
+        assertEquals("W4 first; adopting the sent PNG left M unchanged, so no host write and no upload",Arrays.asList("remove","fetch"),calls);
+        assertTrue(message().contains("ersatta bilden togs bort")&&message().contains("Oförändrad kartkopia"));assertFalse(photos.awaitingRemoval(device));
+        assertEquals("Publicerad",title());
+    }
+    @Test public void unchangedPubliceraAfterAPhotoPublishMakesNoHostWrite()throws Exception {
+        attachSecondPhoto();open();confirm();assertEquals("Publicerad",title());click(AlertDialog.BUTTON_POSITIVE);
+        nextFetch(intake(ImageContainerCodec.read(new ByteArrayInputStream(photo.body))));
+        String written=hostLabel;assertNotEquals("Adopting the sent PNG bumped the local revision",written,label(saved()));
         calls.clear();open();confirm();
-        assertEquals("W4 first, then the unchanged photo is not uploaded again",Arrays.asList("remove","host-update","fetch"),calls);
-        assertTrue(message().contains("ersatta bilden togs bort"));assertFalse(photos.awaitingRemoval(device));
+        assertEquals(Collections.singletonList("fetch"),calls);assertEquals(written,hostLabel);
+        assertTrue(message().contains("Oförändrad kartkopia"));assertEquals("Publicerad",title());
+        // A real metadata change still writes, with the current revision in the label.
+        click(AlertDialog.BUTTON_POSITIVE);calls.clear();
+        TmmDraft d=saved();save(d.edit(d.displayId,d.type,DeviceStatus.values()[(d.status.ordinal()+1)%DeviceStatus.values().length],d.owner,d.deployedAt,d.comment,d.position,d.bearingDeg,d.imageRef,Instant.now()));
+        open();confirm();
+        assertEquals(Arrays.asList("host-update","fetch"),calls);assertEquals(label(saved()),hostLabel);
+    }
+    @Test public void movedAfterAPhotoPublishStillNeedsTheSecondAcknowledgement()throws Exception {
+        attachSecondPhoto();open();confirm();click(AlertDialog.BUTTON_POSITIVE);
+        nextFetch(intake(ImageContainerCodec.read(new ByteArrayInputStream(photo.body))));calls.clear();
+        TmmDraft d=saved();save(d.edit(d.displayId,d.type,d.status,d.owner,d.deployedAt,d.comment,new Position(d.position.latitude+0.5,d.position.longitude),d.bearingDeg,d.imageRef,Instant.now()));
+        assertTrue(open().contains("ÄNDRAD GEOMETRI"));
+        assertFalse(dialog().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());click(AlertDialog.BUTTON_POSITIVE);assertTrue(work.isEmpty());
+        boxes(shadowOf(dialog()).getView()).get(0).setChecked(true);confirm();
+        assertEquals(Arrays.asList("host-update","fetch"),calls);assertEquals(label(saved()),hostLabel);
     }
     @Test public void notFollowingRefusesWithoutAPreview()throws Exception {
         FeedSyncState.Snapshot s=sync.read();
@@ -252,6 +282,7 @@ public class FeedPublishUiTest {
         if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){android.widget.ImageView found=image(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}
         return null;
     }
+    private static String label(TmmDraft d){return d.displayId+" · r"+d.revision;}
     private TmmDraft saved()throws IOException {return local.load().select(device).draft;}
     private void save(TmmDraft value)throws IOException {LocalV2.Snapshot s=local.load();local.save(s.storeId,s.state(value.uid),value);}
     private static TmmDraft feedCopy(TmmDraft d){return d.edit(d.displayId,d.type,d.status,d.owner,d.deployedAt,d.comment,d.position,d.bearingDeg,null,d.updatedAt);}
