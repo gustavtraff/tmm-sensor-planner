@@ -66,6 +66,6 @@ remain approved and independent.
 ## Where to look
 
 [Open issues](https://github.com/gustavtraff/tmm-sensor-planner/issues) own bounded
-remaining work. [Testing](TESTING.md) owns reusable checks and release gates.
+remaining work. [The Swedish user guide](ANVANDARGUIDE.md) (#253) covers the online workflow. [Testing](TESTING.md) owns reusable checks and release gates.
 [Data model](DATA_MODEL.md) indexes contracts; dated evidence and old status are in
 [the archive](archive/README.md). Replace this status on update; do not append history.
