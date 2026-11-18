@@ -1,5 +1,6 @@
 package se.tmm.sensorplanner.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,8 +13,9 @@ import java.util.List;
  * R = L, ADOPT_BASE; L = B (so R differs), APPLY; otherwise CONFLICT. With L present and no
  * base, L = B is never true, so the result is ADOPT_BASE if R = L, else CONFLICT.
  *
- * <p>Image precedence, first match wins: R absent, NOTHING; more than one distinct bound
- * digest (U4), AMBIGUOUS; none bound, STALE_IMAGE; B and L both absent, APPLY; B present and
+ * <p>Image precedence, first match wins: R absent, NOTHING; no distinct bound digest (amended
+ * U4), NOTHING; several distinct digests and not exactly one differing from a known image
+ * base, AMBIGUOUS (else that one is H); B and L both absent, APPLY; B present and
  * L absent, NOTHING if H = image base or the image base is UNKNOWN, else CONFLICT;
  * H = image base, NOTHING; H = local image, ADOPT_BASE; local image = image base, APPLY;
  * otherwise CONFLICT. An UNKNOWN image base equals nothing, so it behaves like no base.
@@ -33,8 +35,7 @@ public final class FeedSyncDecision {
         ADOPT_BASE,  // remote image equals local image: store the image base := H
         APPLY,       // adopt remote image H locally, then store the image base := H
         CONFLICT,    // local image and remote image both differ from the base and each other
-        STALE_IMAGE, // U4: no image is bound to the remote M; keep the local image, show "Bild från tidigare version"
-        AMBIGUOUS    // U4: more than one different image is bound to the remote M; change nothing
+        AMBIGUOUS    // U4: several images are bound and no single one differs from the base; change nothing
     }
 
     /** An image state: UNKNOWN (base only), NONE, or a SHA-256 digest. */
@@ -73,7 +74,7 @@ public final class FeedSyncDecision {
      * @param remote null if the UUID is not in the fetched feed
      * @param base null if no base yet
      * @param local null if absent locally
-     * @param remoteImages verified image digests bound to this device and exactly the remote M (U4)
+     * @param remoteImages distinct verified image digests bound to this device for any M (U4)
      * @param baseImage UNKNOWN, NONE or a digest
      * @param localImage NONE or a digest; ignored when local is null
      */
@@ -108,21 +109,36 @@ public final class FeedSyncDecision {
 
     private static Image image(List<byte[]> bound, TmmDraft b, TmmDraft l,
                                ImageState baseImage, ImageState localImage) {
-        byte[] first = null;
+        List<ImageState> distinct = new ArrayList<ImageState>();
         for (byte[] digest : bound) {
-            if (digest.length != 32) {
-                throw new IllegalArgumentException("SHA-256 digest must be 32 bytes");
+            ImageState s = ImageState.of(digest);
+            boolean seen = false;
+            for (ImageState d : distinct) {
+                seen |= d.sameAs(s);
             }
-            if (first == null) {
-                first = digest;
-            } else if (!Arrays.equals(first, digest)) {
+            if (!seen) {
+                distinct.add(s);
+            }
+        }
+        if (distinct.isEmpty()) {
+            return Image.NOTHING;
+        }
+        ImageState h = distinct.get(0);
+        if (distinct.size() > 1) {
+            // Amended U4: the one digest that differs from a known image base is H.
+            ImageState differing = null;
+            int count = 0;
+            for (ImageState d : distinct) {
+                if (!d.sameAs(baseImage)) {
+                    differing = d;
+                    count++;
+                }
+            }
+            if (count != 1) {
                 return Image.AMBIGUOUS;
             }
+            h = differing;
         }
-        if (first == null) {
-            return Image.STALE_IMAGE;
-        }
-        ImageState h = ImageState.of(first);
         if (b == null && l == null) {
             return Image.APPLY;
         }

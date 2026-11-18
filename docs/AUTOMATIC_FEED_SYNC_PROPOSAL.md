@@ -102,17 +102,15 @@ Field-by-field merging is not proposed.
 
 ### U4 — Which image is current
 
-A device's current remote image is the verified `.tmmi` resource whose registry
-association binds the device UUID **and exactly the feed's current M** for that
-device. Metadata and image are compared separately in U3 because a photo is only
-published together with a metadata change: `DraftAttachments` sets `updatedAt` on
-every attach and detach, so M changes whenever the photo changes.
+**Amended and approved by the owner on 2026-11-18**, replacing the first U4 text, which bound the image to exactly the feed's current M. That version left a correct photo marked stale after a status-only update.
 
-- No resource binds the current M: keep the current local image and show **Bild från
-  tidigare version**. This covers metadata that arrives before its image.
-- Exactly one binds it: it is the remote image H for U3.
-- More than one binds it with different bytes: conflict. Keep all, change nothing,
-  ask the user.
+A device's remote images are the distinct verified `.tmmi` resources in the feed whose registry association binds the device UUID, for any M of that device in this source context.
+
+- None: nothing changes. A missing image never clears a local image.
+- Exactly one: it is the remote image H for U3.
+- More than one: if exactly one of them differs from the image base, it is H. This covers the window before W4 removes the replaced photo. Otherwise it is a conflict: keep all, change nothing, ask the user.
+
+Metadata and image are compared separately in U3. There is no "image from an earlier version" marker.
 
 ### U5 — Safe automatic image replacement
 
@@ -187,7 +185,8 @@ Automatic receiving does not depend on it.
 ## Implementation
 
 The U3/U4 decision is `se.tmm.sensorplanner.core.FeedSyncDecision` (#240), a pure
-function over in-memory values with no SDK or file access. It returns separate
+function over in-memory values with no SDK or file access. The caller passes the
+distinct verified digests bound to the device UUID for any M (amended U4). It returns separate
 metadata and image decisions, uses `ImportReview.sameMetadata` for equality, and
 documents its rule precedence in the class Javadoc. Tests are in `FeedSyncDecisionTest`
 (run by `sh scripts/test.sh`). An image deleted-locally case with an UNKNOWN image base

@@ -103,11 +103,17 @@ public final class FeedSyncDecisionTest {
 
     private static void remoteImageSelection() {
         ImageState base = img(H1);
-        assert image(NO_IMAGES, M1, M1, base, img(H2)) == Image.STALE_IMAGE;
-        assert image(NO_IMAGES, null, null, ImageState.UNKNOWN, ImageState.NONE) == Image.STALE_IMAGE;
+        assert image(NO_IMAGES, M1, M1, base, img(H2)) == Image.NOTHING;      // missing image never clears
+        assert image(NO_IMAGES, M1, M1, base, ImageState.NONE) == Image.NOTHING;
+        assert image(NO_IMAGES, null, null, ImageState.UNKNOWN, ImageState.NONE) == Image.NOTHING;
         assert image(Arrays.asList(H2, digest(2)), M1, M1, base, base) == Image.APPLY;  // duplicates count once
-        assert image(Arrays.asList(H2, H3), M1, M1, base, base) == Image.AMBIGUOUS;
-        assert image(Arrays.asList(H1, H1, H2), M1, null, base, ImageState.NONE) == Image.AMBIGUOUS;
+        assert image(Arrays.asList(H1, H2), M1, M1, base, base) == Image.APPLY;         // H2 differs from base
+        assert image(Arrays.asList(H2, H1), M1, M1, base, img(H2)) == Image.ADOPT_BASE; // normal U3 path
+        assert image(Arrays.asList(H2, H3), M1, M1, base, base) == Image.AMBIGUOUS;     // both differ
+        assert image(Arrays.asList(H2, H3), M1, M1, ImageState.UNKNOWN, ImageState.NONE) == Image.AMBIGUOUS;
+        assert image(Arrays.asList(H2, H3), M1, M1, ImageState.NONE, ImageState.NONE) == Image.AMBIGUOUS;
+        assert image(Arrays.asList(H1, H2, H3), M1, M1, base, base) == Image.AMBIGUOUS; // two differ
+        assert image(Arrays.asList(H1, H1, H2), M1, null, base, ImageState.NONE) == Image.CONFLICT; // H2 vs base, deleted
     }
 
     private static void independentDecisions() {
