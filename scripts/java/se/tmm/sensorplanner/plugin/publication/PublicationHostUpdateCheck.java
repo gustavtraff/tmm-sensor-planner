@@ -32,6 +32,11 @@ public final class PublicationHostUpdateCheck {
 
             host = new Fake(original); review = new PublicationMapCopy(host).inspectUpdate(prepared(original),"Synthetic · r1");
             require(review.commit().contains("Ingen SDK-uppdatering") && host.imports == 0);
+            // #243: a revision-only label change is a host write, so Publicera keeps the host label when M is unchanged.
+            host = new Fake(original); review = new PublicationMapCopy(host).withGeometry().inspectUpdate(prepared(original),"Synthetic · r2");
+            require(review.commit().contains("Uppdaterad kartkopia verifierad: Ja") && host.imports == 1);
+            host = new Fake(original); review = new PublicationMapCopy(host).withGeometry().inspectUpdate(prepared(original),review.previousLabel());
+            require(review.commit().contains("Ingen SDK-uppdatering") && host.imports == 0);
             host = new Fake(original); review = new PublicationMapCopy(host).inspectUpdate(next,"Synthetic · r2");review.close();
             require(review.commit().startsWith("Inte uppdaterat") && host.imports == 0);
 
