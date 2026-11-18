@@ -225,3 +225,12 @@ and intake for each `.tmmi` whose hash is not already referenced by the registry
 That hash is the SHA-256 of the staged entry's container v1 bytes, so a staged image
 is never downloaded again. The sync-state records are not written yet. The hook
 `FeedFollowUi.Host.onFetchCompleted(receiptIds, records)` is a no-op for the apply slice.
+
+### Start gate after restart
+
+[ADR 0013](decisions/0013-followed-feed-connected-use.md) (owner decision 2026-11-18)
+makes an explicit **Följ feed** choice consent to connected use. When the planner opens
+while connected, `LocalTrialSession.resumeFollowedFeed` reads `sync.bin` with
+`FeedSyncState.read`; following = 1 opens the planner without the ADR 0009 dialog, so
+`FeedFollowUi.start` fetches on load. A missing, unreadable or stopped file keeps the
+ADR 0009 dialog and is never rewritten. `canUseLab` and the lab gates are unchanged.

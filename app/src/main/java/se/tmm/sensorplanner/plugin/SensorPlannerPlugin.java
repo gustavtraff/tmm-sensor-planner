@@ -167,6 +167,9 @@ public final class SensorPlannerPlugin implements IPlugin {
             return;
         }
         MapView map = Objects.requireNonNull(MapView.getMapView());
+        // ADR 0013: an explicit Följ feed choice resumes connected use after a restart; lab gates are unchanged.
+        if (!localAllowed()) localSession.resumeFollowedFeed(new java.io.File(map.getContext().getNoBackupFilesDir(),
+                "se.tmm.sensorplanner/feed-sync-v1").toPath());
         if (!localAllowed()) {
             if (showList && trialConsent == null) {
                 trialConsent = new AlertDialog.Builder(map.getContext())
