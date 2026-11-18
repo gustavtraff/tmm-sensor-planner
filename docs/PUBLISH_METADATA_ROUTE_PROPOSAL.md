@@ -1,8 +1,9 @@
 # Metadata route for ordinary Publicera — proposal (P2 / #251)
 
-**Status: proposal. The owner must approve or change M1–M7 before #243's Publicera UI
-is built.** Merging this document approves nothing. It is outbound transport, so it is
-a gated class.
+**Status: M1–M7 explicitly approved by the owner on 2026-11-18** in the conversation,
+against this document at commit `e73fb84` (PR #255), with two clarifications recorded
+below: the M5 wait and how M4 applies to the exercise. The approval came from that
+decision, not from the merge.
 
 ## Question
 
@@ -124,13 +125,20 @@ server gives go, and the owner records that decision. Until then the candidate i
 synthetic data. **Changes:** D2's "synthetic data only" and consent statement 1, at
 that point only. Per AGENTS.md a human decides operational data sharing.
 
+**M4 at the exercise (owner clarification 2026-11-18):** the exercise itself may be
+the #252 trial. At the start, a short check of about 15 minutes runs with two phones and
+one synthetic test device in the real feed, following the B4 protocol. Real exercise
+devices and photos are used only after the owner records a go. Otherwise the candidate 30
+fallback (#222) is used.
+
 ### M5 — Order of metadata and photo
 
 1. If M changed, do the host write first. If nothing changed, skip it (existing reuse).
-2. If a new photo is attached, TMM reads the followed feed's current M for the UUID
-   once, with the existing GET. Only if it equals the published M does TMM upload the
-   container (W1). Otherwise it uploads nothing and shows **Metadata ännu inte i
-   feeden, tryck Publicera igen**. A later tap skips the unchanged host write.
+2. If a new photo is attached, TMM repeats the existing GET of the followed feed's
+   current M for the UUID for up to about 30 seconds within the same tap. As soon as it
+   equals the published M, TMM uploads the container (W1). If it has not appeared by
+   then, TMM uploads nothing and shows **Metadata ännu inte i feeden, tryck Publicera
+   igen**. A later tap skips the unchanged host write. *(Owner change 2026-11-18.)*
 3. No photo, or an unchanged photo: metadata only, no upload, no new feed resource.
 
 This keeps a photo from being bound to M that never reached the feed, and keeps the
