@@ -108,6 +108,11 @@ public final class PublicationHostUpdateCheck {
         Fake typed=new Fake(original);
         rejected(()->new PublicationMapCopy(typed).withGeometry().inspectUpdate(prepared(retyped),"Synthetic · r2"));
         rejected(()->new PublicationMapCopy(typed).forServerTrial().inspectUpdate(prepared(both),"Synthetic · r2"));
+        // #178 stays closed to geometry; only the ordinary Publicera copy (withGeometry) accepts it.
+        Fake trial=new Fake(original);
+        rejected(()->new PublicationMapCopy(trial).forServerTrial().inspectUpdate(prepared(moved),"Synthetic · r2"));
+        if (!java.util.Objects.equals(original.bearingDeg, turned.bearingDeg)) rejected(()->new PublicationMapCopy(trial).forServerTrial().inspectUpdate(prepared(turned),"Synthetic · r2"));
+        require(trial.imports==0);
         require(typed.imports==0);
     }
     private static void drag(Fake host){CotPoint p=host.event.getCotPoint();host.event.setPoint(new CotPoint(p.getLat()+0.001,p.getLon(),p.getHae(),p.getCe(),p.getLe()));}

@@ -21,6 +21,10 @@ top of [the image contract](IMAGE_SHARING_CONTRACT.md).
 - **Photo upload is verified in the lab only (#241, closed).** Upload, association and
   removal work on TAK Server 5.8 with a token-less request on an open feed whose default
   role is Subscriber. That matches the owner's feed.
+- **Publicera is built (B1, #243), pending owner merge approval.** One preview and one
+  confirmation: native host copy or update with G1–G5 geometry, readback of the exact M
+  from the followed feed, then the photo upload. M1–M7 and the implementation are in
+  [the metadata route](PUBLISH_METADATA_ROUTE_PROPOSAL.md). Tested with fakes only.
 - **Candidate 30** (signed, not runtime-tested) is the bounded viewing trial
   ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)), not the finished workflow.
 - Nothing above has run on ATAK, a phone or TAK Server 5.6.

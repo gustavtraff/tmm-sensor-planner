@@ -81,6 +81,9 @@ public final class PublicationMapCopy {
     /** G1-G5 position/bearing updates; the configured server trial contract keeps refusing them. */
     public PublicationMapCopy withGeometry() { geometry = true; return this; }
 
+    /** UI thread: whether any map item has this UUID, so Publicera reviews an update instead of a create. */
+    public boolean exists(String uid) { return port.count(uid) != 0; }
+
     public se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi.PendingUpdate inspectUpdate(
             PublicationPreparationReview.Prepared prepared, String label) {
         return new PublicationHostUpdate(port, prepared, label, geometry);

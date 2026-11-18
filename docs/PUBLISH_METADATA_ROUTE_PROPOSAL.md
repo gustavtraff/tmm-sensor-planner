@@ -166,6 +166,32 @@ Lab, synthetic data, two standard clients, 5.8 unless a 5.6 package exists:
 5. #178 controls 2, 6, 7 and 8 under M2's gate.
 6. Repeat 1–4 on the real 5.6 server in the #252 trial.
 
+## Implementation — 2026-11-18
+
+`FeedPublishUi` (app `plugin/local`) is the **Publicera** button on a saved device.
+
+- **M2 gate**, at the preview and again on the worker immediately before the host write:
+  following on, the stored destination unchanged (syncId, service and GUID, connect
+  string, feed name), ATAK's default provider, the profile connected, and the #178
+  single-stream rule applied to the followed connect string
+  (`ConfiguredPublicationTrial.onlyStream`). The saved device must be unchanged since
+  the preview. Any failure refuses with a Swedish message and sends nothing.
+- **Preview.** Feed name; old → new MGRS and bearing when the geometry changes, with
+  the G3 position checkbox; the metadata; the photo when it is new. A photo is new
+  unless its SHA-256 equals the stored image base. M3 wording; Add Items steps for a
+  device the map does not hold. One **Publicera** button.
+- **M1.** A map item with the UUID means `PublicationHostUpdate`; none means
+  `PublicationMapCopy.create`. Both use a copy with `withGeometry()` for this path only;
+  the #178 trial copy still refuses geometry. The host result text is shown unchanged.
+  A refusal ("Inte …") stops the action.
+- **M3/M5 readback.** The same GET as fetching (`/api/missions/guid/{guid}` and `/cot`)
+  for the stored feed, repeated every 3 s for up to 30 s, until the device's M equals the
+  saved M exactly, edit time included. Only then is the photo uploaded. Otherwise
+  nothing is uploaded and the result says **Metadata ännu inte i feeden, tryck
+  Publicera igen**. **Publicerad** is shown only after that readback. A normal fetch is
+  then started, which clears **Ej publicerad** (L = R). Nothing is stored by the readback.
+- **W4** runs at the start of each confirmed Publicera, never from fetching.
+
 ## What does not change
 
 U1–U8, W1–W5, inbox format 1, local v2, stage v1, registry v1, container v1, sync

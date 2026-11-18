@@ -32,6 +32,13 @@ U1–U8 are in [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.m
 Candidate 30's [read-only viewing trial](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md) stays
 a bounded trial. It is not evidence for automatic synchronization.
 
+**Exception approved by the owner on 2026-11-18 (PR #264):** after a successful
+**Publicera** upload, TMM replaces the device's local photo with exactly the published
+PNG. The pixels are the same, but the export encodes a strict PNG with different
+bytes. Without the replacement, the publisher's own next fetch would report a
+conflict. The replacement is refused when the device changed after the review. This is
+the only departure from "never rewrite the active local image" (decision B).
+
 **Decision update, 2026-10-29:** the owner explicitly approved recommendations
 **A–F and H**, with **Data Sync-feed as the target for G**. A contact transfer does
 not replace that target. This adopts the logical rules and format-review gates;

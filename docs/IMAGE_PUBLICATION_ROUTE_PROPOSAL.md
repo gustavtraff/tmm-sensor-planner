@@ -83,7 +83,8 @@ fetching.
 ## Implementation — service only (part of #243)
 
 `FeedPhotoPublication` (app `plugin/local`) implements W1–W4 for the photo, with no
-UI and no metadata. Nothing calls it yet; the Publicera UI is a later step.
+UI and no metadata. `FeedPublishUi` calls it from **Publicera** (see
+[the metadata route](PUBLISH_METADATA_ROUTE_PROPOSAL.md#implementation--2026-11-18)).
 
 - **Container.** `review(device)` freezes a preview of the saved device and its owned
   photo for the followed feed. `publish` confirms it, writes container v1 with
@@ -97,7 +98,8 @@ UI and no metadata. Nothing calls it yet; the Publicera UI is a later step.
   for W4 `DELETE /Marti/api/missions/guid/{guid}/contents?hash=&creatorUid=`.
   `creatorUid` is the ATAK device UID the caller supplies. The reply's `Hash` must equal
   the local SHA-256. The body entity is not repeatable, so the HTTP client cannot
-  replay it. Deadlines: 60 s for the upload, 12 s for the others.
+  replay it. Deadlines: 60 s for the upload, 12 s for the others. The socket read
+  timeout is 55 s for the upload and 5 s for everything else.
 - **W2.** Before the upload, before the association and before a removal, the stored
   sync state is reread: following on, same syncId, contextId (service and mission
   GUID), connect string and feed name; ATAK's default provider; the profile connected.
@@ -108,7 +110,13 @@ UI and no metadata. Nothing calls it yet; the Publicera UI is a later step.
 - **W4.** At publication the replaced base is the one feed resource, in the latest
   fetch passed to `fetchCompleted`, whose registry record has this device and the
   stored image-base digest. If there is not exactly one, nothing will be removed.
-  `removeReplaced` removes it only once a later fetch shows the new photo for the
+  `removeReplaced` is called only at the start of an explicit **Publicera**, never from
+  fetching. It removes the base only once a later fetch shows the new photo for the
   device and the old one is still listed. One attempt, failures are reported. This
   state is in memory for the session only, so after a restart the old photo stays in
   the feed.
+- **Local copy.** The export re-encodes the PNG, so its bytes differ from the local
+  photo and the publisher's next fetch would show **Konflikt**. After a successful
+  upload and association, the local photo is replaced by exactly the published PNG,
+  keeping the reviewed edit time, so U3 finds R = L. The device revision increases by
+  one. If the device changed since the review, nothing is replaced and the result says so.

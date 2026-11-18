@@ -26,6 +26,8 @@ import se.tmm.sensorplanner.plugin.local.FeedPhotoPublication.WriteFailure;
 final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.SnapshotInboxUi.Transport, se.tmm.sensorplanner.plugin.local.ImageTrialUi.Transport,
         se.tmm.sensorplanner.plugin.local.FeedFollowUi.Transport, se.tmm.sensorplanner.plugin.local.FeedPhotoPublication.Transport {
     static final String BASE="https://127.0.0.1:8443";
+    // The server may take a while to store a photo of up to 16 MiB; the attempt's 60 s deadline still bounds the upload.
+    static final int READ_MILLIS=5000,UPLOAD_READ_MILLIS=55_000;
     static boolean defaultProvider(){
         try{return CommsProviderFactory.isDefault()&&!CommsProviderFactory.getProvider().hasFeature(CommsProvider.CommsFeature.MISSION_API);}
         catch(RuntimeException unavailable){return false;}
@@ -57,19 +59,19 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
     }
     @Override public String upload(String name,String creatorUid,byte[] container,MissionReadAttempt attempt)throws WriteFailure {
         try(Read read=begin(attempt)){
-            return read.write(HttpPost::new,"/sync/upload?name="+name+"&creatorUid="+creatorUid,container,"application/octet-stream",
+            return read.write(HttpPost::new,"/sync/upload?name="+name+"&creatorUid="+creatorUid,container,"application/octet-stream",UPLOAD_READ_MILLIS,
                     in->MissionImageInput.uploadedHash(in,read::active));
         }
     }
     @Override public void associate(String guid,String hash,String creatorUid,MissionReadAttempt attempt)throws WriteFailure {
         try(Read read=begin(attempt)){
             read.write(HttpPut::new,"/api/missions/guid/"+guid+"/contents?creatorUid="+creatorUid,
-                    ("{\"hashes\":[\""+hash+"\"]}").getBytes(StandardCharsets.UTF_8),"application/json",in->null);
+                    ("{\"hashes\":[\""+hash+"\"]}").getBytes(StandardCharsets.UTF_8),"application/json",READ_MILLIS,in->null);
         }
     }
     @Override public void remove(String guid,String hash,String creatorUid,MissionReadAttempt attempt)throws WriteFailure {
         try(Read read=begin(attempt)){
-            read.write(HttpDelete::new,"/api/missions/guid/"+guid+"/contents?hash="+hash+"&creatorUid="+creatorUid,null,null,in->null);
+            read.write(HttpDelete::new,"/api/missions/guid/"+guid+"/contents?hash="+hash+"&creatorUid="+creatorUid,null,null,READ_MILLIS,in->null);
         }
     }
     /** A failed exchange: the HTTP status when one arrived (else -1) and whether the request may have left the device. */
@@ -111,7 +113,7 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
         }
         private <T>T get(String path,String accept,int maxBytes,MissionImageFetch.Decoder<T> decoder)throws IOException {
             try{
-                return exchange(HttpGet::new,path,accept,maxBytes,null,response->{
+                return exchange(HttpGet::new,path,accept,maxBytes,null,READ_MILLIS,response->{
                     String type=response.getContentType();
                     if(type==null||!type.toLowerCase(Locale.ROOT).matches(accept+"(?:\\s*;\\s*charset=utf-8)?"))throw new IOException();
                     return decoder.read(response.getBody());
@@ -119,10 +121,10 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
             }catch(IOException failed){throw new IOException("Mission snapshot read failed; nothing accepted");}
         }
         /** One write; maps the exchange's failure to how far it got. A 403 is a feed permission refusal. */
-        <T>T write(Request create,String path,byte[] body,String type,MissionImageFetch.Decoder<T> decoder)throws WriteFailure {
+        <T>T write(Request create,String path,byte[] body,String type,int readMillis,MissionImageFetch.Decoder<T> decoder)throws WriteFailure {
             if(!path.matches("[A-Za-z0-9/._:?&=-]{1,512}"))throw new WriteFailure(WriteFailure.Kind.NOT_SENT);
             // The add/remove replies echo the mission and are not read; the upload reply has its own 16 KiB bound.
-            try{return exchange(create,path,"application/json",MissionImageInput.MAX_BYTES,body==null?null:new Body(body,type),response->decoder.read(response.getBody()));}
+            try{return exchange(create,path,"application/json",MissionImageInput.MAX_BYTES,body==null?null:new Body(body,type),readMillis,response->decoder.read(response.getBody()));}
             catch(Failed f){
                 if(f.status==403)throw new WriteFailure(WriteFailure.Kind.REFUSED);
                 if(f.status>=400&&f.status<500)throw new WriteFailure(WriteFailure.Kind.REJECTED);
@@ -133,18 +135,18 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
          * Shared request lifetime for reads and writes: ATAK's strict TLS factory for the stored profile, fixed origin,
          * no redirect or Basic fallback, bounded headers and reply, abort on cancel and full cleanup.
          */
-        private <T>T exchange(Request create,String path,String accept,int maxBytes,Body body,Reply<T> reply)throws Failed {
+        private <T>T exchange(Request create,String path,String accept,int maxBytes,Body body,int readMillis,Reply<T> reply)throws Failed {
             HttpRequestBase request=null;TakHttpClient client=null;TakHttpResponse response=null;
             T result=null;boolean failed=false,executing=false;int status=-1;
             try{
                 require();CertificateManager.ExtendedSSLSocketFactory sockets=CertificateManager.getSockFactory(false,NetConnectString.fromString(endpoint.stream),false);
-                if(sockets==null)throw new IOException();client=new TakHttpClient(endpoint.base+"/Marti",sockets,5000,5000);
+                if(sockets==null)throw new IOException();client=new TakHttpClient(endpoint.base+"/Marti",sockets,5000,readMillis);
                 URI expected=URI.create(endpoint.base+"/Marti"+path);if(!expected.equals(URI.create(client.getUrl(path))))throw new IOException();
                 request=create.create(expected);current.set(request);require();
                 if(body!=null)((HttpEntityEnclosingRequestBase)request).setEntity(body);
                 request.setHeader("Accept",accept);request.setHeader("Accept-Encoding","identity");
                 HttpClientParams.setRedirecting(request.getParams(),false);HttpClientParams.setAuthenticating(request.getParams(),false);
-                HttpConnectionParams.setConnectionTimeout(request.getParams(),5000);HttpConnectionParams.setSoTimeout(request.getParams(),5000);
+                HttpConnectionParams.setConnectionTimeout(request.getParams(),5000);HttpConnectionParams.setSoTimeout(request.getParams(),readMillis);
                 request.getParams().setIntParameter(CoreConnectionPNames.MAX_HEADER_COUNT,32);request.getParams().setIntParameter(CoreConnectionPNames.MAX_LINE_LENGTH,4096);
                 executing=true;response=client.execute(request,false);status=response.getStatusCode();require();
                 String encoding=response.getHeaderString("Content-Encoding");
