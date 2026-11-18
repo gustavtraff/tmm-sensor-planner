@@ -1,7 +1,7 @@
 # Proposed feed sync state v1 — synthetic fixtures
 
-These pin the bytes proposed in `docs/FEED_SYNC_STATE_FORMAT.md` (#236). They are
-not yet approved. They contain no real positions, images, accounts or servers; the
+These pin the bytes proposed in `docs/FEED_SYNC_STATE_FORMAT.md` (#236). The owner
+approved this format (S1–S4) on 2026-11-18. They contain no real positions, images, accounts or servers; the
 context uses the reserved `example.invalid` domain.
 
 | File | Bytes | SHA-256 | Content |

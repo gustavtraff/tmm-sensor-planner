@@ -1,6 +1,8 @@
 # Feed sync state v1 — exact format proposal (#236)
 
-**Status: proposal. S1–S4 below need explicit owner approval before a writer.**
+**Status: S1–S4 explicitly approved by the owner on 2026-11-18** in the conversation,
+against this document at commit `2caf8bb` (PR #238). The approval came from that
+decision, not from the merge. A writer is a separate PR.**
 This is decision U6 of [the approved automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md).
 Inbox format 1, local v2, stage v1, association registry v1 and the container do not change.
 

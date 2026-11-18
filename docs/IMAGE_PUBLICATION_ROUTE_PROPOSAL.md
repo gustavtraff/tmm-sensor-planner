@@ -1,6 +1,8 @@
 # Publishing a device photo directly to the followed feed — proposal (P1 / #236)
 
-**Status: proposal. W1–W5 below need explicit owner approval before any code.**
+**Status: W1–W5 explicitly approved by the owner on 2026-11-18** in the conversation,
+against this document at commit `2caf8bb` (PR #238). The approval came from that
+decision, not from the merge. W5's lab check comes before any upload code is activated.**
 The owner chose direction A for open item P1 of
 [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) on 2026-11-18:
 TMM itself sends the photo to the feed when the user taps **Publicera**. This

@@ -28,11 +28,11 @@ top of [the image contract](IMAGE_SHARING_CONTRACT.md).
 ## Next steps
 
 1. **#236:** U1–U8 in [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md)
-   were approved by the owner on 2026-11-18. Owner decision next: S1–S4 in
-   [the sync-state v1 format](FEED_SYNC_STATE_FORMAT.md), needed before its writer.
-2. **P1:** the owner chose direct upload (direction A). Owner decision next: W1–W5 in
-   [the image publication route proposal](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md). Its
-   first step is a lab check of the server upload, write permission and 5.6 behaviour.
+   and S1–S4 in [the sync-state v1 format](FEED_SYNC_STATE_FORMAT.md) were approved by
+   the owner on 2026-11-18. Next: core sync-state codec and U3/U4 decision function.
+2. **P1:** the owner chose direct upload (direction A) and approved W1–W5 in
+   [the image publication route proposal](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md). Next:
+   W5 lab check of upload, association, removal and permissions, on 5.6 if possible.
 3. Optionally run the candidate 30 two-client lab and the authorized 5.6 trial (#200,
    #222) to check the GET routes on 5.6. This is useful evidence for #236, not the
    product.

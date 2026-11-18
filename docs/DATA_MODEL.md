@@ -59,9 +59,9 @@ check actual bytes against retained metadata; a hash alone is not source authori
 [The first viewing-trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md) keeps viewing
 separate from active local attachment adoption and outbound acknowledgments.
 [Automatic feed sync](AUTOMATIC_FEED_SYNC_PROPOSAL.md) proposes automatic fetching
-and base-based conflict detection (#236). U1–U8 are approved. The
+and base-based conflict detection (#236). U1–U8, the
 [sync-state v1 format](FEED_SYNC_STATE_FORMAT.md) and the
-[photo publication route](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md) are proposals.
+[photo publication route](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md) are approved.
 
 Changing a contract requires its documentation and relevant migration/compatibility
 checks together; a renamed document does not approve a new writer or transport.
