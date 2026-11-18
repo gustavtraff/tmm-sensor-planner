@@ -136,7 +136,7 @@ public final class FeedFollowUi {
             return host.configured(s.streamConnect)?"Den sparade profilen är inte ansluten.":"Den sparade profilen saknas eller har ändrat anslutning.";
         }catch(RuntimeException unavailable){return "ATAK:s serverlista kunde inte läsas.";}
     }
-    private static MissionEndpoint endpoint(FeedSyncState.Snapshot s){
+    static MissionEndpoint endpoint(FeedSyncState.Snapshot s){
         try{
             String rest=s.contextId.substring("mission-api-v1|".length());String service=rest.substring(0,rest.lastIndexOf('|'));
             MissionEndpoint endpoint=MissionEndpoint.fromProfile(s.streamConnect,URI.create(service).getPort());
