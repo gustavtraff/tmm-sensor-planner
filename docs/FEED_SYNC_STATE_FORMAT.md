@@ -142,3 +142,23 @@ runs in public CI. It pins the three files by size and hash, cross-checks the sh
 identities against the registry fixture, and covers framing errors, every header and
 record rule, bad flag and image-kind bytes, ordering and duplicates, and the exact
 maximum file of 256 widest records.
+
+## Implementation — 2026-11-18
+
+`FeedSyncState` in the Java core implements these bytes: a strict codec and a file
+store (`sync.bin`, `sync.lock`) in a directory the caller supplies. It has no fetch,
+conflict, adoption, UI or transport code, so nothing in the APK writes the file yet.
+
+- `create` is the only way to start and refuses an existing file. `read` returns
+  null for an absent file and creates nothing.
+- `replace(expected, next)` locks, validates the whole file, refuses if the file no
+  longer equals `expected`, and leaves an identical rewrite byte for byte untouched.
+  Writes use a same-directory temporary file, sync, read-back and atomic replace.
+- Records are written in canonical order. Wrong order, duplicates, unknown versions
+  and bad digests fail closed and never rewrite the file.
+- **The caller must prove** the preconditions above; the core cannot see the inbox.
+
+`sh scripts/test.sh` covers the three goldens byte for byte, every rejection the
+Python oracle covers, the exact 35,929-byte maximum and 257 records refused, create
+and reopen, stale writes, identical rewrites, failed replacement and an unknown
+future version left unrewritten. No SDK build, emulator, phone or server was involved.
