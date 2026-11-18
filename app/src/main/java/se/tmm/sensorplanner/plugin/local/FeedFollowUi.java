@@ -47,11 +47,15 @@ public final class FeedFollowUi {
         void notice(String text);
         /** After a successful fetch and its local apply: inbox receipts and registry records present in that fetch. */
         default void onFetchCompleted(List<UUID> receiptIds,List<ImageAssociationRegistry.Record> records){}
+        /** The app's field text for a device (including MGRS and mils), for the conflict view. */
+        default String summary(TmmDraft draft){return draft.displayId;}
+        /** A conflict was resolved: reload local devices and the markers. */
+        default void resolved(){}
     }
     private interface Network<T>{T run(MissionReadAttempt attempt)throws Exception;}
     static final long INTERVAL=60_000,MAX_INTERVAL=300_000;
     private final Context context;private final Host host;private final Executor worker;private final LocalV2Store local;
-    private final InboxStore inbox;private final ImageAssociationRegistry registry;private final ImageStageStore stage;private final FeedSyncState sync;private final FeedSyncApply apply;
+    private final InboxStore inbox;private final ImageAssociationRegistry registry;private final ImageStageStore stage;private final FeedSyncState sync;private final FeedSyncApply apply;private final FeedConflictUi conflictUi;
     private final Path inboxFile,registryFile,stageRoot;
     private final Handler handler=new Handler(Looper.getMainLooper());
     private final ExecutorService network=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"TMM-feed-follow");t.setDaemon(true);return t;});
@@ -69,6 +73,10 @@ public final class FeedFollowUi {
         inboxFile=privateRoot.resolve("metadata-inbox-v1/inbox.bin");registryFile=privateRoot.resolve("received-image-association-v1/associations.bin");stageRoot=privateRoot.resolve("received-image-stage-v1");
         inbox=new InboxStore(inboxFile.getParent());registry=new ImageAssociationRegistry(registryFile.getParent());stage=new ImageStageStore(stageRoot);
         sync=new FeedSyncState(privateRoot.resolve("feed-sync-v1"));apply=new FeedSyncApply(sync,inbox,stage,local,images);
+        conflictUi=new FeedConflictUi(context,worker,apply,images,new FeedConflictUi.Host(){
+            public void post(Runnable action){host.post(action);}public boolean available(){return !closed&&host.available();}
+            public String summary(TmmDraft draft){return host.summary(draft);}public void changed(){host.resolved();}
+        });
         sourceChoice=new MissionSourceChoiceUi(context,new MissionSourceChoiceUi.Host(){
             public boolean available(){return !closed&&host.available();}public List<String> profiles(){return host.profiles();}
             public void selected(MissionEndpoint endpoint){listFeeds(endpoint);}
@@ -87,11 +95,15 @@ public final class FeedFollowUi {
             host.post(()->{if(closed)return;state=value;broken=failure;loaded=true;if(failure!=null)status=failure;trigger();});
         });
     }
-    public boolean isBusy(){return busy||dialog!=null&&dialog.isShowing()||sourceChoice.isBusy();}
+    public boolean isBusy(){return busy||conflictUi.isBusy()||dialog!=null&&dialog.isShowing()||sourceChoice.isBusy();}
     public boolean isFetching(){return running;}
     /** Read-only for the list: devices in conflict, and followed devices with unpublished local changes (L ≠ B). */
     public Set<UUID> conflicts(){return apply.conflicts();}
     public Set<UUID> unpublished(){return apply.unpublished();}
+    /** Text marker for the list and details (not colour only): Konflikt, else Ej publicerad, else null. */
+    public String marker(UUID uid){return conflicts().contains(uid)?"Konflikt":unpublished().contains(uid)?"Ej publicerad":null;}
+    /** Side-by-side view with Behåll min and Använd inkommande for a device in {@link #conflicts()}. */
+    public void showConflict(UUID uid){conflictUi.show(uid);}
     /** Devices changed locally by the latest apply. */
     public int applied(){return apply.applied();}
     public String label(){
@@ -324,5 +336,5 @@ public final class FeedFollowUi {
     /** Cancels the explicit setup dialogs only; following and its timer are unaffected. */
     public void cancel(){setup.incrementAndGet();sourceChoice.cancel();dismiss();}
     /** Unload: stop the timer and any attempt; later callbacks are rejected by generation and the closed flag. */
-    public void close(){closed=true;cancel();stopAttempt();handler.removeCallbacksAndMessages(null);network.shutdownNow();sourceChoice.close();}
+    public void close(){closed=true;conflictUi.close();cancel();stopAttempt();handler.removeCallbacksAndMessages(null);network.shutdownNow();sourceChoice.close();}
 }

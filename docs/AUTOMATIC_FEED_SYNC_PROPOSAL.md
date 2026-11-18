@@ -229,6 +229,25 @@ is never downloaded again. After each successful fetch, `FeedSyncApply` applies 
 locally (U3–U5, see [the sync-state format](FEED_SYNC_STATE_FORMAT.md#executor--2026-11-18)), and
 `FeedFollowUi.Host.onFetchCompleted(receiptIds, records)` lets the planner reload its layer.
 
+### Conflict view and resolution
+
+The device list and details show the text **Konflikt** or **Ej publicerad**
+(`FeedFollowUi.marker`), refreshed after every fetch and every resolution. A conflicted
+device opens `FeedConflictUi`: local and incoming values side by side, with previews of
+the local photo and the incoming photo or, when U4 is AMBIGUOUS, of every candidate with
+an explicit **Välj bild**. **Behåll min** and **Använd inkommande** call
+`FeedSyncApply.resolve` on the planner's worker. It recomputes the device from the files,
+returns STALE (nothing changed, the view reloads) if anything the view was read from
+differs, and otherwise reuses the automatic APPLY code with `FeedSyncState.replace`
+binding. Neither sends anything (U8). Choices where the text left room:
+
+- **Behåll min** with an AMBIGUOUS photo moves only the metadata base; the image stays in
+  conflict (the device keeps **Konflikt**) until U4 clears it or the user picks a photo.
+- **Använd inkommande** is refused with nothing changed when the incoming `updatedAt` is
+  earlier than the local one, because the store cannot move an edit time backwards and
+  L = R would be unreachable. It also never re-adds a locally deleted device.
+- A second press, or a press on a view that is no longer current, is STALE and changes nothing.
+
 ### Start gate after restart
 
 [ADR 0013](decisions/0013-followed-feed-connected-use.md) (owner decision 2026-11-18)
