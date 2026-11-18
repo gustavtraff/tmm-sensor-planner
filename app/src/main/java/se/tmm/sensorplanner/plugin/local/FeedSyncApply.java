@@ -2,6 +2,7 @@ package se.tmm.sensorplanner.plugin.local;
 
 import android.annotation.TargetApi;
 import java.io.IOException;
+import java.time.Instant;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -218,8 +219,7 @@ final class FeedSyncApply {
      * Behåll min: base := the remote receipt and the image base := the incoming image (or none); nothing local changes.
      * With an AMBIGUOUS image only the metadata base moves, the image stays in conflict until U4 clears it.
      * Använd inkommande: applies the remote metadata and the incoming image (the picked candidate when ambiguous)
-     * through the same code as an automatic APPLY; refused, with nothing changed, when the remote edit time is
-     * earlier than the local one (the store cannot move a time backwards, so L = R is unreachable).
+     * through the same code as an automatic APPLY; an earlier remote edit time keeps the later local time.
      * Both recheck the state the view was read from and return STALE if it differs. Nothing is ever sent (U8).
      */
     Outcome resolve(Conflict seen, Resolution how, ImageAssociationRegistry.Record pick) {
@@ -300,25 +300,25 @@ final class FeedSyncApply {
             s = put(s, record(rec, rec.remoteReceiptId, FeedSyncState.IMAGE_NONE, null, null, null));
         } else if (metadata == FeedSyncDecision.Metadata.APPLY) {
             TmmDraft l = expected.draft, r = e.remote;
-            // L must equal R afterwards; a different creation identity or an earlier remote edit time cannot.
-            if (!l.createdAt.equals(r.createdAt) || r.updatedAt.isBefore(l.updatedAt) || l.revision == Long.MAX_VALUE) {
+            // L must equal R afterwards; a different creation identity cannot. An earlier remote time keeps the local one.
+            if (!l.createdAt.equals(r.createdAt) || l.revision == Long.MAX_VALUE) {
                 conflicted.add(e.deviceUid);
                 return s;
             }
-            TmmDraft next = new TmmDraft(l.uid, r.displayId, r.type, r.status, r.owner, l.createdAt, r.updatedAt,
+            TmmDraft next = new TmmDraft(l.uid, r.displayId, r.type, r.status, r.owner, l.createdAt, later(l, r),
                     r.deployedAt, r.comment, r.position, r.bearingDeg, l.imageRef, l.revision + 1);
             LocalV2.State saved = local.save(before.storeId, expected, next);
             expected = readBack(e.deviceUid, saved.version, r, l.imageRef);
             s = put(s, record(rec, rec.remoteReceiptId, rec.imageKind, rec.imageDigest(), null, null));
         }
-        if (forcedImage != null) s = image(s, before.storeId, expected, e.deviceUid, forcedImage);
-        else if (!force && e.decision.image == FeedSyncDecision.Image.APPLY) s = image(s, before.storeId, expected, e.deviceUid, e.remoteImage);
+        if (forcedImage != null) s = image(s, before.storeId, expected, e.deviceUid, forcedImage, e.remote);
+        else if (!force && e.decision.image == FeedSyncDecision.Image.APPLY) s = image(s, before.storeId, expected, e.deviceUid, e.remoteImage, e.remote);
         return s;
     }
 
     /** U5 steps 1–4. Any failure after step 2 leaves adoptNew/adoptOld for {@link #recover()}. */
     private FeedSyncState.Snapshot image(FeedSyncState.Snapshot s, UUID storeId, LocalV2.State expected,
-                                         UUID deviceUid, ImageAssociationRegistry.Record remoteImage) throws Exception {
+                                         UUID deviceUid, ImageAssociationRegistry.Record remoteImage, TmmDraft remote) throws Exception {
         LocalV2.Snapshot fresh = local.load();
         LocalV2.State state = fresh.state(deviceUid);
         if (!fresh.storeId.equals(storeId) || state.presence != Presence.ACTIVE || state.version != expected.version) return s;
@@ -333,9 +333,8 @@ final class FeedSyncApply {
             FeedSyncState.Record rec = find(s, deviceUid);
             s = put(s, record(rec, rec.baseReceiptId, rec.imageKind, rec.imageDigest(), id(pending.reference()), old == null ? null : id(old)));
             steps.reached(ADOPT_WRITTEN);
-            // The local updatedAt is kept: after the metadata step it is R's whenever L's metadata equals R,
-            // and otherwise an image adoption must not change unpublished local metadata.
-            attachments.attach(selected, pending, selected.draft.updatedAt);
+            // The later of the local and remote edit times, so the edit time never moves backwards (#236).
+            attachments.attach(selected, pending, later(selected.draft, remote));
             steps.reached(ATTACHED);
             return finish(s, find(s, deviceUid));
         }
@@ -407,9 +406,11 @@ final class FeedSyncApply {
     private static FeedSyncState.Record record(FeedSyncState.Record r, UUID base, int kind, byte[] digest, UUID adoptNew, UUID adoptOld) {
         return new FeedSyncState.Record(r.deviceUid, r.remoteReceiptId, base, kind, digest, adoptNew, adoptOld);
     }
-    private static boolean same(TmmDraft local, TmmDraft remote) {
-        return ImportReview.assess(Collections.singletonList(local), remote).kind == ImportReview.Kind.SAME_METADATA;
+    private static Instant later(TmmDraft local, TmmDraft remote) {
+        return remote.updatedAt.isAfter(local.updatedAt) ? remote.updatedAt : local.updatedAt;
     }
+    // Sync content equality: the edit time is not compared (#236).
+    private static boolean same(TmmDraft local, TmmDraft remote) { return FeedSyncDecision.sameContent(local, remote); }
     private static String reference(UUID id) { return id + ".png"; }
     private static UUID id(String reference) { return UUID.fromString(reference.substring(0, reference.length() - 4)); }
     static byte[] sha256(byte[] bytes) {

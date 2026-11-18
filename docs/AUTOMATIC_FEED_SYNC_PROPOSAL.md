@@ -91,6 +91,13 @@ own base and are compared separately (U4).
 "L ≠ B" is exactly "this device has local changes that are not yet published". The
 list shows that as **Ej publicerad**. Arrival order and `updatedAt` never pick a winner.
 
+Equality of R, B and L compares the metadata content without `updatedAt`
+(`FeedSyncDecision.sameContent`). When an incoming version with an earlier `updatedAt` is
+applied, the device takes the incoming content and keeps the later local edit time, so it
+converges without a false **Ej publicerad** and the local edit time never moves backwards.
+Inbox receipts and U4 binding still use the exact M, including time. Approved by the owner
+on 2026-11-18 (#236).
+
 Two remote writers updating the same UUID: the feed keeps only the server's latest
 copy of that UID, and snapshots cannot see the earlier one. Clients converge on the
 feed's version, not on a merge. This is a feed limitation and must be disclosed.
@@ -116,7 +123,7 @@ Metadata and image are compared separately in U3.
 Applying a remote image: verify, stage and associate as today. Then make an owned
 copy with `prepareReceived` and read it back. Then commit the draft's new image
 handle with `DraftAttachments.attach`, bound to the expected store and state, using
-the remote M's `updatedAt` rather than the local clock so that L equals R afterwards. Store B only after that commit is read back. Delete the old owned image
+the later of the local and the remote M's `updatedAt` rather than the local clock, so that L equals R in content afterwards. Store B only after that commit is read back. Delete the old owned image
 only after a fresh check that nothing refers to it. If any step is uncertain, keep
 both copies and retry from the stored IDs on the next fetch.
 
@@ -243,9 +250,9 @@ binding. Neither sends anything (U8). Choices where the text left room:
 
 - **Behåll min** with an AMBIGUOUS photo moves only the metadata base; the image stays in
   conflict (the device keeps **Konflikt**) until U4 clears it or the user picks a photo.
-- **Använd inkommande** is refused with nothing changed when the incoming `updatedAt` is
-  earlier than the local one, because the store cannot move an edit time backwards and
-  L = R would be unreachable. It also never re-adds a locally deleted device.
+- **Använd inkommande** also works when the incoming `updatedAt` is earlier than the local
+  one: the content is taken and the later local time is kept (U3). It never re-adds a
+  locally deleted device.
 - A second press, or a press on a view that is no longer current, is STALE and changes nothing.
 
 ### Start gate after restart

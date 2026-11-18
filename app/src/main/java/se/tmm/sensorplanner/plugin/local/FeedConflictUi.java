@@ -94,7 +94,7 @@ final class FeedConflictUi {
                             ?"Din version behålls och visas som Ej publicerad tills du publicerar. Inget skickades."
                             :"Den inkommande versionen är tillämpad lokalt. Inget skickades.",null);break;
                     case STALE:info("Läget har ändrats","Enheten eller feeden har ändrats sedan vyn öppnades. Inget ändrades. Vyn läses om.",()->show(c.deviceUid));break;
-                    default:info("Kunde inte tillämpas","Valet kunde inte genomföras säkert, till exempel för att den inkommande ändringen är äldre än din. Inget skickades. Kontrollera enhetens läge.",null);
+                    default:info("Kunde inte tillämpas","Valet kunde inte genomföras säkert. Inget skickades. Kontrollera enhetens läge.",null);
                 }
             });
         });
