@@ -236,4 +236,5 @@ makes an explicit **Följ feed** choice consent to connected use. When the plann
 while connected, `LocalTrialSession.resumeFollowedFeed` reads `sync.bin` with
 `FeedSyncState.read`; following = 1 opens the planner without the ADR 0009 dialog, so
 `FeedFollowUi.start` fetches on load. A missing, unreadable or stopped file keeps the
-ADR 0009 dialog and is never rewritten. `canUseLab` and the lab gates are unchanged.
+ADR 0009 dialog and is never rewritten. As under trial consent, the lab tools are then off
+for the whole session, also after going offline (`canUseLab`).
