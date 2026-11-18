@@ -192,6 +192,15 @@ documents its rule precedence in the class Javadoc. Tests are in `FeedSyncDecisi
 (run by `sh scripts/test.sh`). An image deleted-locally case with an UNKNOWN image base
 returns NOTHING, because there is no base to compare against.
 
+`se.tmm.sensorplanner.core.FeedSyncPlan` (#242) turns one completed fetch into a per-device
+plan, again pure and without I/O. It looks up the base M from the inbox receipt, builds the
+image base from the sync record, calls `FeedSyncDecision` per device, and picks the remote
+image record for H (first in registry order when several share H). Its `nextSync` holds only
+bookkeeping that needs no local write: remote receipt ids and ADOPT_BASE bases. APPLY and ADD
+leave bases for the executor (U5). A missing base receipt fails closed. A new device that would
+exceed the 256-record limit gets NOTHING and is listed in `overCapacity`. Tests are in
+`FeedSyncPlanTest`.
+
 ### App: following and scheduler
 
 `se.tmm.sensorplanner.plugin.local.FeedFollowUi` implements U1, U2, U7 and U8 for the
