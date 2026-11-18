@@ -62,6 +62,7 @@ separate from active local attachment adoption and outbound acknowledgments.
 and base-based conflict detection (#236). U1–U8, the
 [sync-state v1 format](FEED_SYNC_STATE_FORMAT.md) and the
 [photo publication route](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md) are approved.
+[The metadata route for Publicera](PUBLISH_METADATA_ROUTE_PROPOSAL.md) (M1–M7, #251) awaits owner decisions.
 
 Changing a contract requires its documentation and relevant migration/compatibility
 checks together; a renamed document does not approve a new writer or transport.
