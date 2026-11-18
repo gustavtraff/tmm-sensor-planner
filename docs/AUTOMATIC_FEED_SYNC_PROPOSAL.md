@@ -200,3 +200,28 @@ bookkeeping that needs no local write: remote receipt ids and ADOPT_BASE bases. 
 leave bases for the executor (U5). A missing base receipt fails closed. A new device that would
 exceed the 256-record limit gets NOTHING and is listed in `overCapacity`. Tests are in
 `FeedSyncPlanTest`.
+
+### App: following and scheduler
+
+`se.tmm.sensorplanner.plugin.local.FeedFollowUi` implements U1, U2, U7 and U8 for the
+receive side, without local apply (U3–U5). **Följ feed** in the device list reuses
+`MissionSourceChoiceUi` for profile and HTTPS API port, reads the feeds, and asks
+for the existing explicit missing-history confirmation before it creates
+`se.tmm.sensorplanner/feed-sync-v1/sync.bin` (following = 1, the existing
+`mission-api-v1|…` context, feed name, selected stream connect string, no records).
+**Sluta följa** and **Följ igen** rewrite only the flag. The format is unchanged.
+
+An `android.os.Handler` on the planner lifecycle fetches on load, when the stored
+profile becomes connected (`ServerTrialConnectionWatch`, whose `connected(server, up)`
+callback the 5.6.0.24 SDK bytecode invokes in both directions), every 60 s and on
+**Uppdatera nu**. One attempt runs at a time; a failure doubles the interval up to
+5 min, and a success resets it. A missing, changed or disconnected profile, or a
+changed provider, pauses with a visible reason and never selects another source.
+Unload stops the timer and the attempt; later callbacks are ignored.
+
+Each attempt uses only the existing GETs: feed list, metadata snapshot into the inbox
+(as **Hämta till inkorgen**), image resource list, and the selected-feed image read
+and intake for each `.tmmi` whose hash is not already referenced by the registry.
+That hash is the SHA-256 of the staged entry's container v1 bytes, so a staged image
+is never downloaded again. The sync-state records are not written yet. The hook
+`FeedFollowUi.Host.onFetchCompleted(receiptIds, records)` is a no-op for the apply slice.

@@ -36,6 +36,15 @@ final class ConfiguredMissionSource {
             return result;
         }catch(RuntimeException unavailable){return null;}
     }
+    /** Whether a stream profile with exactly this connect string still exists, connected or not; false when unreadable. */
+    static boolean configured(String stream) {
+        try{
+            TAKServer[] all=TAKServerListener.getInstance().getServers();
+            if(all==null||all.length>32)return false;
+            for(TAKServer server:all)if(server!=null&&server.isStream()&&stream.equals(server.getConnectString()))return true;
+            return false;
+        }catch(RuntimeException unavailable){return false;}
+    }
     static boolean connected(String stream) {
         try{return profiles().contains(stream);}catch(RuntimeException unavailable){return false;}
     }

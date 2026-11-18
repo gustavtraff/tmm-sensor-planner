@@ -40,6 +40,7 @@ import se.tmm.sensorplanner.plugin.local.LocalStorageUi;
 import se.tmm.sensorplanner.plugin.local.SnapshotInboxUi;
 import se.tmm.sensorplanner.plugin.local.MissionSourceChoiceUi;
 import se.tmm.sensorplanner.plugin.local.ImageTrialUi;
+import se.tmm.sensorplanner.plugin.local.FeedFollowUi;
 import se.tmm.sensorplanner.core.LocalV2.Selection;
 import se.tmm.sensorplanner.plugin.publication.PublicationMapCopy;
 
@@ -68,6 +69,7 @@ final class LocalPlanner {
     private UUID trialTarget;
     private final ServerTrialConnectionWatch trialWatch;
     private volatile ImageTrialUi imageTrial;
+    private volatile FeedFollowUi feedFollow;
     private SnapshotInboxUi inboxUi;
     private final MissionSourceChoiceUi sourceChoice;
     private LocalDraftLayer layer;
@@ -132,7 +134,8 @@ final class LocalPlanner {
                 return mapCopy.inspectUpdate(prepared, label);
             }
         });
-        trialWatch = new ServerTrialConnectionWatch(context, ()->{serverTrial.end();ImageTrialUi current=imageTrial;if(current!=null)current.sourceLost();});
+        trialWatch = new ServerTrialConnectionWatch(context, ()->{serverTrial.end();ImageTrialUi current=imageTrial;if(current!=null)current.sourceLost();},
+                ()->{FeedFollowUi current=feedFollow;if(current!=null)current.connectionChanged();});
         PublicationMapCopy trialCopy = new PublicationMapCopy(map, this::serverTrialAllowed).forServerTrial();
         trialCopyUi = new SavedDraftCopyUi(context, store, worker, new SavedDraftCopyUi.Host() {
             @Override public void post(Runnable action) { ui.queueEvent(action); }
@@ -179,6 +182,15 @@ final class LocalPlanner {
             public String coordinates(Position position){return positionText(position);}
             public void changed(UUID uid){storageUi.load(false);}
         });
+        feedFollow=new FeedFollowUi(context,store,new java.io.File(context.getNoBackupFilesDir(),"se.tmm.sensorplanner").toPath(),worker,new FeedFollowUi.Host(){
+            public void post(Runnable action){ui.queueEvent(action);}public boolean available(){return !closed&&localAllowed.getAsBoolean();}
+            public java.util.List<String> profiles(){return ConfiguredMissionSource.profiles();}
+            public boolean configured(String stream){return ConfiguredMissionSource.configured(stream);}
+            public boolean defaultProvider(){return MissionSnapshotHttp.defaultProvider();}
+            public FeedFollowUi.Transport connect(se.tmm.sensorplanner.plugin.ingress.MissionEndpoint endpoint){return new MissionSnapshotHttp(()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream),endpoint);}
+            public void notice(String text){if(!closed)ui.showToast(text);}
+        });
+        feedFollow.start();
     }
     private SnapshotInboxUi inboxFor(MissionSnapshotHttp transport,BooleanSupplier sourceAllowed){
         return new SnapshotInboxUi(context, store, new java.io.File(context.getNoBackupFilesDir(),
@@ -243,6 +255,7 @@ final class LocalPlanner {
         for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
         dismiss();
         LinearLayout inboxActions = column(); inboxActions.addView(label(LocalStorageUi.warning(storage)));
+        inboxActions.addView(button(feedFollow.label(), () -> { dismiss(); feedFollow.show(); }));
         inboxActions.addView(button("Bilddelning · test", () -> { dismiss(); imageTrial.show(null); }));
         inboxActions.addView(button("Mottagna metadata", () -> { dismiss(); inboxUi.show(); }));
         inboxActions.addView(button("Hämta metadata · test", () -> { dismiss(); inboxUi.cancel(); sourceChoice.show(); }));
@@ -730,14 +743,15 @@ final class LocalPlanner {
         else ui.showToast("Serverprovet avslutades: exakt en ansluten och vald server krävs");
     }
 
-    private boolean isBusy() { return imageTrial!=null&&imageTrial.isBusy() || storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy(); }
+    private boolean isBusy() { return imageTrial!=null&&imageTrial.isBusy() || storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy() || feedFollow.isBusy(); }
 
-    void cancelSharing() { if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
+    void cancelSharing() { feedFollow.close(); if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
 
-    void disableSharing() { if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
+    void disableSharing() { feedFollow.cancel(); if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
 
     void close() {
         closed = true;
+        feedFollow.close();
         if(imageTrial!=null)imageTrial.close();
         if (positionPicker != null) { positionPicker.close(); positionPicker = null; }
         dismiss();
