@@ -58,6 +58,8 @@ and [container v1](IMAGE_CONTAINER_FORMAT.md) retain their original approval sco
 check actual bytes against retained metadata; a hash alone is not source authority.
 [The first viewing-trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md) keeps viewing
 separate from active local attachment adoption and outbound acknowledgments.
+[Automatic feed sync](AUTOMATIC_FEED_SYNC_PROPOSAL.md) proposes automatic fetching
+and base-based conflict detection (#236). U1–U8 are approved; the sync-state format is not.
 
 Changing a contract requires its documentation and relevant migration/compatibility
 checks together; a renamed document does not approve a new writer or transport.

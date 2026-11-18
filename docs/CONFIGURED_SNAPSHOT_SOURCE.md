@@ -3,6 +3,25 @@
 For current implementation and remaining gates, use [NEXT_STEPS.md](NEXT_STEPS.md).
 Approval and implementation notes below retain their stated scope and date.
 
+## Planned automatic receive (#236)
+
+The owner has confirmed that fetching should become automatic. The
+[automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) keeps this
+document's source selection, TLS client, GET-only routes, limits, source context
+and parsers unchanged. If U1–U8 are approved and implemented, these rules below
+change:
+
+| Rule in this document (candidates 28–30) | After #236 |
+|---|---|
+| Fetch only when the user selects **Hämta till inkorgen** | Also automatic while the plugin is loaded and the profile is connected: on load, on reconnect, every 60 s, plus **Uppdatera nu** (U1). |
+| Source grant is session-only. Restart and Unload require a fresh Fetch before application | **Följ feed** stores the selected source and resumes after restart (U2, U6). Profile loss or change pauses following and never switches source. |
+| Differences always go to inbox review | Variants are still retained in the inbox. Conflict-free differences are applied automatically, and only conflicts against unpublished local work need review (U3). |
+| Pictures remain local | Conflict-free received images become the device's current image (U4, U5). |
+
+Unchanged: no publish, upload, subscription or REST write; a missing member never
+deletes a draft; no credential is copied. Until #236 is implemented, the explicit
+behaviour below is what ships.
+
 Candidate **28 / `0.1.0-configured-receive-trial.1`** extends the explicit
 [snapshot receiver](SNAPSHOT_INTAKE.md), not the publisher. It uses an already
 configured, enabled and currently connected SSL stream from ATAK's public server
