@@ -79,3 +79,36 @@ downloaded elsewhere stay. The alternative is to raise the cap and accept growth
 Receive rules U1–U8, all stored formats, and native metadata publication. No
 receipts, no publication of devices the user did not choose, nothing sent during
 fetching.
+
+## Implementation — service only (part of #243)
+
+`FeedPhotoPublication` (app `plugin/local`) implements W1–W4 for the photo, with no
+UI and no metadata. Nothing calls it yet; the Publicera UI is a later step.
+
+- **Container.** `review(device)` freezes a preview of the saved device and its owned
+  photo for the followed feed. `publish` confirms it, writes container v1 with
+  `ImageSnapshotExports` into the private no-backup directory
+  `se.tmm.sensorplanner/feed-photo-outbox/`, reads it back, checks it and hashes it.
+  The file is deleted after the attempt; a file left by a crash is deleted by the next
+  attempt. Nothing is written to Downloads.
+- **Requests** (`MissionSnapshotHttp`, sharing one request lifetime with the reads):
+  `POST /Marti/sync/upload?name=<uuid>.tmmi&creatorUid=`, then
+  `PUT /Marti/api/missions/guid/{guid}/contents?creatorUid=` with `{"hashes":[h]}`, and
+  for W4 `DELETE /Marti/api/missions/guid/{guid}/contents?hash=&creatorUid=`.
+  `creatorUid` is the ATAK device UID the caller supplies. The reply's `Hash` must equal
+  the local SHA-256. The body entity is not repeatable, so the HTTP client cannot
+  replay it. Deadlines: 60 s for the upload, 12 s for the others.
+- **W2.** Before the upload, before the association and before a removal, the stored
+  sync state is reread: following on, same syncId, contextId (service and mission
+  GUID), connect string and feed name; ATAK's default provider; the profile connected.
+- **W3 outcomes.** Succeeded; refused (any 403); failed (nothing sent, a non-403 4xx
+  answer, a hash mismatch or a destination change); unknown (the request may have
+  reached the server: a timeout, lost connection or 5xx after sending). A request is
+  consumed by its first attempt and nothing is resent.
+- **W4.** At publication the replaced base is the one feed resource, in the latest
+  fetch passed to `fetchCompleted`, whose registry record has this device and the
+  stored image-base digest. If there is not exactly one, nothing will be removed.
+  `removeReplaced` removes it only once a later fetch shows the new photo for the
+  device and the old one is still listed. One attempt, failures are reported. This
+  state is in memory for the session only, so after a restart the old photo stays in
+  the feed.

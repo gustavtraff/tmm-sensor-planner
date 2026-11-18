@@ -255,11 +255,25 @@ public class FeedSyncApplyTest {
         assertSameFiles(before,localFiles());assertEquals(FeedSyncState.IMAGE_NONE,record().imageKind);
         assertEquals("The ambiguity is not resolved by keeping",Collections.singleton(m1.uid),apply.conflicts());
     }
-    @Test public void anIncomingEditOlderThanTheLocalOneIsRefusedWithoutChanges()throws Exception {
-        run(executor(),list(r1),list(h1));edit("local edit");edit("local edit 2");
+    @Test public void useIncomingWithAnOlderTimeTakesTheContentAndKeepsTheLaterLocalTime()throws Exception {
+        run(executor(),list(r1),list(h1));edit("local edit");edit("local edit 2");Instant localTime=local.load().state(m1.uid).draft.updatedAt;
         UUID r2=receive(changed(m1,"remote update",m1.updatedAt.plusSeconds(1)));   // earlier than the local edit time
-        FeedSyncApply apply=executor();run(apply,list(r2),list(h1));FeedSyncApply.Conflict c=apply.conflict(m1.uid);Map<Path,byte[]> before=files(root);
-        assertEquals(FeedSyncApply.Outcome.NOT_APPLIED,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));assertSameFiles(before,files(root));
+        FeedSyncApply apply=executor();run(apply,list(r2),list(h1));FeedSyncApply.Conflict c=apply.conflict(m1.uid);
+        assertEquals(FeedSyncApply.Outcome.DONE,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));
+        TmmDraft draft=local.load().state(m1.uid).draft;assertEquals("remote update",draft.comment);assertEquals(localTime,draft.updatedAt);
+        assertTrue(apply.conflicts().isEmpty());assertTrue(apply.unpublished().isEmpty());assertEquals(r2,record().baseReceiptId);
+        Map<Path,byte[]> before=files(root);FeedSyncApply next=executor();run(next,list(r2),list(h1));
+        assertTrue(next.conflicts().isEmpty());assertTrue(next.unpublished().isEmpty());assertEquals(0,next.applied());assertSameFiles(before,files(root));
+    }
+    @Test public void aClockSkewedAutomaticApplyKeepsTheLaterLocalTimeAndTheNextFetchIsQuiet()throws Exception {
+        run(executor(),list(r1),list(h1));edit(m1.comment);   // same content as the base, later local time
+        Instant localTime=local.load().state(m1.uid).draft.updatedAt;assertTrue(localTime.isAfter(m1.updatedAt.plusSeconds(1)));
+        UUID r2=receive(changed(m1,"remote update",m1.updatedAt.plusSeconds(1)));
+        FeedSyncApply apply=executor();run(apply,list(r2),list(h1));
+        TmmDraft draft=local.load().state(m1.uid).draft;assertEquals("remote update",draft.comment);assertEquals(localTime,draft.updatedAt);
+        assertEquals(1,apply.applied());assertTrue(apply.conflicts().isEmpty());assertTrue(apply.unpublished().isEmpty());assertEquals(r2,record().baseReceiptId);
+        Map<Path,byte[]> before=files(root);FeedSyncApply next=executor();run(next,list(r2),list(h1));
+        assertEquals(0,next.applied());assertTrue(next.unpublished().isEmpty());assertSameFiles(before,files(root));
     }
 
     private FeedSyncApply executor(){return new FeedSyncApply(sync,inbox,stage,local,images);}
@@ -281,7 +295,7 @@ public class FeedSyncApplyTest {
     private static TmmDraft changed(TmmDraft d,String comment,Instant updated){
         return new TmmDraft(d.uid,d.displayId,d.type,d.status,d.owner,d.createdAt,updated,d.deployedAt,comment,d.position,d.bearingDeg,null,d.revision);
     }
-    private static boolean same(TmmDraft a,TmmDraft b){return ImportReview.assess(Collections.singletonList(a),b).kind==ImportReview.Kind.SAME_METADATA;}
+    private static boolean same(TmmDraft a,TmmDraft b){return FeedSyncDecision.sameContent(a,b);}
     private FeedSyncState.Record record()throws IOException {return find(sync.read());}
     private FeedSyncState.Record find(FeedSyncState.Snapshot s){for(FeedSyncState.Record r:s.records)if(r.deviceUid.equals(m1.uid))return r;throw new AssertionError("No record");}
     private static UUID uuid(String reference){return UUID.fromString(reference.substring(0,36));}

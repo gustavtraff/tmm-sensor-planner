@@ -74,8 +74,14 @@ public final class FeedSyncDecisionTest {
     private static void metadataEquality() {
         TmmDraft later = draft("one", Instant.EPOCH.plusSeconds(11), 1);
         TmmDraft otherRevision = draft("one", Instant.EPOCH.plusSeconds(10), 9);
-        assert meta(later, M1, M1) == Metadata.APPLY;            // updatedAt alone makes a variant
-        assert meta(later, M1, M2) == Metadata.CONFLICT;
+        TmmDraft earlier = draft("one", Instant.EPOCH.plusSeconds(9), 1);
+        assert FeedSyncDecision.sameContent(M1, later);          // updatedAt is not compared (#236)
+        assert !FeedSyncDecision.sameContent(M1, M2);
+        assert meta(later, M1, M1) == Metadata.NOTHING;
+        assert meta(later, M1, M2) == Metadata.NOTHING;          // R = B in content
+        assert meta(earlier, M1, later) == Metadata.NOTHING;
+        assert meta(draft("two", Instant.EPOCH.plusSeconds(1), 1), M1, M1) == Metadata.APPLY;   // older incoming under L = B
+        assert meta(draft("two", Instant.EPOCH.plusSeconds(1), 1), M1, draft("one", Instant.EPOCH.plusSeconds(20), 1)) == Metadata.APPLY;
         assert meta(otherRevision, M1, M2) == Metadata.NOTHING;  // revision is not metadata
     }
 
