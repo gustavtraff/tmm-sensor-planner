@@ -5,9 +5,10 @@ on the real TAK Server 5.6 with two phones. It implements the M4 clarification i
 [the metadata route proposal](PUBLISH_METADATA_ROUTE_PROPOSAL.md): about 15 minutes of
 checks with one synthetic device, then real exercise data only after the owner
 records a go, otherwise the candidate 30 fallback (#222). The steps and the result
-form are Swedish because the owner reads them in the field. Button texts follow the
-approved documents. Where the signed candidate may word a button differently, the
-step says "(kontrollera mot signerad version)". Record results without operational
+form are Swedish because the owner reads them in the field. TMM texts are quoted from the
+integrated UI (PR #264). Only ATAK's own native steps (Add Items, Done, the native
+publish prompt and its **Nej**) say "(kontrollera mot signerad version)", because the
+signed candidate may word them differently. Record results without operational
 data (no real locations, photos, server names or accounts).
 
 # Övningsprov: protokoll
@@ -35,12 +36,15 @@ får vara FEL enligt avsnitt 3, annars avbryt och gå till reservplanen.
 
 ### 2.1 Skapa och publicera utan bild
 
-1. På A: skapa testenheten utan bild och tryck **Publicera**. Bekräfta förhandsvisningen
-   och följ ATAK:s egna steg för en ny enhet (Add Items, Done) (kontrollera mot signerad version).
+1. På A: skapa testenheten utan bild (**Skapa enhet**, **Spara lokalt**) och tryck
+   **Publicera**. Förhandsvisningen **Publicera till** *feedens namn* visar **NY ENHET I KARTAN**
+   och **Ingen bild. Endast metadata publiceras.** Tryck **Publicera** i dialogen och följ sedan
+   ATAK:s egna steg för en ny enhet: öppna feeden i Data Sync, **Add Items**, markera enheten,
+   **Done** (kontrollera mot signerad version).
 2. På B: vänta, tryck inte något.
 
-Förväntat: testenheten dyker upp på B av sig själv inom cirka 2 minuter, utan frågor.
-Om inget syns efter 2 minuter, tryck **Uppdatera nu** och notera att det behövdes.
+Förväntat: A visar **Publicerad** när feeden visar samma metadata (TMM väntar upp till 30 s).
+Testenheten dyker upp på B av sig själv inom cirka 2 minuter, utan frågor. Om inget syns efter 2 minuter, tryck **Uppdatera nu** och notera att det behövdes.
 
 - [ ] OK  - [ ] FEL   Tid till synlig på B: ______
 
@@ -48,21 +52,27 @@ Om inget syns efter 2 minuter, tryck **Uppdatera nu** och notera att det behövd
 
 B skapade inte enheten. Detta är M7 punkt 1.
 
-1. På B: ändra status, position, bäring och lägg till testbilden.
-2. Tryck **Publicera**, bekräfta, godkänn ATAK:s eget steg om det kommer (kontrollera mot signerad version).
-3. Om bilden inte laddas upp och texten **Metadata ännu inte i feeden, tryck Publicera igen** visas:
-   vänta en kort stund och tryck **Publicera** igen. Notera att det behövdes.
+1. På B: ändra status och bäring (**Redigera**, **Spara lokalt**), flytta positionen
+   (**Flytta på kartan**) och lägg till testbilden (**Lägg till bild**).
+2. Tryck **Publicera**. Förhandsvisningen visar **ÄNDRAD GEOMETRI · före → efter** med
+   **Position · MGRS:** gammal → ny och **Bäring:** gammal → ny. Kryssa i den extra bekräftelsen
+   för flyttad position (**Jag har kontrollerat den nya positionen. Den ersätter den gamla för
+   alla som ser enheten.**) och tryck **Publicera**. Godkänn ATAK:s eget steg om det kommer
+   (kontrollera mot signerad version).
+3. Tillåtet fall: om bilden inte laddas upp och dialogen **Ej publicerad** visar
+   **Metadata ännu inte i feeden, tryck Publicera igen** (till exempel för en ny enhet när ATAK:s
+   egna Add Items, Done tar längre än 30 s): vänta en kort stund och tryck **Publicera**
+   igen. Det är tolererat enligt avsnitt 3, men notera att det behövdes.
 4. På A: vänta cirka 2 minuter (eller **Uppdatera nu**).
 
 Förväntat: A visar status, position, bäring och bild som aktuella, utan **Konflikt**.
-Ingen dubblett av enheten. Om B vägras ändra position eller bäring, notera meddelandet
-(positionsändring beror på #189).
+Ingen dubblett av enheten. Positions- och bäringsändring stöds: B ska inte vägras.
 
 - [ ] OK  - [ ] FEL   Dubblett? ja/nej   Behövdes "Publicera igen"? ja/nej
 
 ### 2.3 Enbart statusändring behåller bilden
 
-1. På A: ändra bara status. **Publicera**.
+1. På A: ändra bara status. **Publicera** (ingen extra positionsbekräftelse behövs).
 2. På B: vänta eller **Uppdatera nu**.
 
 Förväntat: ny status på B, bilden finns kvar, ingen **Konflikt**.
@@ -98,7 +108,7 @@ Förväntat: B kommer ikapp och visar A:s ändring. Inget förlorades medan B va
 ### 2.6 Svara Nej på ATAK:s publiceringsfråga
 
 1. På B: ändra status, tryck **Publicera**, bekräfta, och svara **Nej** på ATAK:s egen
-   fråga (kontrollera mot signerad version).
+   publiceringsfråga (kontrollera mot signerad version).
 2. Kontrollera enheten på B och feeden på A (**Uppdatera nu**).
 
 Förväntat: enheten är **Ej publicerad** på B. Ingen bild laddades upp. A ser ingen ny
@@ -110,8 +120,8 @@ bild eller ny status.
 
 1. Stäng ATAK helt på B och starta om. Öppna planeraren.
 
-Förväntat: planeraren öppnas utan försöksdialogen, följandet fortsätter (**Följ feed**
-visas som aktivt, **Sluta följa** finns) och en ändring från A dyker upp.
+Förväntat: planeraren öppnas utan försöksdialogen, följandet fortsätter (knappen visar
+**Följer** *feedens namn*, och **Sluta följa** finns i dialogen) och en ändring från A dyker upp.
 
 - [ ] OK  - [ ] FEL
 
