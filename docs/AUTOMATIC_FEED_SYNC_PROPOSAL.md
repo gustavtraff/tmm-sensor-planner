@@ -228,3 +228,12 @@ That hash is the SHA-256 of the staged entry's container v1 bytes, so a staged i
 is never downloaded again. After each successful fetch, `FeedSyncApply` applies the plan
 locally (U3–U5, see [the sync-state format](FEED_SYNC_STATE_FORMAT.md#executor--2026-11-18)), and
 `FeedFollowUi.Host.onFetchCompleted(receiptIds, records)` lets the planner reload its layer.
+
+### Start gate after restart
+
+[ADR 0013](decisions/0013-followed-feed-connected-use.md) (owner decision 2026-11-18)
+makes an explicit **Följ feed** choice consent to connected use. When the planner opens
+while connected, `LocalTrialSession.resumeFollowedFeed` reads `sync.bin` with
+`FeedSyncState.read`; following = 1 opens the planner without the ADR 0009 dialog, so
+`FeedFollowUi.start` fetches on load. A missing, unreadable or stopped file keeps the
+ADR 0009 dialog and is never rewritten. `canUseLab` and the lab gates are unchanged.

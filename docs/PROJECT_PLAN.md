@@ -52,6 +52,8 @@ connected privacy, physical image/provider acceptance and sharing remain pending
 Issue #4 adds an explicitly selected, session-only connected local trial with TMM
 lab sharing disabled. This is a reviewable test candidate, not a production-network
 approval; see [ADR 0009](decisions/0009-connected-local-trial.md).
+ADR 0013 lets an explicitly followed feed resume connected use after restart without
+that dialog; lab gates are unchanged ([ADR 0013](decisions/0013-followed-feed-connected-use.md)).
 The #52 [MGRS/map position adapter](MAP_POSITION.md) uses verified SDK conversion
 and a temporary screen sight with explicit accept/cancel, preserving numeric storage.
 The #67 [device review](DEVICE_DETAILS.md) prioritizes status, MGRS, local image
