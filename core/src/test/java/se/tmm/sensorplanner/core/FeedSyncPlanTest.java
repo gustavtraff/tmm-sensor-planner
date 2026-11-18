@@ -117,6 +117,15 @@ public final class FeedSyncPlanTest {
         FeedSyncState.Record r = next(p, A);
         assert r.remoteReceiptId.equals(id(11)) && r.baseReceiptId.equals(id(11));
         assert r.imageKind == 2 && Arrays.equals(r.imageDigest(), H1);
+        // No image on either side with an UNKNOWN image base: H = none, base becomes NONE, no registry record.
+        FeedSyncPlan none = FeedSyncPlan.plan(sync(rec(A, 10, 10, 0, null)), inbox(receipt(10, m2)), ids(10), NO_FEED,
+                local(LocalV2.State.active(1, m2)), Collections.singletonMap(A, ImageState.NONE));
+        assert entry(none, A).decision.image == Image.ADOPT_BASE && entry(none, A).remoteImage == null;
+        assert next(none, A).imageKind == 1 && next(none, A).imageDigest() == null;
+        // A local image with no remote image stays NOTHING and keeps the UNKNOWN base.
+        FeedSyncPlan kept = FeedSyncPlan.plan(sync(rec(A, 10, 10, 0, null)), inbox(receipt(10, m2)), ids(10), NO_FEED,
+                local(LocalV2.State.active(1, m2)), Collections.singletonMap(A, ImageState.of(H1)));
+        assert entry(kept, A).decision.image == Image.NOTHING && next(kept, A).imageKind == 0;
     }
 
     private static void applyLeavesBase() {

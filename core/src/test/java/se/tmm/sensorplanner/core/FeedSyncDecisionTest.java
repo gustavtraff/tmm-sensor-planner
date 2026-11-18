@@ -106,6 +106,12 @@ public final class FeedSyncDecisionTest {
         assert image(NO_IMAGES, M1, M1, base, img(H2)) == Image.NOTHING;      // missing image never clears
         assert image(NO_IMAGES, M1, M1, base, ImageState.NONE) == Image.NOTHING;
         assert image(NO_IMAGES, null, null, ImageState.UNKNOWN, ImageState.NONE) == Image.NOTHING;
+        // No image on either side is R = L: adopt base NONE once, then nothing; a local image is never rebased.
+        assert image(NO_IMAGES, M1, M1, ImageState.UNKNOWN, ImageState.NONE) == Image.ADOPT_BASE;
+        assert image(NO_IMAGES, null, M1, ImageState.UNKNOWN, ImageState.NONE) == Image.ADOPT_BASE;
+        assert image(NO_IMAGES, M1, M1, ImageState.NONE, ImageState.NONE) == Image.NOTHING;
+        assert image(NO_IMAGES, M1, M1, ImageState.UNKNOWN, img(H1)) == Image.NOTHING;
+        assert image(NO_IMAGES, M1, null, ImageState.UNKNOWN, ImageState.NONE) == Image.NOTHING;  // deleted locally
         assert image(Arrays.asList(H2, digest(2)), M1, M1, base, base) == Image.APPLY;  // duplicates count once
         assert image(Arrays.asList(H1, H2), M1, M1, base, base) == Image.APPLY;         // H2 differs from base
         assert image(Arrays.asList(H2, H1), M1, M1, base, img(H2)) == Image.ADOPT_BASE; // normal U3 path

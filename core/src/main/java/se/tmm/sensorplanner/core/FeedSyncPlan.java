@@ -22,7 +22,7 @@ public final class FeedSyncPlan {
         public final UUID deviceUid;
         public final FeedSyncDecision decision;
         public final TmmDraft remote;                              // null when not in this fetch
-        public final ImageAssociationRegistry.Record remoteImage;  // only for image APPLY or ADOPT_BASE
+        public final ImageAssociationRegistry.Record remoteImage;  // image APPLY or ADOPT_BASE; null for ADOPT_BASE with H = no image
         public final LocalV2.State local;
 
         Entry(UUID deviceUid, FeedSyncDecision decision, TmmDraft remote,
@@ -111,7 +111,7 @@ public final class FeedSyncPlan {
             FeedSyncDecision d = FeedSyncDecision.decide(receipt.incoming, base, localDraft, digests, baseImage, localImage);
 
             ImageAssociationRegistry.Record chosen = null;
-            if (d.image == FeedSyncDecision.Image.APPLY || d.image == FeedSyncDecision.Image.ADOPT_BASE) {
+            if (d.image == FeedSyncDecision.Image.APPLY || d.image == FeedSyncDecision.Image.ADOPT_BASE && !bound.isEmpty()) {
                 chosen = chooseH(bound, baseImage);
             }
             entries.add(new Entry(uid, d, receipt.incoming, chosen, state));
@@ -121,8 +121,8 @@ public final class FeedSyncPlan {
             byte[] digest = rec == null ? null : rec.imageDigest();
             if (d.metadata == FeedSyncDecision.Metadata.ADOPT_BASE) newBase = receipt.id;
             if (d.image == FeedSyncDecision.Image.ADOPT_BASE) {
-                kind = FeedSyncState.IMAGE_DIGEST;
-                digest = chosen.sha256();
+                kind = chosen == null ? FeedSyncState.IMAGE_NONE : FeedSyncState.IMAGE_DIGEST;
+                digest = chosen == null ? null : chosen.sha256();
             }
             next.put(uid, new FeedSyncState.Record(uid, receipt.id, newBase, kind, digest,
                     rec == null ? null : rec.adoptNew, rec == null ? null : rec.adoptOld));

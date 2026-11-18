@@ -190,7 +190,10 @@ distinct verified digests bound to the device UUID for any M (amended U4). It re
 metadata and image decisions, uses `ImportReview.sameMetadata` for equality, and
 documents its rule precedence in the class Javadoc. Tests are in `FeedSyncDecisionTest`
 (run by `sh scripts/test.sh`). An image deleted-locally case with an UNKNOWN image base
-returns NOTHING, because there is no base to compare against.
+returns NOTHING, because there is no base to compare against. With no bound image, a local device
+without an image and an UNKNOWN image base is U3 R = L: image ADOPT_BASE with H = no image, so the
+image base becomes NONE and a later first photo applies instead of conflicting (bug fix in #242).
+A known base, or a local image, still gives NOTHING: a missing image never clears or rebases one.
 
 `se.tmm.sensorplanner.core.FeedSyncPlan` (#242) turns one completed fetch into a per-device
 plan, again pure and without I/O. It looks up the base M from the inbox receipt, builds the

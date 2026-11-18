@@ -14,7 +14,8 @@ import java.util.List;
  * base, L = B is never true, so the result is ADOPT_BASE if R = L, else CONFLICT.
  *
  * <p>Image precedence, first match wins: R absent, NOTHING; no distinct bound digest (amended
- * U4), NOTHING; several distinct digests and not exactly one differing from a known image
+ * U4), ADOPT_BASE with H = no image when L is present without an image and the image base is
+ * UNKNOWN (R = L), otherwise NOTHING, so a missing image never clears or rebases a local one; several distinct digests and not exactly one differing from a known image
  * base, AMBIGUOUS (else that one is H); B and L both absent, APPLY; B present and
  * L absent, NOTHING if H = image base or the image base is UNKNOWN, else CONFLICT;
  * H = image base, NOTHING; H = local image, ADOPT_BASE; local image = image base, APPLY;
@@ -32,7 +33,7 @@ public final class FeedSyncDecision {
 
     public enum Image {
         NOTHING,     // no change
-        ADOPT_BASE,  // remote image equals local image: store the image base := H
+        ADOPT_BASE,  // remote image equals local image (or neither has one): store the image base := H
         APPLY,       // adopt remote image H locally, then store the image base := H
         CONFLICT,    // local image and remote image both differ from the base and each other
         AMBIGUOUS    // U4: several images are bound and no single one differs from the base; change nothing
@@ -121,7 +122,8 @@ public final class FeedSyncDecision {
             }
         }
         if (distinct.isEmpty()) {
-            return Image.NOTHING;
+            // U3 R = L with "no image" on both sides: store image base NONE (H = none).
+            return l != null && localImage == ImageState.NONE && baseImage.unknown ? Image.ADOPT_BASE : Image.NOTHING;
         }
         ImageState h = distinct.get(0);
         if (distinct.size() > 1) {

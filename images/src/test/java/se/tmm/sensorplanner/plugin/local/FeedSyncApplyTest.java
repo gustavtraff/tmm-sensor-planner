@@ -42,6 +42,20 @@ public class FeedSyncApplyTest {
         assertEquals(LocalV2.Presence.ACTIVE,state.presence);assertTrue(same(state.draft,m1));assertNull(state.draft.imageRef);assertEquals(1,state.draft.revision);
         FeedSyncState.Record rec=record();assertEquals(r1,rec.baseReceiptId);assertEquals(FeedSyncState.IMAGE_NONE,rec.imageKind);
     }
+    @Test public void plannedDeviceWithoutPhotoThenDeployerPhotoIsAppliedNotConflict()throws Exception {
+        // The planner created and published the device without a photo; this client already has it locally.
+        TmmDraft planned=new TmmDraft(m1.uid,m1.displayId,m1.type,m1.status,m1.owner,m1.createdAt,m1.createdAt,m1.deployedAt,"planned",m1.position,m1.bearingDeg,null,1);
+        local.save(local.load().storeId,LocalV2.State.neverSeen(m1.uid),planned);UUID r0=receive(planned);
+        byte[] draftsBefore=Files.readAllBytes(root.resolve("local-drafts-v1/drafts.bin"));
+        FeedSyncApply apply=executor();run(apply,list(r0),list());
+        assertArrayEquals("R = L changes nothing locally",draftsBefore,Files.readAllBytes(root.resolve("local-drafts-v1/drafts.bin")));
+        assertEquals(r0,record().baseReceiptId);assertEquals("No image on either side: base NONE",FeedSyncState.IMAGE_NONE,record().imageKind);
+        // The deployer publishes new metadata and a placement photo.
+        run(apply,list(r1),list(h1));
+        TmmDraft draft=local.load().state(m1.uid).draft;assertTrue(same(draft,m1));assertArrayEquals(png1,images.read(draft.imageRef));
+        assertEquals(r1,record().baseReceiptId);assertArrayEquals(h1.sha256(),record().imageDigest());
+        assertTrue(apply.conflicts().isEmpty());assertTrue(apply.unpublished().isEmpty());
+    }
     @Test public void addThenApplyImageEndToEndWithReadback()throws Exception {
         FeedSyncApply apply=executor();run(apply,list(r1),list(h1));
         TmmDraft draft=local.load().state(m1.uid).draft;assertTrue(same(draft,m1));

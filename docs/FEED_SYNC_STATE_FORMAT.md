@@ -192,7 +192,9 @@ so only one fetch and apply run at a time. Nothing in it sends anything (U8).
    clears the adoption. `attach` already deletes the old copy after a fresh unreferenced check;
    step 4 repeats that check for recovery. `LocalImages.Pending.reference()` was added so adoptNew can
    be written before the commit.
-6. **CONFLICT / AMBIGUOUS** change nothing locally. `FeedFollowUi.conflicts()` and `unpublished()`
+6. **Image ADOPT_BASE with no image** (no bound image, no local image, UNKNOWN base) is bookkeeping in
+   `nextSync` only: the image base becomes NONE (kind 1), so the deployer's first photo applies.
+7. **CONFLICT / AMBIGUOUS** change nothing locally. `FeedFollowUi.conflicts()` and `unpublished()`
    (L ≠ B against the stored base) are read-only, in-memory sets for the list UI.
 
 A stale local state, or any failure, skips that device for the round; the next fetch retries. No
