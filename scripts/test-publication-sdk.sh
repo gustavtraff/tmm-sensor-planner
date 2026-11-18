@@ -18,6 +18,7 @@ printf '%s\n' scripts/java/se/tmm/sensorplanner/tools/DataSyncMetadataProbe.java
     app/src/main/java/se/tmm/sensorplanner/plugin/publication/PublicationMapCopy.java \
     app/src/main/java/se/tmm/sensorplanner/plugin/publication/PublicationHostUpdate.java \
     app/src/main/java/se/tmm/sensorplanner/plugin/local/SavedDraftCopyUi.java \
+    app/src/main/java/se/tmm/sensorplanner/plugin/local/BearingMilsEdit.java \
     scripts/java/se/tmm/sensorplanner/plugin/publication/PublicationMapCopyCheck.java \
     scripts/java/se/tmm/sensorplanner/plugin/publication/PublicationHostUpdateCheck.java \
     app/src/main/java/se/tmm/sensorplanner/plugin/publication/PublicationEnvelopeFixtures.java \

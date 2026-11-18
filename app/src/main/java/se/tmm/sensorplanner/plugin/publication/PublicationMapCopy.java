@@ -22,10 +22,12 @@ public final class PublicationMapCopy {
         Object identity(String uid);
         boolean hasAttachments(String uid);
         String importEvent(CotEvent event);
-        String updateMetadata(String uid, Object expectedIdentity, CotEvent event);
+        /** G2: point first when moved, then payload and callsign, then refresh and persist. */
+        String update(String uid, Object expectedIdentity, CotEvent event, boolean movePoint);
     }
     private final Port port;
     private boolean serverTrial;
+    private boolean geometry;
     public PublicationMapCopy(MapView map, BooleanSupplier allowed) {
         this(new Port() {
             @Override public boolean available() { return allowed.getAsBoolean(); }
@@ -53,9 +55,15 @@ public final class PublicationMapCopy {
                 Bundle options = new Bundle(); options.putString("from", "se.tmm.sensorplanner.plugin.publicationlab");
                 return manager.importData(event, options).toString();
             }
-            @Override public String updateMetadata(String uid, Object expectedIdentity, CotEvent event) {
+            @Override public String update(String uid, Object expectedIdentity, CotEvent event, boolean movePoint) {
                 MapItem item = map.getMapItem(uid);
                 if (item != expectedIdentity || !(item instanceof com.atakmap.android.maps.Marker)) throw new IllegalStateException();
+                if (movePoint) {
+                    com.atakmap.android.maps.Marker marker = (com.atakmap.android.maps.Marker) item;
+                    com.atakmap.coremap.maps.coords.GeoPoint old = marker.getPoint();
+                    marker.setPoint(new com.atakmap.coremap.maps.coords.GeoPoint(event.getCotPoint().getLat(), event.getCotPoint().getLon(),
+                            old.getAltitude(), old.getAltitudeReference(), old.getCE(), old.getLE()));
+                }
                 // Change only our payload and reviewed callsign; retain the original MapItem and native bindings.
                 com.atakmap.android.cot.OpaqueHandler.getInstance().toMarkerMetadata(item, event,
                         event.getDetail().getFirstChildByName(0, PublicationCot.TAG));
@@ -63,17 +71,19 @@ public final class PublicationMapCopy {
                 com.atakmap.android.user.PlacePointTool.updateCallsign((com.atakmap.android.maps.Marker)item);
                 item.refresh(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
                 item.persist(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
-                return "METADATA_PERSIST_REQUESTED";
+                return movePoint ? "POINT_AND_METADATA_PERSIST_REQUESTED" : "METADATA_PERSIST_REQUESTED";
             }
         });
     }
     PublicationMapCopy(Port port) { this.port = port; }
 
     public PublicationMapCopy forServerTrial() { serverTrial = true; return this; }
+    /** G1-G5 position/bearing updates; the configured server trial contract keeps refusing them. */
+    public PublicationMapCopy withGeometry() { geometry = true; return this; }
 
     public se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi.PendingUpdate inspectUpdate(
             PublicationPreparationReview.Prepared prepared, String label) {
-        return new PublicationHostUpdate(port, prepared, label);
+        return new PublicationHostUpdate(port, prepared, label, geometry);
     }
 
     public String create(PublicationPreparationReview.Prepared prepared, String label) {

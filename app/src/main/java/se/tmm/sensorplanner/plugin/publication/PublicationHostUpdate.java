@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import se.tmm.sensorplanner.core.*;
 import se.tmm.sensorplanner.plugin.local.SavedDraftCopyUi;
 
-/** One-use metadata-only host update. It neither selects nor confirms a Data Sync destination. */
+/** One-use reviewed host update (metadata, and with G1-G5 position/bearing). It neither selects nor confirms a Data Sync destination. */
 @TargetApi(26)
 final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
     private final PublicationMapCopy.Port port;
@@ -19,16 +19,17 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
     private final ShareReview.Metadata previous;
     private final AtomicBoolean consumed = new AtomicBoolean();
 
-    PublicationHostUpdate(PublicationMapCopy.Port port, PublicationPreparationReview.Prepared prepared, String label) {
+    PublicationHostUpdate(PublicationMapCopy.Port port, PublicationPreparationReview.Prepared prepared, String label, boolean geometry) {
         this.port = port; this.prepared = prepared; this.label = label;
         String uid = prepared.metadata.uid.toString();
         if (!port.available() || port.count(uid) != 1 || port.hasAttachments(uid)) throw invalid();
         hostIdentity = port.identity(uid); if (hostIdentity == null) throw invalid();
         before = copy(port.export(uid)); previous = PublicationCot.read(before);
         ShareReview.Metadata next = prepared.metadata;
-        if (!previous.uid.equals(next.uid) || !previous.createdAt.equals(next.createdAt)
-                || previous.type != next.type || !same(previous.bearingDeg, next.bearingDeg)
-                || previous.position.latitude != next.position.latitude || previous.position.longitude != next.position.longitude) throw invalid();
+        // G1: type and creation time stay bound; position and bearing only where G1-G5 apply.
+        if (!previous.uid.equals(next.uid) || !previous.createdAt.equals(next.createdAt) || previous.type != next.type
+                || !geometry && (!same(previous.bearingDeg, next.bearingDeg) || previous.position.latitude != next.position.latitude
+                || previous.position.longitude != next.position.longitude)) throw invalid();
         contact(before.getDetail());
         PublicationCot.create(prepared, label, new CoordinatedTime());
         if (!port.available() || port.identity(uid) != hostIdentity) throw invalid();
@@ -51,7 +52,8 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
             if (stable(current, candidate)) return "Oförändrad kartkopia verifierad. Ingen SDK-uppdatering har begärts.";
             CotEvent expected = copy(candidate);
             attempted = true;
-            String result = port.updateMetadata(uid, hostIdentity, candidate);
+            boolean moved = !samePoint(current, candidate);
+            String result = port.update(uid, hostIdentity, candidate, moved);
             CotEvent after = port.export(uid);
             boolean verified = port.count(uid) == 1 && port.identity(uid) == hostIdentity && !port.hasAttachments(uid) && PublicationCot.matches(after, prepared)
                     && label.equals(contact(after.getDetail()).getAttribute("callsign")) && stable(expected, copy(after));
@@ -70,7 +72,10 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
         for (Map.Entry<String, String> field : PublicationCodec.fields(prepared).entrySet()) payload.setAttribute(field.getKey(), field.getValue());
         for (int i = 0; i < root.childCount(); i++) if (PublicationCot.TAG.equals(root.getChild(i).getElementName())) root.setChild(i, payload);
         contact(root).setAttribute("callsign", label);
-        CoordinatedTime now = new CoordinatedTime(); candidate.setTime(now); candidate.setStart(now); candidate.setStale(now.addHours(1));
+        CoordinatedTime now = new CoordinatedTime();
+        // Use the outgoing seven-decimal projection, never raw private precision; keep the host's other point fields.
+        CotPoint projected = PublicationCot.create(prepared, label, now).getCotPoint(), point = current.getCotPoint();
+        candidate.setPoint(new CotPoint(projected.getLat(), projected.getLon(), point.getHae(), point.getCe(), point.getLe())); candidate.setTime(now); candidate.setStart(now); candidate.setStale(now.addHours(1));
         if (!PublicationCot.matches(candidate, prepared)) throw invalid();
         return candidate;
     }
@@ -86,7 +91,7 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
 
     private static boolean same(Double a, Double b) { return a == null ? b == null : b != null && a.doubleValue() == b.doubleValue(); }
     private static String refused() { return "Inte uppdaterat: kartkopian eller åtkomsten har ändrats eller kunde inte verifieras. Granska på nytt."; }
-    private static IllegalArgumentException invalid() { return new IllegalArgumentException("Host update requires one valid matching metadata-only copy"); }
+    private static IllegalArgumentException invalid() { return new IllegalArgumentException("Host update requires one valid matching copy"); }
 
     static CotEvent copy(CotEvent event) {
         if (event == null || !event.isValid()) throw invalid();
@@ -114,9 +119,11 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
                 && Objects.equals(a.getAccess(), b.getAccess()) && Objects.equals(a.getOpex(), b.getOpex())
                 && Objects.equals(a.getQos(), b.getQos()) && Objects.equals(a.getCaveat(), b.getCaveat())
                 && Objects.equals(a.getReleasableTo(), b.getReleasableTo())
-                && a.getCotPoint().getLat() == b.getCotPoint().getLat() && a.getCotPoint().getLon() == b.getCotPoint().getLon()
-                && a.getCotPoint().getHae() == b.getCotPoint().getHae() && a.getCotPoint().getCe() == b.getCotPoint().getCe()
+                && samePoint(a, b) && a.getCotPoint().getHae() == b.getCotPoint().getHae() && a.getCotPoint().getCe() == b.getCotPoint().getCe()
                 && a.getCotPoint().getLe() == b.getCotPoint().getLe() && equal(a.getDetail(), b.getDetail());
+    }
+    private static boolean samePoint(CotEvent a, CotEvent b) {
+        return a.getCotPoint().getLat() == b.getCotPoint().getLat() && a.getCotPoint().getLon() == b.getCotPoint().getLon();
     }
     private static boolean equal(CotDetail a, CotDetail b) {
         if (!Objects.equals(a.getElementName(), b.getElementName()) || !Objects.equals(a.getInnerText(), b.getInnerText())
