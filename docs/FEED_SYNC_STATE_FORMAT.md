@@ -180,15 +180,14 @@ so only one fetch and apply run at a time. Nothing in it sends anything (U8).
    device has no image. After read-back the base becomes the remote receipt and the image base
    "none", which is what the local draft then holds (precondition 3).
 4. **Metadata APPLY** uses `LocalV2Store.save` bound to the exact expected state, with R's fields,
-   R's `updatedAt`, the local `createdAt`, imageRef and revision + 1. The import `useSelected` path
+   the later of R's and the local `updatedAt`, the local `createdAt`, imageRef and revision + 1. The import `useSelected` path
    cannot express this: it requires a separate local edit time, so L would never equal R and the
-   device would look unpublished after every update. A different `createdAt`, or an R `updatedAt`
-   earlier than the local one, cannot give L = R; the device is reported as a conflict instead.
+   device would look unpublished after every update. A different `createdAt` cannot give L = R; the device is reported as a conflict instead.
+   Sync equality ignores `updatedAt` (owner-approved 2026-11-18, #236), so an earlier R time is applied and the local time kept.
    After read-back the base becomes the remote receipt.
 5. **Image APPLY** reads the staged entry, checks its PNG digest against the association,
    `prepareReceived` (which reads the copy back), writes adoptNew/adoptOld, calls
-   `DraftAttachments.attach` with the local `updatedAt` (R's whenever L's metadata equals R; otherwise
-   unpublished local metadata is left alone), then sets the image base from the adopted bytes and
+   `DraftAttachments.attach` with the later of the local and R's `updatedAt`, then sets the image base from the adopted bytes and
    clears the adoption. `attach` already deletes the old copy after a fresh unreferenced check;
    step 4 repeats that check for recovery. `LocalImages.Pending.reference()` was added so adoptNew can
    be written before the commit.
