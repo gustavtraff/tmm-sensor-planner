@@ -32,17 +32,19 @@ public final class ConfiguredPublicationTrial {
     /** Requires exactly one enabled stream, connected and selected. Any failure ends consent for good. */
     public synchronized boolean allows(Iterable<Stream> streams, boolean supportedProvider) {
         if (selected == null) return false;
-        if (supportedProvider && streams != null && onlySelected(streams)) return true;
+        if (supportedProvider && onlyStream(streams, selected)) return true;
         selected = null;
         return false;
     }
 
-    private boolean onlySelected(Iterable<Stream> streams) {
+    /** The single-stream rule, also used by ordinary Publicera (M2): exactly one enabled stream, connected and equal to this one. */
+    public static boolean onlyStream(Iterable<Stream> streams, String connectString) {
+        if (streams == null || connectString == null) return false;
         int enabled = 0;
         for (Stream stream : streams) {
             if (stream == null) return false;
             if (!stream.enabled) continue;
-            if (!stream.connected || !selected.equals(stream.connectString)) return false;
+            if (!stream.connected || !connectString.equals(stream.connectString)) return false;
             enabled++;
         }
         return enabled == 1;
