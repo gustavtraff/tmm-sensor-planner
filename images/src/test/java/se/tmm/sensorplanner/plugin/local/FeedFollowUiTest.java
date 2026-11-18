@@ -32,7 +32,7 @@ public class FeedFollowUiTest {
     private static final String STREAM="lab.example.invalid:8089:ssl";
     private final MissionSnapshotInput.Feed feed=new MissionSnapshotInput.Feed("Synthetic follow","00000000-0000-4000-8000-000000000242","https://lab.example.invalid:8443");
     private final Deque<Runnable> worker=new ConcurrentLinkedDeque<>();
-    private final AtomicInteger lists=new AtomicInteger(),fetches=new AtomicInteger(),imageLists=new AtomicInteger(),downloads=new AtomicInteger(),notices=new AtomicInteger();
+    private final AtomicInteger lists=new AtomicInteger(),fetches=new AtomicInteger(),imageLists=new AtomicInteger(),downloads=new AtomicInteger(),notices=new AtomicInteger(),resolved=new AtomicInteger();
     private final List<List<UUID>> completedReceipts=new CopyOnWriteArrayList<>();private final List<List<ImageAssociationRegistry.Record>> completedRecords=new CopyOnWriteArrayList<>();
     private volatile boolean connected=true,configured=true,failing;private volatile CountDownLatch entered,release;
     private Activity activity;private FeedFollowUi ui;private LocalV2Store local;private Path privateRoot,syncDir;private byte[] container,localBefore;private TmmDraft incoming;
@@ -49,6 +49,8 @@ public class FeedFollowUiTest {
             public boolean configured(String stream){return configured&&STREAM.equals(stream);}
             public boolean defaultProvider(){return true;}
             public void notice(String text){notices.incrementAndGet();}
+            public void resolved(){resolved.incrementAndGet();}
+            public String summary(TmmDraft draft){return draft.displayId+"\nKommentar: "+draft.comment;}
             public void onFetchCompleted(List<UUID> receipts,List<ImageAssociationRegistry.Record> records){completedReceipts.add(receipts);completedRecords.add(records);}
             public FeedFollowUi.Transport connect(MissionEndpoint endpoint){assertEquals(STREAM,endpoint.stream);assertEquals(feed.service,endpoint.base);return new FeedFollowUi.Transport(){
                 public String description(){return feed.service;}
@@ -144,6 +146,38 @@ public class FeedFollowUiTest {
         assertEquals(before.keySet(),snapshotFiles().keySet());for(Map.Entry<Path,byte[]> e:snapshotFiles().entrySet())assertArrayEquals(e.getKey().toString(),before.get(e.getKey()),e.getValue());
         assertEquals(3,completedRecords.size());assertEquals(completedReceipts.get(0),completedReceipts.get(2));
         assertEquals(completedRecords.get(0).get(0).associationId,completedRecords.get(2).get(0).associationId);
+    }
+
+    @Test public void conflictIsMarkedShownSideBySideAndKeepMineLeavesItUnpublished()throws Exception {
+        following(Collections.emptyList());
+        TmmDraft base=new TmmDraft(incoming.uid,incoming.displayId,incoming.type,incoming.status,incoming.owner,incoming.createdAt,Instant.ofEpochSecond(5),null,"base text",incoming.position,incoming.bearingDeg,null,1);
+        UUID baseReceipt=new InboxStore(privateRoot.resolve("metadata-inbox-v1")).receiveBatch(feed.context(),Collections.singletonList(base),Collections.emptyMap(),Instant.EPOCH).get(0).id;
+        FeedSyncState sync=new FeedSyncState(syncDir);FeedSyncState.Snapshot empty=sync.read();
+        sync.replace(empty,new FeedSyncState.Snapshot(empty.syncId,empty.inboxId,true,empty.contextId,empty.feedName,empty.streamConnect,
+                Collections.singletonList(new FeedSyncState.Record(incoming.uid,baseReceipt,baseReceipt,FeedSyncState.IMAGE_NONE,null,null,null))));
+        TmmDraft mine=new TmmDraft(incoming.uid,incoming.displayId,incoming.type,incoming.status,incoming.owner,incoming.createdAt,Instant.ofEpochSecond(6),null,"local edit text",incoming.position,incoming.bearingDeg,null,1);
+        local.save(local.load().storeId,LocalV2.State.neverSeen(incoming.uid),mine);Map<Path,byte[]> before=localFiles();
+        ui.start();settle();
+        assertEquals("Konflikt",ui.marker(incoming.uid));assertEquals(Collections.singleton(incoming.uid),ui.conflicts());
+        ui.showConflict(incoming.uid);await("Konflikt");
+        String shown=texts(dialog().getWindow().getDecorView());assertTrue(shown,shown.contains("local edit text")&&shown.contains("remote"));
+        assertNotNull(dialog().getButton(AlertDialog.BUTTON_POSITIVE));assertEquals("Använd inkommande",dialog().getButton(AlertDialog.BUTTON_POSITIVE).getText().toString());
+        click(AlertDialog.BUTTON_NEGATIVE);drain();await("Klart");
+        assertEquals("Ej publicerad",ui.marker(incoming.uid));assertTrue(ui.conflicts().isEmpty());assertEquals(Collections.singleton(incoming.uid),ui.unpublished());
+        assertEquals(1,resolved.get());click(AlertDialog.BUTTON_POSITIVE);
+        ui.refresh();settle();assertNull(ui.conflicts().isEmpty()?null:"conflict");assertEquals("Ej publicerad",ui.marker(incoming.uid));
+        Map<Path,byte[]> after=localFiles();assertEquals(before.keySet(),after.keySet());for(Map.Entry<Path,byte[]> e:before.entrySet())assertArrayEquals(e.getKey().toString(),e.getValue(),after.get(e.getKey()));
+    }
+    private Map<Path,byte[]> localFiles()throws IOException {
+        Map<Path,byte[]> files=new TreeMap<>();
+        try(java.util.stream.Stream<Path> all=Files.walk(privateRoot.resolve("local-drafts-v1"))){for(Path p:(Iterable<Path>)all::iterator)if(Files.isRegularFile(p))files.put(p,Files.readAllBytes(p));}
+        return files;
+    }
+    private static String texts(android.view.View view){
+        StringBuilder out=new StringBuilder();
+        if(view instanceof android.widget.TextView)out.append(((android.widget.TextView)view).getText()).append('\n');
+        if(view instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)view;for(int n=0;n<g.getChildCount();n++)out.append(texts(g.getChildAt(n)));}
+        return out.toString();
     }
 
     private void following(List<FeedSyncState.Record> records)throws Exception {

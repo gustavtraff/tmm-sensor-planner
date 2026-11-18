@@ -169,6 +169,99 @@ public class FeedSyncApplyTest {
         assertEquals(1,pngs());
     }
 
+
+    // ---- #242 conflict resolution (Behåll min / Använd inkommande) ----
+
+    /** Local comment edit and a different remote edit on top of the base r1: a metadata conflict. */
+    private UUID metadataConflict()throws Exception {
+        run(executor(),list(r1),list(h1));edit("local edit");
+        return receive(changed(m1,"remote update",m1.updatedAt.plusSeconds(60)));
+    }
+    private void edit(String comment)throws Exception {
+        LocalV2.State s=local.load().state(m1.uid);
+        local.save(local.load().storeId,s,s.draft.edit(s.draft.displayId,s.draft.type,s.draft.status,s.draft.owner,s.draft.deployedAt,comment,
+                s.draft.position,s.draft.bearingDeg,s.draft.imageRef,s.draft.updatedAt.plusSeconds(5)));
+    }
+    private Map<Path,byte[]> localFiles()throws IOException {Map<Path,byte[]> m=files(root.resolve("local-drafts-v1"));m.putAll(files(root.resolve("local-images-v1")));return m;}
+
+    @Test public void keepMineChangesNothingLocallyThenShowsUnpublishedAndNoConflict()throws Exception {
+        UUID r2=metadataConflict();FeedSyncApply apply=executor();run(apply,list(r2),list(h1));
+        assertEquals(Collections.singleton(m1.uid),apply.conflicts());
+        FeedSyncApply.Conflict c=apply.conflict(m1.uid);assertNotNull(c);assertEquals("local edit",c.local.comment);assertEquals("remote update",c.remote.comment);
+        assertNotNull("Local image is shown",c.localImageRef);assertEquals(1,c.candidates.size());
+        Map<Path,byte[]> before=localFiles();
+        assertEquals(FeedSyncApply.Outcome.DONE,apply.resolve(c,FeedSyncApply.Resolution.KEEP_LOCAL,null));
+        assertSameFiles(before,localFiles());
+        FeedSyncState.Record rec=record();assertEquals(r2,rec.baseReceiptId);assertEquals(FeedSyncState.IMAGE_DIGEST,rec.imageKind);assertArrayEquals(h1.sha256(),rec.imageDigest());
+        assertTrue(apply.conflicts().isEmpty());assertEquals(Collections.singleton(m1.uid),apply.unpublished());
+        FeedSyncApply next=executor();run(next,list(r2),list(h1));
+        assertTrue(next.conflicts().isEmpty());assertEquals(Collections.singleton(m1.uid),next.unpublished());assertEquals(0,next.applied());assertSameFiles(before,localFiles());
+    }
+    @Test public void useIncomingAppliesMetadataAndPhotoThenTheNextFetchIsQuiet()throws Exception {
+        run(executor(),list(r1),list());   // device added without an image; base r1, image base none
+        edit("local edit");LocalImages.Pending mine=images.prepareReceived(stage.read(h2.stageLocalId).image);
+        new DraftAttachments(local,images).attach(local.load().select(m1.uid),mine,local.load().state(m1.uid).draft.updatedAt);
+        UUID r2=receive(changed(m1,"remote update",m1.updatedAt.plusSeconds(60)));
+        FeedSyncApply apply=executor();run(apply,list(r2),list(h1));
+        assertEquals(Collections.singleton(m1.uid),apply.conflicts());
+        FeedSyncApply.Conflict c=apply.conflict(m1.uid);assertEquals(1,c.candidates.size());assertArrayEquals(png1,apply.incomingImage(c.incoming()));
+        assertEquals(FeedSyncApply.Outcome.DONE,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));
+        TmmDraft draft=local.load().state(m1.uid).draft;assertEquals("remote update",draft.comment);assertArrayEquals(png1,images.read(draft.imageRef));
+        assertEquals(r2,record().baseReceiptId);assertArrayEquals(h1.sha256(),record().imageDigest());assertNull(record().adoptNew);
+        assertTrue(apply.conflicts().isEmpty());assertTrue(apply.unpublished().isEmpty());assertEquals("The replaced own photo is deleted",1,pngs());
+        Map<Path,byte[]> before=files(root);FeedSyncApply next=executor();run(next,list(r2),list(h1));
+        assertTrue(next.conflicts().isEmpty());assertTrue(next.unpublished().isEmpty());assertEquals(0,next.applied());assertSameFiles(before,files(root));
+    }
+    @Test public void aStaleViewIsRefusedAndChangesNothing()throws Exception {
+        UUID r2=metadataConflict();FeedSyncApply apply=executor();run(apply,list(r2),list(h1));
+        FeedSyncApply.Conflict c=apply.conflict(m1.uid);
+        edit("edited again after the view was opened");
+        Map<Path,byte[]> before=files(root);
+        assertEquals(FeedSyncApply.Outcome.STALE,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));
+        assertEquals(FeedSyncApply.Outcome.STALE,apply.resolve(c,FeedSyncApply.Resolution.KEEP_LOCAL,null));
+        assertSameFiles(before,files(root));
+        // A newer remote version arriving also makes the old view stale.
+        FeedSyncApply.Conflict fresh=apply.conflict(m1.uid);UUID r3=receive(changed(m1,"newer remote",m1.updatedAt.plusSeconds(90)));
+        run(apply,list(r3),list(h1));Map<Path,byte[]> mid=files(root);
+        assertEquals(FeedSyncApply.Outcome.STALE,apply.resolve(fresh,FeedSyncApply.Resolution.KEEP_LOCAL,null));assertSameFiles(mid,files(root));
+    }
+    @Test public void aDuplicatePressIsIdempotent()throws Exception {
+        UUID r2=metadataConflict();FeedSyncApply apply=executor();run(apply,list(r2),list(h1));
+        FeedSyncApply.Conflict c=apply.conflict(m1.uid);
+        assertEquals(FeedSyncApply.Outcome.DONE,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));Map<Path,byte[]> after=files(root);
+        assertEquals(FeedSyncApply.Outcome.STALE,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));
+        assertEquals(FeedSyncApply.Outcome.STALE,apply.resolve(c,FeedSyncApply.Resolution.KEEP_LOCAL,null));assertSameFiles(after,files(root));
+    }
+    @Test public void ambiguousPhotosAreListedAndOnlyAnExplicitPickIsApplied()throws Exception {
+        run(executor(),list(r1),list());   // device without an image
+        // Metadata changed remotely with both photos in the feed and neither bound to it: U4 AMBIGUOUS.
+        UUID r2=receive(changed(m1,"status only",m1.updatedAt.plusSeconds(60)));
+        FeedSyncApply apply=executor();run(apply,list(r2),list(h1,h2));
+        assertEquals(Collections.singleton(m1.uid),apply.conflicts());
+        FeedSyncApply.Conflict c=apply.conflict(m1.uid);assertTrue(c.ambiguous);assertEquals(2,c.candidates.size());
+        assertFalse(Arrays.equals(c.candidates.get(0).sha256(),c.candidates.get(1).sha256()));assertNull(c.incoming());
+        for(ImageAssociationRegistry.Record r:c.candidates)assertNotNull(apply.incomingImage(r));
+        Map<Path,byte[]> before=files(root);
+        assertEquals("No automatic pick",FeedSyncApply.Outcome.NOT_APPLIED,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));assertSameFiles(before,files(root));
+        ImageAssociationRegistry.Record pick=Arrays.equals(h2.sha256(),c.candidates.get(0).sha256())?c.candidates.get(0):c.candidates.get(1);
+        assertEquals(FeedSyncApply.Outcome.DONE,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,pick));
+        assertArrayEquals(png2,images.read(local.load().state(m1.uid).draft.imageRef));assertArrayEquals(h2.sha256(),record().imageDigest());
+        FeedSyncApply next=executor();run(next,list(r2),list(h1,h2));assertTrue(next.conflicts().isEmpty());assertTrue(next.unpublished().isEmpty());assertEquals(0,next.applied());
+    }
+    @Test public void keepMineWithAmbiguousPhotosMovesOnlyTheMetadataBase()throws Exception {
+        run(executor(),list(r1),list());UUID r2=receive(changed(m1,"status only",m1.updatedAt.plusSeconds(60)));
+        FeedSyncApply apply=executor();run(apply,list(r2),list(h1,h2));FeedSyncApply.Conflict c=apply.conflict(m1.uid);Map<Path,byte[]> before=localFiles();
+        assertEquals(FeedSyncApply.Outcome.DONE,apply.resolve(c,FeedSyncApply.Resolution.KEEP_LOCAL,null));
+        assertSameFiles(before,localFiles());assertEquals(FeedSyncState.IMAGE_NONE,record().imageKind);
+        assertEquals("The ambiguity is not resolved by keeping",Collections.singleton(m1.uid),apply.conflicts());
+    }
+    @Test public void anIncomingEditOlderThanTheLocalOneIsRefusedWithoutChanges()throws Exception {
+        run(executor(),list(r1),list(h1));edit("local edit");edit("local edit 2");
+        UUID r2=receive(changed(m1,"remote update",m1.updatedAt.plusSeconds(1)));   // earlier than the local edit time
+        FeedSyncApply apply=executor();run(apply,list(r2),list(h1));FeedSyncApply.Conflict c=apply.conflict(m1.uid);Map<Path,byte[]> before=files(root);
+        assertEquals(FeedSyncApply.Outcome.NOT_APPLIED,apply.resolve(c,FeedSyncApply.Resolution.USE_INCOMING,null));assertSameFiles(before,files(root));
+    }
+
     private FeedSyncApply executor(){return new FeedSyncApply(sync,inbox,stage,local,images);}
     private void run(FeedSyncApply apply,List<UUID> receipts,List<ImageAssociationRegistry.Record> records)throws Exception {apply.apply(sync.read(),receipts,records,()->true);}
     private ImageAssociationRegistry.Record intake(ReceivedImagePayload payload)throws Exception {
