@@ -11,6 +11,8 @@ single-recipient sharing from saved review; ordinary local operations do not sen
 Offline remains the default. The explicit, session-only
 [connected local trial](CONNECTED_LOCAL_TRIAL.md) permits synthetic-data planning
 after consent while disabling TMM lab sharing for that session; see ADR 0009.
+A followed feed (**Följ feed** on) also permits connected use after a restart
+without that dialog; see [ADR 0013](decisions/0013-followed-feed-connected-use.md).
 
 ## Behavior
 

@@ -1,12 +1,27 @@
 package se.tmm.sensorplanner.plugin.local;
 
-/** Explicit process-local consent; no persistence, network configuration or send capability. */
-public final class LocalTrialSession {
-    private volatile boolean connectedTrial;
+import java.nio.file.Path;
+import se.tmm.sensorplanner.core.FeedSyncState;
 
-    public boolean canUseLocal(boolean offline) { return offline || connectedTrial; }
+/**
+ * Process-local consent; no network configuration or send capability. ADR 0013: a readable feed sync
+ * state with following on also allows connected local use for this load, without the ADR 0009 dialog.
+ */
+public final class LocalTrialSession {
+    private volatile boolean connectedTrial, followedFeed;
+
+    public boolean canUseLocal(boolean offline) { return offline || connectedTrial || followedFeed; }
     public boolean canUseLab(boolean offline) { return offline && !connectedTrial; }
     public boolean isConnectedTrial() { return connectedTrial; }
+    public boolean isFollowedFeed() { return followedFeed; }
     public void startConnectedTrial() { connectedTrial = true; }
-    public void reset() { connectedTrial = false; }
+    /** Reads only; an absent, unreadable or not-following file leaves today's gate and is never reset. */
+    public boolean resumeFollowedFeed(Path syncDirectory) {
+        try {
+            FeedSyncState.Snapshot saved = new FeedSyncState(syncDirectory).read();
+            if (saved != null && saved.following) followedFeed = true;
+        } catch (Exception | OutOfMemoryError unreadable) { /* today's behaviour */ }
+        return followedFeed;
+    }
+    public void reset() { connectedTrial = false; followedFeed = false; }
 }
