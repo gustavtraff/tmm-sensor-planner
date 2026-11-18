@@ -28,7 +28,7 @@ Connected startup does not restore private markers until consent is given again.
 Saved drafts and images remain local and retain their existing format.
 From [ADR 0013](decisions/0013-followed-feed-connected-use.md), a client that follows a
 feed (**Följ feed** on, readable sync state) opens without this dialog after a restart.
-TMM lab tools keep this trial gate.
+TMM lab tools are then off for the whole session, also after going offline, as in this trial.
 
 From v28, optional [configured-source snapshot intake](CONFIGURED_SNAPSHOT_SOURCE.md)
 requires its own explicit source/port choice and selected-feed confirmation. Opening

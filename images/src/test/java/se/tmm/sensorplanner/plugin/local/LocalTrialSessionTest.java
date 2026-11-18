@@ -29,7 +29,7 @@ public class LocalTrialSessionTest {
         assertFalse(new LocalTrialSession().canUseLocal(false));
     }
 
-    @Test public void followedFeedAllowsConnectedLocalUseButNeverTheConnectedLab() throws Exception {
+    @Test public void followedFeedAllowsConnectedLocalUseAndBlocksTheLabForTheSession() throws Exception {
         LocalTrialSession session = new LocalTrialSession();
         Path dir = syncState(true);
         byte[] before = Files.readAllBytes(dir.resolve("sync.bin"));
@@ -38,10 +38,13 @@ public class LocalTrialSessionTest {
         assertFalse(session.isConnectedTrial());
         assertTrue(session.canUseLocal(false));
         assertFalse(session.canUseLab(false));
+        assertFalse("Lab stays off after returning offline, as under trial consent", session.canUseLab(true));
+        assertTrue(session.canUseLocal(true));
         assertArrayEquals("Reading never rewrites the file", before, Files.readAllBytes(dir.resolve("sync.bin")));
         session.reset();
         assertFalse(session.isFollowedFeed());
         assertFalse("Unload or restart must read the file again", session.canUseLocal(false));
+        assertTrue("A fresh offline session gets the lab again", session.canUseLab(true));
     }
 
     @Test public void missingStoppedOrCorruptStateKeepsTodaysGate() throws Exception {

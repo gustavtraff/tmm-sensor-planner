@@ -167,9 +167,9 @@ public final class SensorPlannerPlugin implements IPlugin {
             return;
         }
         MapView map = Objects.requireNonNull(MapView.getMapView());
-        // ADR 0013: an explicit Följ feed choice resumes connected use after a restart; lab gates are unchanged.
-        if (!localAllowed()) localSession.resumeFollowedFeed(new java.io.File(map.getContext().getNoBackupFilesDir(),
-                "se.tmm.sensorplanner/feed-sync-v1").toPath());
+        // ADR 0013: an explicit Följ feed choice resumes connected use after a restart; the lab stays off as under trial consent.
+        if (!localAllowed() && localSession.resumeFollowedFeed(new java.io.File(map.getContext().getNoBackupFilesDir(),
+                "se.tmm.sensorplanner/feed-sync-v1").toPath())) closeLabTools();
         if (!localAllowed()) {
             if (showList && trialConsent == null) {
                 trialConsent = new AlertDialog.Builder(map.getContext())
@@ -182,14 +182,7 @@ public final class SensorPlannerPlugin implements IPlugin {
                         .setPositiveButton("Starta lokalt test", (dialog, which) -> {
                             if (!started) return;
                             localSession.startConnectedTrial();
-                            if (planner != null) planner.disableSharing();
-                            if (labMenu != null) { labMenu.dismiss(); labMenu = null; }
-                            if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
-                            if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
-                            if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
-                            if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
-                            if (ingressProbe != null) { ingressProbe.close(); ingressProbe = null; }
-                            if (missionReadProbe != null) { missionReadProbe.close(); missionReadProbe = null; }
+                            closeLabTools();
                             try { openPlanner(true); }
                             catch (Exception unavailable) { hostUi.showToast("Det lokala testet kunde inte startas"); }
                         }).create();
@@ -201,6 +194,18 @@ public final class SensorPlannerPlugin implements IPlugin {
         if (planner == null) planner = new LocalPlanner(map, hostUi, this::localAllowed, this::labAllowed, imageCopyNotice);
         if (showList) planner.show();
         else planner.restore();
+    }
+
+    /** Connected local use (trial consent or a followed feed) ends every lab tool for the session. */
+    private void closeLabTools() {
+        if (planner != null) planner.disableSharing();
+        if (labMenu != null) { labMenu.dismiss(); labMenu = null; }
+        if (publicationProbe != null) { publicationProbe.close(); publicationProbe = null; }
+        if (envelopeProbe != null) { envelopeProbe.close(); envelopeProbe = null; }
+        if (cotProbe != null) { cotProbe.close(); cotProbe = null; }
+        if (shareReceiver != null) { shareReceiver.close(); shareReceiver = null; }
+        if (ingressProbe != null) { ingressProbe.close(); ingressProbe = null; }
+        if (missionReadProbe != null) { missionReadProbe.close(); missionReadProbe = null; }
     }
 
     private boolean localAllowed() {
