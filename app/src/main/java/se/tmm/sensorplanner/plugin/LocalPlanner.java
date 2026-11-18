@@ -41,6 +41,8 @@ import se.tmm.sensorplanner.plugin.local.SnapshotInboxUi;
 import se.tmm.sensorplanner.plugin.local.MissionSourceChoiceUi;
 import se.tmm.sensorplanner.plugin.local.ImageTrialUi;
 import se.tmm.sensorplanner.plugin.local.FeedFollowUi;
+import se.tmm.sensorplanner.plugin.local.FeedPhotoPublication;
+import se.tmm.sensorplanner.plugin.local.FeedPublishUi;
 import se.tmm.sensorplanner.core.LocalV2.Selection;
 import se.tmm.sensorplanner.plugin.publication.PublicationMapCopy;
 
@@ -70,6 +72,8 @@ final class LocalPlanner {
     private final ServerTrialConnectionWatch trialWatch;
     private volatile ImageTrialUi imageTrial;
     private volatile FeedFollowUi feedFollow;
+    private final FeedPhotoPublication photos;
+    private final FeedPublishUi publishUi;
     // Markers (Konflikt / Ej publicerad) as of the last reload, so a fetch that only changed them also reloads.
     private java.util.Map<UUID, String> marks = java.util.Collections.emptyMap();
     private SnapshotInboxUi inboxUi;
@@ -186,7 +190,26 @@ final class LocalPlanner {
             public String coordinates(Position position){return positionText(position);}
             public void changed(UUID uid){storageUi.load(false);}
         });
-        feedFollow=new FeedFollowUi(context,store,images,new java.io.File(context.getNoBackupFilesDir(),"se.tmm.sensorplanner").toPath(),worker,new FeedFollowUi.Host(){
+        java.nio.file.Path privateRoot=new java.io.File(context.getNoBackupFilesDir(),"se.tmm.sensorplanner").toPath();
+        photos=new FeedPhotoPublication(store,images,privateRoot,new FeedPhotoPublication.Host(){
+            public boolean available(){return !closed&&localAllowed.getAsBoolean();}public boolean defaultProvider(){return MissionSnapshotHttp.defaultProvider();}
+            public java.util.List<String> profiles(){return ConfiguredMissionSource.profiles();}
+            public FeedPhotoPublication.Transport connect(se.tmm.sensorplanner.plugin.ingress.MissionEndpoint endpoint){return new MissionSnapshotHttp(()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream),endpoint);}
+            public String creatorUid(){return MapView.getDeviceUid();}
+        });
+        // #243 ordinary Publicera: G1-G5 geometry on this path only; the #178 trial copy above keeps refusing it.
+        PublicationMapCopy publishCopy=new PublicationMapCopy(map,()->!closed&&localAllowed.getAsBoolean()&&MissionSnapshotHttp.defaultProvider()).withGeometry();
+        publishUi=new FeedPublishUi(context,store,images,privateRoot,worker,photos,new FeedPublishUi.Host(){
+            public void post(Runnable action){ui.queueEvent(action);}public boolean available(){return !closed&&localAllowed.getAsBoolean();}
+            public boolean singleStream(String stream){return MissionSnapshotHttp.defaultProvider()&&se.tmm.sensorplanner.core.ConfiguredPublicationTrial.onlyStream(ConfiguredMissionSource.trialStreams(),stream);}
+            public String summary(ShareReview.Metadata m){return metadataSummary(m);}public String coordinates(Position position){return positionText(position);}
+            public boolean hostCopyExists(UUID uid){return publishCopy.exists(uid.toString());}
+            public SavedDraftCopyUi.PendingUpdate inspectUpdate(PublicationPreparationReview.Prepared prepared,String label){return publishCopy.inspectUpdate(prepared,label);}
+            public String create(PublicationPreparationReview.Prepared prepared,String label){return publishCopy.create(prepared,label);}
+            public FeedFollowUi.Transport connect(se.tmm.sensorplanner.plugin.ingress.MissionEndpoint endpoint){return new MissionSnapshotHttp(()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream),endpoint);}
+            public void published(){if(closed)return;storageUi.load(false);FeedFollowUi current=feedFollow;if(current!=null)current.refresh();}
+        });
+        feedFollow=new FeedFollowUi(context,store,images,privateRoot,worker,new FeedFollowUi.Host(){
             public void post(Runnable action){ui.queueEvent(action);}public boolean available(){return !closed&&localAllowed.getAsBoolean();}
             public java.util.List<String> profiles(){return ConfiguredMissionSource.profiles();}
             public boolean configured(String stream){return ConfiguredMissionSource.configured(stream);}
@@ -196,6 +219,8 @@ final class LocalPlanner {
             // Automatic apply may have changed local devices; reload the layer as after other received changes.
             public void onFetchCompleted(java.util.List<UUID> receiptIds,java.util.List<se.tmm.sensorplanner.core.ImageAssociationRegistry.Record> records){
                 if(closed)return;java.util.Map<UUID,String> now=currentMarks();
+                // W4 input only: what the feed showed. Removal runs only inside an explicit Publicera.
+                worker.execute(()->{try{photos.fetchCompleted(records);}catch(Exception|OutOfMemoryError unreadable){}});
                 if(feedFollow.applied()>0||!now.equals(marks)){marks=now;storageUi.load(false);}
             }
             public String summary(TmmDraft draft){return draftSummary(draft);}
@@ -309,6 +334,7 @@ final class LocalPlanner {
         String warning = LocalStorageUi.warning(storage);
         if (!warning.isEmpty()) content.addView(label(warning));
         content.addView(label("Lokalt utkast · delas inte automatiskt"));
+        content.addView(button("Publicera", () -> { dismiss(); publishUi.show(draft.uid); }));
         String marker = feedFollow.marker(draft.uid);
         if (marker != null) {
             content.addView(label(marker + (feedFollow.conflicts().contains(draft.uid)
@@ -780,14 +806,16 @@ final class LocalPlanner {
         else ui.showToast("Serverprovet avslutades: exakt en ansluten och vald server krävs");
     }
 
-    private boolean isBusy() { return imageTrial!=null&&imageTrial.isBusy() || storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy() || feedFollow.isBusy(); }
+    private boolean isBusy() { return imageTrial!=null&&imageTrial.isBusy() || storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy() || feedFollow.isBusy() || publishUi.isBusy(); }
 
-    void cancelSharing() { feedFollow.close(); if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
+    void cancelSharing() { publishUi.close(); photos.close(); feedFollow.close(); if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); storageUi.stop(); sharing.stopSending(); preparation.stop(); copyUi.stop(); trialCopyUi.stop(); trialConsent.cancel(); serverTrial.end(); }
 
-    void disableSharing() { feedFollow.cancel(); if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
+    void disableSharing() { publishUi.cancel(); feedFollow.cancel(); if(imageTrial!=null)imageTrial.cancel();sourceChoice.cancel();inboxUi.cancel(); sharing.close(); preparation.cancel(); copyUi.cancel(); trialCopyUi.cancel(); trialConsent.cancel(); }
 
     void close() {
         closed = true;
+        publishUi.close();
+        photos.close();
         feedFollow.close();
         if(imageTrial!=null)imageTrial.close();
         if (positionPicker != null) { positionPicker.close(); positionPicker = null; }

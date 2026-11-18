@@ -49,9 +49,11 @@ public final class FeedPhotoPublication implements AutoCloseable {
     }
     /** One frozen preview for one followed feed; consumed by the first {@link #publish}. */
     public static final class Request implements AutoCloseable {
-        public final UUID deviceUid;public final ImagePublicationReview review;final FeedSyncState.Snapshot destination;
+        public final UUID deviceUid;public final ImagePublicationReview review;final FeedSyncState.Snapshot destination;final LocalV2.Selection selected;
         private boolean used;
-        private Request(UUID deviceUid,ImagePublicationReview review,FeedSyncState.Snapshot destination){this.deviceUid=deviceUid;this.review=review;this.destination=destination;}
+        private Request(UUID deviceUid,ImagePublicationReview review,FeedSyncState.Snapshot destination,LocalV2.Selection selected){
+            this.deviceUid=deviceUid;this.review=review;this.destination=destination;this.selected=selected;
+        }
         public String feedName(){return destination.feedName;}
         @Override public void close(){review.close();}
     }
@@ -83,7 +85,8 @@ public final class FeedPhotoPublication implements AutoCloseable {
     public Request review(UUID deviceUid)throws IOException {
         FeedSyncState.Snapshot s=sync.read();
         if(s==null||!s.following)throw new IOException("Not following a feed");
-        return new Request(deviceUid,new ImagePublicationReview(local.load().select(deviceUid),s.contextId,s.feedName,images),s);
+        LocalV2.Selection selected=local.load().select(deviceUid);
+        return new Request(deviceUid,new ImagePublicationReview(selected,s.contextId,s.feedName,images),s,selected);
     }
 
     /** W2/W3: one attempt. Never retried or resent; the caller shows the result and the user decides. */
@@ -125,11 +128,28 @@ public final class FeedPhotoPublication implements AutoCloseable {
                 return outcome(uid,f.kind,f.kind==WriteFailure.Kind.UNKNOWN?"":stored);
             }catch(RuntimeException unexpected){remember(uid,shown,hash,oldHash);return new Result(uid,Outcome.UNKNOWN,UNKNOWN_TEXT);}
             remember(uid,shown,hash,oldHash);
-            return new Result(uid,Outcome.SUCCEEDED,"Bilden är uppladdad och kopplad till "+shown.feedName+". Andra klienter får den vid nästa hämtning.");
+            return new Result(uid,Outcome.SUCCEEDED,"Bilden är uppladdad och kopplad till "+shown.feedName+". Andra klienter får den vid nästa hämtning."
+                    +(adoptSent(request,bytes)?"":" Den lokala bilden kunde inte ersättas med den publicerade kopian; nästa hämtning kan visa Konflikt."));
         }finally{
             current=null;
             if(file!=null)try{Files.deleteIfExists(file);}catch(IOException|RuntimeException kept){}
         }
+    }
+
+    /**
+     * The export re-encodes the PNG (same pixels, no ancillary chunks), so the feed's photo differs byte-wise from the
+     * local one and the next fetch would see a conflict. The local photo becomes exactly the published copy instead,
+     * with the reviewed edit time kept, so U3 then finds R = L. Refused when the device changed since the review.
+     */
+    private boolean adoptSent(Request request,byte[] container){
+        try{
+            if(!request.selected.isCurrent(local.load()))return false;
+            ReceivedImagePayload sent=ImageContainerCodec.read(new ByteArrayInputStream(container));
+            try(LocalImages.Pending pending=images.prepareReceived(sent.image)){
+                new DraftAttachments(local,images).attach(request.selected,pending,request.selected.draft.updatedAt);
+            }
+            return true;
+        }catch(Exception|OutOfMemoryError notReplaced){return false;}
     }
 
     /** W4 input: the registry records present in a completed fetch ({@link FeedFollowUi.Host#onFetchCompleted}). */

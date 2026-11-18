@@ -71,6 +71,8 @@ public final class IngressSdkCheck {
         org.apache.http.client.methods.HttpDelete.class.getConstructor(java.net.URI.class);
         check(org.apache.http.client.methods.HttpEntityEnclosingRequestBase.class,"setEntity",void.class,org.apache.http.HttpEntity.class);
         check(TakHttpResponse.class, "getContentType", String.class);
+        // #243 Publicera passes ATAK's device UID as the photo writes' creatorUid.
+        if (!Modifier.isStatic(check(com.atakmap.android.maps.MapView.class, "getDeviceUid", String.class).getModifiers())) throw new AssertionError("MapView.getDeviceUid is not static");
         check(TakHttpResponse.class, "getHeaderString", String.class, String.class);
         for (Class<?> request : new Class<?>[]{org.apache.http.client.methods.HttpPost.class,org.apache.http.client.methods.HttpPut.class,
                 org.apache.http.client.methods.HttpDelete.class}) {
