@@ -2,7 +2,7 @@
 
 **Status: U1–U8 explicitly approved by the owner on 2026-11-18** in the conversation,
 against this document at commit `f79a0cc` (PR #237). The approval came from that
-decision, not from the merge. P1 is still open.
+decision, not from the merge. P1 direction A was chosen the same day.
 The product direction in [the image contract](IMAGE_SHARING_CONTRACT.md#confirmed-product-direction--2026-11-18)
 is owner-confirmed. This document proposes how to deliver it. The new private
 sync-state file (U6) needs its own exact-format review before its writer.
@@ -160,13 +160,13 @@ update has nothing to publish for that device, because L = B.
 **P1 — image publication route.** Users need an explicit "publish device and photo"
 action that does not require the candidate 30 Downloads and native File Select steps.
 #178 currently forbids REST writes, and the SDK offers no callable Data Sync upload.
-The choices are a Mission API upload, which needs its own outbound proposal and
-approval, or keeping the native File Select step behind a shorter guided flow. The
-owner decides. Automatic receiving does not depend on it.
+The owner chose the Mission API upload on 2026-11-18. Its route proposal, with
+decisions W1–W5, is [the image publication route proposal](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md).
+Automatic receiving does not depend on it.
 
 ## Delivery in bounded PRs after approval
 
-1. Sync-state v1 exact-format proposal and fixtures (gated format).
+1. [Sync-state v1 exact format](FEED_SYNC_STATE_FORMAT.md) and fixtures (gated format, S1–S4).
 2. Core: the U3/U4 decision function and the sync-state codec, with domain tests in
    `scripts/test.sh`. No Android code.
 3. App: follow-feed UI, U1 scheduler, U5 apply path, conflict marker and resolution.
