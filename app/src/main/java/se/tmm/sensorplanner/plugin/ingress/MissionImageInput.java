@@ -52,6 +52,16 @@ public final class MissionImageInput {
         }catch(Exception invalid){throw new IOException("Selected feed image resources could not be verified");}
         catch(OutOfMemoryError exhausted){throw new se.tmm.sensorplanner.images.ImagePreparationException(se.tmm.sensorplanner.images.ImagePreparationException.Reason.LOW_MEMORY);}
     }
+    /** #243: the {@code Hash} of one bounded {@code /sync/upload} JSON reply; comparing it with the sent bytes is the caller's job. */
+    public static String uploadedHash(InputStream input,BooleanSupplier active)throws IOException {
+        try {
+            String text=MissionReadInput.readText(input,active,16384);MissionReadInput.boundStructure(text);
+            JSONTokener parser=new JSONTokener(text);Object root=parser.nextValue();
+            if(!(root instanceof JSONObject)||parser.nextClean()!=0)throw new IOException();
+            String hash=string((JSONObject)root,"Hash");if(!hash.matches("[0-9a-f]{64}"))throw new IOException();
+            return hash;
+        }catch(Exception invalid){throw new IOException("Upload reply could not be verified");}
+    }
     private static String string(JSONObject item,String key)throws Exception {
         Object value=item.get(key);if(!(value instanceof String))throw new IOException();return (String)value;
     }

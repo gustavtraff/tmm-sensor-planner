@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Pure U3/U4 decision for one device UUID (docs/AUTOMATIC_FEED_SYNC_PROPOSAL.md).
- * Metadata equality is {@link ImportReview#sameMetadata}; time and arrival order never decide.
+ * Metadata equality is {@link #sameContent}: {@link ImportReview#sameMetadata} without updatedAt
+ * (owner-approved 2026-11-18, #236); arrival order never decides.
  *
  * <p>Metadata precedence, first match wins: R absent, NOTHING; B and L both absent, ADD;
  * B present and L absent (deleted locally), NOTHING if R = B else CONFLICT; R = B, NOTHING;
@@ -142,20 +144,34 @@ public final class FeedSyncDecision {
         return distinct;
     }
 
+    /** Sync equality: every field of {@link ImportReview#sameMetadata} except updatedAt. */
+    public static boolean sameContent(TmmDraft a, TmmDraft b) {
+        return a.displayId.equals(b.displayId)
+                && a.type == b.type && a.status == b.status
+                && a.owner.equals(b.owner)
+                && a.createdAt.equals(b.createdAt)
+                && Objects.equals(a.deployedAt, b.deployedAt)
+                && a.comment.equals(b.comment)
+                && a.position.latitude == b.position.latitude
+                && a.position.longitude == b.position.longitude
+                && (a.bearingDeg == null ? b.bearingDeg == null
+                    : b.bearingDeg != null && a.bearingDeg.doubleValue() == b.bearingDeg.doubleValue());
+    }
+
     private static Metadata metadata(TmmDraft r, TmmDraft b, TmmDraft l) {
         if (b == null && l == null) {
             return Metadata.ADD;
         }
         if (l == null) {
-            return ImportReview.sameMetadata(b, r) ? Metadata.NOTHING : Metadata.CONFLICT;
+            return sameContent(b, r) ? Metadata.NOTHING : Metadata.CONFLICT;
         }
-        if (b != null && ImportReview.sameMetadata(b, r)) {
+        if (b != null && sameContent(b, r)) {
             return Metadata.NOTHING;
         }
-        if (ImportReview.sameMetadata(l, r)) {
+        if (sameContent(l, r)) {
             return Metadata.ADOPT_BASE;
         }
-        return b != null && ImportReview.sameMetadata(b, l) ? Metadata.APPLY : Metadata.CONFLICT;
+        return b != null && sameContent(b, l) ? Metadata.APPLY : Metadata.CONFLICT;
     }
 
     private static Image image(ImageState h, TmmDraft b, TmmDraft l,

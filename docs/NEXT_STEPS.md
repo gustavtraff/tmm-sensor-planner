@@ -12,39 +12,39 @@ top of [the image contract](IMAGE_SHARING_CONTRACT.md).
 
 ## Where the implementation is
 
-- **Candidate 30** (`0.1.0-shared-image-view-trial.1`, signed) has been received.
-  Its version, signature and static packaging checks pass, and its signer matches
-  v29. It has not been installed or tested at runtime. It provides manual frozen-file
-  export through native Data Sync, explicit selected-feed download and a separate
-  read-only received-image viewer ([trial contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md),
-  [UI](SHARED_IMAGE_TRIAL_UI.md)). It does not fetch automatically and does not make
-  a received image current. It is a bounded trial, not the finished workflow.
-- Metadata round trip, configured TLS Fetch ([source](CONFIGURED_SNAPSHOT_SOURCE.md)),
-  inbox, local v2 transactions, image stage, association registry and byte-identical
-  received copies are all in place. Automatic sync reuses them.
-- The real server is TAK Server 5.6. All Mission API evidence so far is from the 5.8
-  lab.
+- **Automatic receiving is built (#236, #242).** On main: **Följ feed**, GET-only
+  fetching every 60 s and on reconnect, automatic application of conflict-free
+  metadata and photos, base-based conflict detection, crash recovery for photo
+  replacement, and resuming after restart ([ADR 0013](decisions/0013-followed-feed-connected-use.md)).
+  Decisions: U1–U8 with U4 amended twice, S1–S4 and W1–W5, all approved 2026-11-18. See
+  [the proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) and [sync-state v1](FEED_SYNC_STATE_FORMAT.md).
+- **Photo upload is verified in the lab only (#241, closed).** Upload, association and
+  removal work on TAK Server 5.8 with a token-less request on an open feed whose default
+  role is Subscriber. That matches the owner's feed.
+- **Candidate 30** (signed, not runtime-tested) is the bounded viewing trial
+  ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)), not the finished workflow.
+- Nothing above has run on ATAK, a phone or TAK Server 5.6.
 
-## Next steps
+## Plan and owners
 
-1. **#236:** U1–U8 in [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md)
-   and S1–S4 in [the sync-state v1 format](FEED_SYNC_STATE_FORMAT.md) were approved by
-   the owner on 2026-11-18. Next: core sync-state codec and U3/U4 decision function.
-2. **P1:** the owner chose direct upload (direction A) and approved W1–W5 in
-   [the image publication route proposal](IMAGE_PUBLICATION_ROUTE_PROPOSAL.md). Next:
-   W5 lab check of upload, association, removal and permissions, on 5.6 if possible.
-3. Optionally run the candidate 30 two-client lab and the authorized 5.6 trial (#200,
-   #222) to check the GET routes on 5.6. This is useful evidence for #236, not the
-   product.
-4. After approval: sync-state v1 exact-format proposal, then a core decision function
-   with tests, then the app scheduler, apply and conflict UI, then a signed candidate on
-   two clients and the authorized 5.6 target. Write the user guide for that online
-   workflow, not for the trial steps.
+| Step | Work | Who | Depends on |
+|---|---|---|---|
+| A1 | #242: **Konflikt** and **Ej publicerad** markers, **Behåll min** / **Använd inkommande** | Sonnet agent, Opus review | — |
+| A2 | #243: photo upload, association and W4 removal as a non-UI service with fake-transport tests | Opus agent | — |
+| A3 | #251: proposal for the metadata route of ordinary **Publicera** (P2) | Opus agent, then owner decision | — |
+| B1 | #243: **Publicera** UI joining metadata (A3 decision) and photo (A2) | Opus agent | A1, A2, A3 |
+| B2 | #252: version bump and SDK-host two-client lab acceptance on 5.8 | Opus agent | B1 |
+| B3 | #252: signing handoff and signature check | Owner signs, Opus verifies | B2 |
+| B4 | #252: step-by-step owner protocol for the 5.6 two-phone trial | Sonnet agent, Opus review | B1 |
+| B5 | #253: Swedish user guide for the online workflow | Sonnet agent | B1 |
+| C1 | #252: two-phone trial on the real 5.6 server, then go/no-go | Owner | B3, B4 |
+
+Gated merges need explicit owner approval: A2 and B1 (outbound transport) and B3
+(signing). A1, A3, B2, B4 and B5 may be merged once checks are green.
 
 Related tracking: #26 parent for images, #25 Data Sync route, #171 selected-feed Fetch,
-#178 configured publication (partial signed v29 controls; full matrix open).
-G1–G5 for [#189 geometry](SHARED_GEOMETRY_UPDATE.md) are approved; its lab measurements
-can continue in parallel.
+#178 configured publication. G1–G5 for [#189 geometry](SHARED_GEOMETRY_UPDATE.md)
+remain approved and independent.
 
 ## Maintenance and acceptance
 
