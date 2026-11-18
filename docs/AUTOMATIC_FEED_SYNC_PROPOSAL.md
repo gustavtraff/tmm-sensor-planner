@@ -223,5 +223,6 @@ Each attempt uses only the existing GETs: feed list, metadata snapshot into the 
 (as **Hämta till inkorgen**), image resource list, and the selected-feed image read
 and intake for each `.tmmi` whose hash is not already referenced by the registry.
 That hash is the SHA-256 of the staged entry's container v1 bytes, so a staged image
-is never downloaded again. The sync-state records are not written yet. The hook
-`FeedFollowUi.Host.onFetchCompleted(receiptIds, records)` is a no-op for the apply slice.
+is never downloaded again. After each successful fetch, `FeedSyncApply` applies the plan
+locally (U3–U5, see [the sync-state format](FEED_SYNC_STATE_FORMAT.md#executor--2026-11-18)), and
+`FeedFollowUi.Host.onFetchCompleted(receiptIds, records)` lets the planner reload its layer.

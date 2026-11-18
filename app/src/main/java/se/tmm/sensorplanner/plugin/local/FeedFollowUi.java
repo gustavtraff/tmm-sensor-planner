@@ -15,6 +15,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import se.tmm.sensorplanner.core.*;
+import se.tmm.sensorplanner.images.LocalImages;
 import se.tmm.sensorplanner.plugin.images.*;
 import se.tmm.sensorplanner.plugin.ingress.*;
 import se.tmm.sensorplanner.plugin.ingress.MissionImageInput.Resource;
@@ -22,8 +23,9 @@ import se.tmm.sensorplanner.plugin.ingress.MissionSnapshotInput.Feed;
 
 /**
  * #236 U1/U2/U7/U8: a stored, explicit feed choice and a GET-only fetch timer while the plugin is loaded.
- * Each fetch retains metadata in the inbox and verified images in the stage/registry. No local apply,
- * image adoption, publication, upload, subscription or receipt.
+ * Each fetch retains metadata in the inbox and verified images in the stage/registry, then
+ * {@link FeedSyncApply} applies conflict-free updates locally (U3–U5). No publication, upload,
+ * subscription or receipt.
  */
 @TargetApi(26)
 public final class FeedFollowUi {
@@ -43,13 +45,13 @@ public final class FeedFollowUi {
         boolean defaultProvider();
         Transport connect(MissionEndpoint endpoint);
         void notice(String text);
-        /** Hook for the later apply slice: inbox receipts and registry records present in one successful fetch. */
+        /** After a successful fetch and its local apply: inbox receipts and registry records present in that fetch. */
         default void onFetchCompleted(List<UUID> receiptIds,List<ImageAssociationRegistry.Record> records){}
     }
     private interface Network<T>{T run(MissionReadAttempt attempt)throws Exception;}
     static final long INTERVAL=60_000,MAX_INTERVAL=300_000;
     private final Context context;private final Host host;private final Executor worker;private final LocalV2Store local;
-    private final InboxStore inbox;private final ImageAssociationRegistry registry;private final ImageStageStore stage;private final FeedSyncState sync;
+    private final InboxStore inbox;private final ImageAssociationRegistry registry;private final ImageStageStore stage;private final FeedSyncState sync;private final FeedSyncApply apply;
     private final Path inboxFile,registryFile,stageRoot;
     private final Handler handler=new Handler(Looper.getMainLooper());
     private final ExecutorService network=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"TMM-feed-follow");t.setDaemon(true);return t;});
@@ -62,11 +64,11 @@ public final class FeedFollowUi {
     private volatile FeedSyncState.Snapshot state;private volatile String broken;
     private long delay=INTERVAL;private String paused,status="Ingen hämtning ännu.";private AlertDialog dialog;
 
-    public FeedFollowUi(Context context,LocalV2Store local,Path privateRoot,Executor worker,Host host){
+    public FeedFollowUi(Context context,LocalV2Store local,LocalImages images,Path privateRoot,Executor worker,Host host){
         this.context=context;this.local=local;this.worker=worker;this.host=host;
         inboxFile=privateRoot.resolve("metadata-inbox-v1/inbox.bin");registryFile=privateRoot.resolve("received-image-association-v1/associations.bin");stageRoot=privateRoot.resolve("received-image-stage-v1");
         inbox=new InboxStore(inboxFile.getParent());registry=new ImageAssociationRegistry(registryFile.getParent());stage=new ImageStageStore(stageRoot);
-        sync=new FeedSyncState(privateRoot.resolve("feed-sync-v1"));
+        sync=new FeedSyncState(privateRoot.resolve("feed-sync-v1"));apply=new FeedSyncApply(sync,inbox,stage,local,images);
         sourceChoice=new MissionSourceChoiceUi(context,new MissionSourceChoiceUi.Host(){
             public boolean available(){return !closed&&host.available();}public List<String> profiles(){return host.profiles();}
             public void selected(MissionEndpoint endpoint){listFeeds(endpoint);}
@@ -79,12 +81,19 @@ public final class FeedFollowUi {
         worker.execute(()->{
             FeedSyncState.Snapshot read=null;String error=null;
             try{read=sync.read();}catch(Exception unreadable){error="Följningsfilen kunde inte läsas. Följningen är stoppad; filen ändras eller återställs inte automatiskt.";}
+            // U5: resolve an unconfirmed image adoption before any fetch; a failure is retried before the next plan.
+            if(read!=null)try{FeedSyncState.Snapshot recovered=apply.recover();if(recovered!=null)read=recovered;}catch(Exception|OutOfMemoryError retry){}
             FeedSyncState.Snapshot value=read;String failure=error;
             host.post(()->{if(closed)return;state=value;broken=failure;loaded=true;if(failure!=null)status=failure;trigger();});
         });
     }
     public boolean isBusy(){return busy||dialog!=null&&dialog.isShowing()||sourceChoice.isBusy();}
     public boolean isFetching(){return running;}
+    /** Read-only for the list: devices in conflict, and followed devices with unpublished local changes (L ≠ B). */
+    public Set<UUID> conflicts(){return apply.conflicts();}
+    public Set<UUID> unpublished(){return apply.unpublished();}
+    /** Devices changed locally by the latest apply. */
+    public int applied(){return apply.applied();}
     public String label(){
         FeedSyncState.Snapshot s=state;
         if(broken!=null)return "Följ feed · stoppad";if(s==null)return "Följ feed";if(!s.following)return "Följ feed · avstängd";
@@ -160,8 +169,11 @@ public final class FeedFollowUi {
                 ReceivedImagePayload payload=read(true,ok,a->transport.image(target,resource,a));
                 records.add(onWorker(ok,()->new ReceivedImageIntake(inbox,registry,stage,local).receive(s.contextId,payload,Instant.now(),ok)));
             }
-            host.post(()->finished(token,receipts,records,false));
-        }catch(Exception|OutOfMemoryError failed){host.post(()->finished(token,null,null,true));}
+            FeedSyncState.Snapshot applied;
+            try{applied=onWorker(ok,()->apply.apply(s,receipts,records,ok));}catch(Exception|OutOfMemoryError notApplied){applied=null;}
+            FeedSyncState.Snapshot written=applied;
+            host.post(()->finished(token,receipts,records,written,false));
+        }catch(Exception|OutOfMemoryError failed){host.post(()->finished(token,null,null,null,true));}
     }
     /** Registry-referenced stage entries by the SHA-256 of their container v1 bytes, which is the feed resource hash. */
     private Map<String,List<ImageAssociationRegistry.Record>> staged(UUID inboxId)throws IOException {
@@ -191,11 +203,14 @@ public final class FeedFollowUi {
         try{return task.get();}catch(ExecutionException failed){throw failed.getCause() instanceof Exception?(Exception)failed.getCause():failed;}
     }
     private static void require(BooleanSupplier ok)throws IOException {if(Thread.currentThread().isInterrupted()||!ok.getAsBoolean())throw new IOException("Feed fetch canceled");}
-    private void finished(long token,List<UUID> receipts,List<ImageAssociationRegistry.Record> records,boolean failed){
+    private void finished(long token,List<UUID> receipts,List<ImageAssociationRegistry.Record> records,FeedSyncState.Snapshot written,boolean failed){
         if(closed||generation.get()!=token)return;
         running=false;pending=null;
         if(!failed){
-            delay=INTERVAL;paused=null;status="Senaste hämtning lyckades: "+receipts.size()+" metadataposter, "+records.size()+" bilder. Inget har ändrats lokalt.";
+            delay=INTERVAL;paused=null;if(written!=null)state=written;
+            status="Senaste hämtning lyckades: "+receipts.size()+" metadataposter, "+records.size()+" bilder. "
+                    +(written==null?"Lokala uppdateringar kunde inte tillämpas; nytt försök vid nästa hämtning."
+                    :apply.applied()+" enheter uppdaterade lokalt, "+apply.conflicts().size()+" konflikter (din version behålls).");
             host.onFetchCompleted(Collections.unmodifiableList(receipts),Collections.unmodifiableList(records));
         }else{
             String reason=following()?pauseReason():null;
@@ -213,7 +228,7 @@ public final class FeedFollowUi {
         if(s==null){sourceChoice.show();return;}
         String text="Feed: "+s.feedName+"\nKälla: "+s.contextId.substring("mission-api-v1|".length())+"\nProfil: "+s.streamConnect+"\n\n"
                 +(s.following?status:"Följningen är avstängd. Mottagen historik finns kvar.")
-                +"\n\nEndast läsning (GET). Inget publiceras, laddas upp eller kvitteras. Mottaget sparas i inkorgen och bildhistoriken; lokala enheter ändras inte i denna version.";
+                +"\n\nEndast läsning (GET). Inget publiceras, laddas upp eller kvitteras. Mottaget sparas i inkorgen och bildhistoriken. Konfliktfria uppdateringar tillämpas på lokala enheter och bilder; vid konflikt behålls din version.";
         AlertDialog.Builder b=new AlertDialog.Builder(context).setTitle(s.following?"Följer feed":"Följning avstängd").setMessage(text)
                 .setNegativeButton("Stäng",(d,w)->{if(dialog==d)dismiss();});
         if(s.following)b.setPositiveButton("Uppdatera nu",(d,w)->{if(dialog==d){dismiss();refresh();}}).setNeutralButton("Sluta följa",(d,w)->{if(dialog==d)setFollowing(false);});
@@ -261,7 +276,7 @@ public final class FeedFollowUi {
             replace(new AlertDialog.Builder(context).setTitle("Följ feed?")
                     .setMessage("Källa: "+feed.service+"\nProfil: "+endpoint.stream+"\nFeed: "+feed.name+"\nGUID: "+feed.guid
                             +"\n\nValet sparas och återupptas efter omstart. Hämtning sker vid start, vid anslutning, var 60:e sekund och vid Uppdatera nu. "
-                            +"Endast läsning; inget publiceras, laddas upp eller kvitteras. Inga nycklar eller lösenord sparas. Lokala enheter och bilder ändras inte i denna version.")
+                            +"Endast läsning; inget publiceras, laddas upp eller kvitteras. Inga nycklar eller lösenord sparas. Konfliktfria uppdateringar tillämpas på lokala enheter och bilder; vid konflikt behålls din version.")
                     .setNegativeButton("Avbryt",(x,w)->{if(dialog==x)cancel();})
                     .setPositiveButton("Följ feed",(x,w)->{if(dialog==x&&ok.getAsBoolean())ensureHistory(endpoint,feed,ok);}).create());
         }).setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).create());

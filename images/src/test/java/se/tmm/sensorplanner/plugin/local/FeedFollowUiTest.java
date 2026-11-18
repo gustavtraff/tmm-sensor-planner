@@ -43,7 +43,7 @@ public class FeedFollowUiTest {
         incoming=new TmmDraft(new UUID(0,242),"PIR SYNTHETIC",DeviceType.PIR,DeviceStatus.PLANNED,"ROLE",Instant.EPOCH,Instant.ofEpochSecond(10),null,"remote",new Position(0,1),45.0,null,1);
         local=new LocalV2Store(privateRoot.resolve("local-drafts-v1"));local.initializeNew();localBefore=Files.readAllBytes(privateRoot.resolve("local-drafts-v1/drafts.bin"));
         activity=Robolectric.buildActivity(Activity.class).setup().get();Handler handler=new Handler(Looper.getMainLooper());
-        ui=new FeedFollowUi(activity,local,privateRoot,worker::add,new FeedFollowUi.Host(){
+        ui=new FeedFollowUi(activity,local,new se.tmm.sensorplanner.images.LocalImages(privateRoot.resolve("local-images-v1")),privateRoot,worker::add,new FeedFollowUi.Host(){
             public void post(Runnable r){handler.post(r);}public boolean available(){return true;}
             public List<String> profiles(){return connected?Collections.singletonList(STREAM):Collections.emptyList();}
             public boolean configured(String stream){return configured&&STREAM.equals(stream);}
@@ -76,12 +76,15 @@ public class FeedFollowUiTest {
         await("Starta mottagen bildhistorik?");assertFalse("No silent history initialization",Files.exists(privateRoot.resolve("metadata-inbox-v1/inbox.bin")));
         click(AlertDialog.BUTTON_POSITIVE);await("Följer feed");settle();
         FeedSyncState.Snapshot saved=new FeedSyncState(syncDir).read();
-        assertTrue(saved.following);assertEquals(feed.context(),saved.contextId);assertEquals(feed.name,saved.feedName);assertEquals(STREAM,saved.streamConnect);assertTrue(saved.records.isEmpty());
+        assertTrue(saved.following);assertEquals(feed.context(),saved.contextId);assertEquals(feed.name,saved.feedName);assertEquals(STREAM,saved.streamConnect);assertEquals(1,saved.records.size());
         assertEquals(new InboxStore(privateRoot.resolve("metadata-inbox-v1")).load().inboxId,saved.inboxId);
         // Exactly the format's fields: nothing else, such as a credential, is in the file.
         Path copy=temp.newFolder().toPath();new FeedSyncState(copy).create(saved);assertArrayEquals(Files.readAllBytes(copy.resolve("sync.bin")),Files.readAllBytes(syncDir.resolve("sync.bin")));
         assertEquals(1,downloads.get());assertEquals(1,completedReceipts.size());assertEquals(1,completedReceipts.get(0).size());assertEquals(1,completedRecords.get(0).size());
-        assertArrayEquals(localBefore,Files.readAllBytes(privateRoot.resolve("local-drafts-v1/drafts.bin")));
+        // U3: the new device is added automatically, without an image, and its base is the fetched receipt.
+        LocalV2.State added=local.load().state(incoming.uid);assertEquals(LocalV2.Presence.ACTIVE,added.presence);assertNull(added.draft.imageRef);
+        FeedSyncState.Record record=new FeedSyncState(syncDir).read().records.get(0);assertEquals(incoming.uid,record.deviceUid);assertEquals(completedReceipts.get(0).get(0),record.baseReceiptId);
+        assertTrue(ui.conflicts().isEmpty());assertTrue(ui.unpublished().isEmpty());
     }
     @Test public void cancelAtHistoryConfirmationCreatesNothing()throws Exception {
         ui.start();settle();ui.show();await("Välj ansluten ATAK-server");pick(0);await("Bekräfta server för hämtning");click(AlertDialog.BUTTON_POSITIVE);
