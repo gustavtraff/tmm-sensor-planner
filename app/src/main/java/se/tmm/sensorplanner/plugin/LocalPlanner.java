@@ -70,6 +70,8 @@ final class LocalPlanner {
     private final ServerTrialConnectionWatch trialWatch;
     private volatile ImageTrialUi imageTrial;
     private volatile FeedFollowUi feedFollow;
+    // Markers (Konflikt / Ej publicerad) as of the last reload, so a fetch that only changed them also reloads.
+    private java.util.Map<UUID, String> marks = java.util.Collections.emptyMap();
     private SnapshotInboxUi inboxUi;
     private final MissionSourceChoiceUi sourceChoice;
     private LocalDraftLayer layer;
@@ -190,7 +192,12 @@ final class LocalPlanner {
             public FeedFollowUi.Transport connect(se.tmm.sensorplanner.plugin.ingress.MissionEndpoint endpoint){return new MissionSnapshotHttp(()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream),endpoint);}
             public void notice(String text){if(!closed)ui.showToast(text);}
             // Automatic apply may have changed local devices; reload the layer as after other received changes.
-            public void onFetchCompleted(java.util.List<UUID> receiptIds,java.util.List<se.tmm.sensorplanner.core.ImageAssociationRegistry.Record> records){if(!closed&&feedFollow.applied()>0)storageUi.load(false);}
+            public void onFetchCompleted(java.util.List<UUID> receiptIds,java.util.List<se.tmm.sensorplanner.core.ImageAssociationRegistry.Record> records){
+                if(closed)return;java.util.Map<UUID,String> now=currentMarks();
+                if(feedFollow.applied()>0||!now.equals(marks)){marks=now;storageUi.load(false);}
+            }
+            public String summary(TmmDraft draft){return draftSummary(draft);}
+            public void resolved(){if(!closed){marks=currentMarks();storageUi.load(false);}}
         });
         feedFollow.start();
     }
@@ -202,6 +209,21 @@ final class LocalPlanner {
             @Override public boolean sourceAvailable() { return sourceAllowed.getAsBoolean(); }
             @Override public void changed() { storageUi.load(false); }
         }, transport, LocalPlanner::positionText);
+    }
+
+    private java.util.Map<UUID, String> currentMarks() {
+        java.util.Map<UUID, String> result = new java.util.HashMap<>();
+        for (UUID uid : feedFollow.conflicts()) result.put(uid, feedFollow.marker(uid));
+        for (UUID uid : feedFollow.unpublished()) result.put(uid, feedFollow.marker(uid));
+        return result;
+    }
+
+    private String draftSummary(TmmDraft d) {
+        return "ID: " + d.displayId + "\nTyp: " + d.type.displayName + "\nStatus: " + STATUSES[d.status.ordinal()]
+                + "\nPosition · MGRS: " + positionText(d.position) + "\nÄgare: " + d.owner
+                + "\nBäring: " + (d.bearingDeg == null ? "Ej angiven" : BearingMilsEdit.format(d.bearingDeg) + " mils · sann nord")
+                + "\nÄndrad: " + localTime(d.updatedAt) + "\nUtplacerad: " + (d.deployedAt == null ? "Ej angivet" : localTime(d.deployedAt))
+                + "\nKommentar: " + (d.comment.isEmpty() ? "Ingen" : d.comment);
     }
 
     private String metadataSummary(ShareReview.Metadata m) {
@@ -254,7 +276,10 @@ final class LocalPlanner {
         if (!localAccess() || closed || isBusy()) return;
         LocalV2.Snapshot listed = storage.snapshot;
         String[] rows = new String[drafts.size()];
-        for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\nLokalt utkast";
+        for (int i = 0; i < rows.length; i++) {
+            String marker = feedFollow.marker(drafts.get(i).uid);
+            rows[i] = title(drafts.get(i)) + (marker == null ? "" : " · " + marker) + "\nLokalt utkast";
+        }
         dismiss();
         LinearLayout inboxActions = column(); inboxActions.addView(label(LocalStorageUi.warning(storage)));
         inboxActions.addView(button(feedFollow.label(), () -> { dismiss(); feedFollow.show(); }));
@@ -282,6 +307,14 @@ final class LocalPlanner {
         String warning = LocalStorageUi.warning(storage);
         if (!warning.isEmpty()) content.addView(label(warning));
         content.addView(label("Lokalt utkast · delas inte automatiskt"));
+        String marker = feedFollow.marker(draft.uid);
+        if (marker != null) {
+            content.addView(label(marker + (feedFollow.conflicts().contains(draft.uid)
+                    ? " · din version och den inkommande skiljer sig" : " · lokala ändringar som inte är publicerade")));
+            if (feedFollow.conflicts().contains(draft.uid)) {
+                content.addView(button("Lös konflikt", () -> { dismiss(); feedFollow.showConflict(draft.uid); }));
+            }
+        }
         content.addView(label("Position · MGRS\n" + positionText(draft.position)));
         Button copy = button("Kopiera MGRS", () -> {
             try {

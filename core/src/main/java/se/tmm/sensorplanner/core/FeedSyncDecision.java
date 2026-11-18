@@ -63,7 +63,7 @@ public final class FeedSyncDecision {
             return new ImageState(sha256.clone(), false);
         }
 
-        boolean sameAs(ImageState other) {
+        public boolean sameAs(ImageState other) {
             return !unknown && !other.unknown && Arrays.equals(sha256, other.sha256);
         }
     }
@@ -106,7 +106,7 @@ public final class FeedSyncDecision {
     }
 
     /** U4 H: a digest, NONE when no image is bound, or null when AMBIGUOUS. */
-    static ImageState remoteImage(List<byte[]> current, List<byte[]> all, ImageState baseImage) {
+    public static ImageState remoteImage(List<byte[]> current, List<byte[]> all, ImageState baseImage) {
         List<ImageState> bound = distinct(current);
         if (!bound.isEmpty()) {
             return bound.size() == 1 ? bound.get(0) : null;
