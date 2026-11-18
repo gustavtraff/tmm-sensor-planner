@@ -27,10 +27,9 @@ top of [the image contract](IMAGE_SHARING_CONTRACT.md).
 
 ## Next steps
 
-1. **Owner decision on #236:** approve or change U1–U8 in
-   [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) (fetch lifetime,
-   stored follow choice, base-based conflict rule, current-image rule, safe
-   replacement, sync-state file, offline, no outbound). No code before that.
+1. **#236:** U1–U8 in [the automatic feed sync proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md)
+   were approved by the owner on 2026-11-18. Next comes the sync-state v1 exact-format
+   proposal, which needs its own approval before its writer.
 2. **Owner decision P1:** how the deployer publishes a photo without candidate 30's
    Downloads and File Select steps. The options are a Mission API upload, which needs
    an outbound proposal, or a guided native File Select step.

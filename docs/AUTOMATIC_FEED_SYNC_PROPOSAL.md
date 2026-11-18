@@ -1,6 +1,8 @@
 # Automatic selected-feed updates — proposal (#236 / #26)
 
-**Status: proposal. U1–U8 below need explicit owner approval before any code.**
+**Status: U1–U8 explicitly approved by the owner on 2026-11-18** in the conversation,
+against this document at commit `f79a0cc` (PR #237). The approval came from that
+decision, not from the merge. P1 is still open.
 The product direction in [the image contract](IMAGE_SHARING_CONTRACT.md#confirmed-product-direction--2026-11-18)
 is owner-confirmed. This document proposes how to deliver it. The new private
 sync-state file (U6) needs its own exact-format review before its writer.
