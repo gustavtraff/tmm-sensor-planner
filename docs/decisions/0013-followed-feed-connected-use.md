@@ -22,8 +22,10 @@ session therefore takes effect at the next load.
 
 - No operational data, server details, accounts, keys or certificates in Git.
 - No automatic publication, upload, subscription or receipt (U8). Fetching stays GET-only.
-- The CoT lab, saved-metadata sharing and the other lab and diagnostic tools keep
-  their existing gate (`canUseLab`): offline only, and never after connected-trial consent.
+- The CoT lab, saved-metadata sharing and the other lab and diagnostic tools stay gated
+  as before: offline only, and off for the whole session once connected local use was
+  granted, by trial consent or by a followed feed, also after the device goes offline.
+  Granting it closes any open lab tool, exactly as trial consent does.
 - Publication consent under #178 stays session-only and is not affected.
 
 ## Consequences

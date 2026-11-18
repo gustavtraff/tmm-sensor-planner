@@ -5,13 +5,15 @@ import se.tmm.sensorplanner.core.FeedSyncState;
 
 /**
  * Process-local consent; no network configuration or send capability. ADR 0013: a readable feed sync
- * state with following on also allows connected local use for this load, without the ADR 0009 dialog.
+ * state with following on also allows connected local use for this load, without the ADR 0009 dialog,
+ * and blocks the lab tools for the session exactly like trial consent.
  */
 public final class LocalTrialSession {
     private volatile boolean connectedTrial, followedFeed;
 
     public boolean canUseLocal(boolean offline) { return offline || connectedTrial || followedFeed; }
-    public boolean canUseLab(boolean offline) { return offline && !connectedTrial; }
+    /** Lab tools stay off for the whole session after any connected local use, even back offline. */
+    public boolean canUseLab(boolean offline) { return offline && !connectedTrial && !followedFeed; }
     public boolean isConnectedTrial() { return connectedTrial; }
     public boolean isFollowedFeed() { return followedFeed; }
     public void startConnectedTrial() { connectedTrial = true; }
