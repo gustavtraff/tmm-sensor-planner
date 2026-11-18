@@ -117,6 +117,15 @@ public final class FeedSyncPlanTest {
         FeedSyncState.Record r = next(p, A);
         assert r.remoteReceiptId.equals(id(11)) && r.baseReceiptId.equals(id(11));
         assert r.imageKind == 2 && Arrays.equals(r.imageDigest(), H1);
+        // No image on either side with an UNKNOWN image base: H = none, base becomes NONE, no registry record.
+        FeedSyncPlan none = FeedSyncPlan.plan(sync(rec(A, 10, 10, 0, null)), inbox(receipt(10, m2)), ids(10), NO_FEED,
+                local(LocalV2.State.active(1, m2)), Collections.singletonMap(A, ImageState.NONE));
+        assert entry(none, A).decision.image == Image.ADOPT_BASE && entry(none, A).remoteImage == null;
+        assert next(none, A).imageKind == 1 && next(none, A).imageDigest() == null;
+        // A local image with no remote image stays NOTHING and keeps the UNKNOWN base.
+        FeedSyncPlan kept = FeedSyncPlan.plan(sync(rec(A, 10, 10, 0, null)), inbox(receipt(10, m2)), ids(10), NO_FEED,
+                local(LocalV2.State.active(1, m2)), Collections.singletonMap(A, ImageState.of(H1)));
+        assert entry(kept, A).decision.image == Image.NOTHING && next(kept, A).imageKind == 0;
     }
 
     private static void applyLeavesBase() {
@@ -194,17 +203,33 @@ public final class FeedSyncPlanTest {
     }
 
     private static void imageSelection() {
-        TmmDraft m = draft(A, "a");
-        ImageAssociationRegistry.Record r1 = image(A, 10, H1), r1b = image(A, 11, H1), r2 = image(A, 12, H2);
-        // base image H1, feed binds H1 (two records) and H2: H = H2, the one differing from the base
-        FeedSyncPlan p = FeedSyncPlan.plan(sync(rec(A, 10, 10, 2, H1)), inbox(receipt(10, m)), ids(10),
-                Arrays.asList(r1, r1b, r2), local(LocalV2.State.active(1, m)), Collections.singletonMap(A, ImageState.of(H1)));
-        assert entry(p, A).decision.image == Image.APPLY && entry(p, A).remoteImage == r2;
-        // ambiguous without a base: nothing chosen, nothing changed
-        FeedSyncPlan amb = FeedSyncPlan.plan(sync(), inbox(receipt(10, m)), ids(10), Arrays.asList(r1, r2), local(), NO_IMG);
+        TmmDraft m1 = draft(A, "one"), m2 = draft(A, "two");
+        TmmDraft m3 = new TmmDraft(A, m2.displayId, m2.type, DeviceStatus.PLANNED, m2.owner, m2.createdAt, m2.updatedAt,
+                null, m2.comment, m2.position, null, null, 1);
+        InboxStore.Snapshot in = inbox(receipt(10, m1), receipt(11, m2), receipt(12, m3));
+        ImageAssociationRegistry.Record r1 = image(A, 10, H1), r2old = image(A, 10, H2), r2 = image(A, 11, H2);
+        List<ImageAssociationRegistry.Record> feed = Arrays.asList(r1, r2old, r2);
+        // The deployer publishes photo 2 with M2 while photo 1 is still in the feed: H = H2, record bound to M2.
+        FeedSyncPlan p = FeedSyncPlan.plan(sync(rec(A, 10, 10, 2, H1)), in, ids(11), feed,
+                local(LocalV2.State.active(1, m1)), Collections.singletonMap(A, ImageState.of(H1)));
+        assert entry(p, A).decision.metadata == Metadata.APPLY && entry(p, A).decision.image == Image.APPLY;
+        assert entry(p, A).remoteImage == r2;
+        // The executor applied both and set the bases: the next fetch is NOTHING, no flip back to photo 1.
+        FeedSyncState.Snapshot applied = sync(rec(A, 11, 11, 2, H2));
+        FeedSyncPlan again = FeedSyncPlan.plan(applied, in, ids(11), feed,
+                local(LocalV2.State.active(3, m2)), Collections.singletonMap(A, ImageState.of(H2)));
+        assert entry(again, A).decision.metadata == Metadata.NOTHING && entry(again, A).decision.image == Image.NOTHING;
+        assert Arrays.equals(FeedSyncState.encode(applied), FeedSyncState.encode(again.nextSync));
+        // A later status-only M3 with both photos present and none bound to M3 keeps photo 2.
+        FeedSyncPlan status = FeedSyncPlan.plan(applied, in, ids(12), feed,
+                local(LocalV2.State.active(3, m2)), Collections.singletonMap(A, ImageState.of(H2)));
+        assert entry(status, A).decision.metadata == Metadata.APPLY && entry(status, A).decision.image == Image.NOTHING;
+        // Several photos, none bound to the current M, no base: ambiguous, nothing chosen.
+        FeedSyncPlan amb = FeedSyncPlan.plan(sync(), in, ids(12), feed, local(), NO_IMG);
         assert entry(amb, A).decision.image == Image.AMBIGUOUS && entry(amb, A).remoteImage == null;
-        // duplicates of the same digest: first record in list order wins
-        FeedSyncPlan dup = FeedSyncPlan.plan(sync(), inbox(receipt(10, m)), ids(10), Arrays.asList(r1b, r1), local(), NO_IMG);
-        assert entry(dup, A).remoteImage == r1b;
+        // Duplicates of the same digest, none bound to the current M: first record in list order wins.
+        ImageAssociationRegistry.Record a = image(A, 20, H1), b = image(A, 21, H1);
+        FeedSyncPlan dup = FeedSyncPlan.plan(sync(), in, ids(12), Arrays.asList(a, b), local(), NO_IMG);
+        assert entry(dup, A).remoteImage == a;
     }
 }

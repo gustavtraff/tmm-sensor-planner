@@ -2,6 +2,7 @@ package se.tmm.sensorplanner.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,9 +14,14 @@ import java.util.List;
  * R = L, ADOPT_BASE; L = B (so R differs), APPLY; otherwise CONFLICT. With L present and no
  * base, L = B is never true, so the result is ADOPT_BASE if R = L, else CONFLICT.
  *
- * <p>Image precedence, first match wins: R absent, NOTHING; no distinct bound digest (amended
- * U4), NOTHING; several distinct digests and not exactly one differing from a known image
- * base, AMBIGUOUS (else that one is H); B and L both absent, APPLY; B present and
+ * <p>H (U4, amended twice): if any digest is bound to the feed's current M, the only distinct one
+ * of those is H, several are AMBIGUOUS. Otherwise, over all digests for the UUID: none is "no
+ * image"; one is H; several including a known image base give H = the base; else AMBIGUOUS.
+ *
+ * <p>Image precedence, first match wins: R absent, NOTHING; AMBIGUOUS as above; no image:
+ * ADOPT_BASE with H = no image when L is present without an image and the image base is
+ * UNKNOWN (R = L), otherwise NOTHING, so a missing image never clears or rebases a local one;
+ * B and L both absent, APPLY; B present and
  * L absent, NOTHING if H = image base or the image base is UNKNOWN, else CONFLICT;
  * H = image base, NOTHING; H = local image, ADOPT_BASE; local image = image base, APPLY;
  * otherwise CONFLICT. An UNKNOWN image base equals nothing, so it behaves like no base.
@@ -32,7 +38,7 @@ public final class FeedSyncDecision {
 
     public enum Image {
         NOTHING,     // no change
-        ADOPT_BASE,  // remote image equals local image: store the image base := H
+        ADOPT_BASE,  // remote image equals local image (or neither has one): store the image base := H
         APPLY,       // adopt remote image H locally, then store the image base := H
         CONFLICT,    // local image and remote image both differ from the base and each other
         AMBIGUOUS    // U4: several images are bound and no single one differs from the base; change nothing
@@ -74,13 +80,14 @@ public final class FeedSyncDecision {
      * @param remote null if the UUID is not in the fetched feed
      * @param base null if no base yet
      * @param local null if absent locally
-     * @param remoteImages distinct verified image digests bound to this device for any M (U4)
+     * @param currentImages verified image digests bound to exactly the feed's current M (U4)
+     * @param remoteImages verified image digests bound to this device for any M, including currentImages
      * @param baseImage UNKNOWN, NONE or a digest
      * @param localImage NONE or a digest; ignored when local is null
      */
     public static FeedSyncDecision decide(TmmDraft remote, TmmDraft base, TmmDraft local,
-                                          List<byte[]> remoteImages, ImageState baseImage,
-                                          ImageState localImage) {
+                                          List<byte[]> currentImages, List<byte[]> remoteImages,
+                                          ImageState baseImage, ImageState localImage) {
         if (baseImage == null || (local != null && (localImage == null || localImage.unknown))) {
             throw new IllegalArgumentException("image states are required");
         }
@@ -88,7 +95,51 @@ public final class FeedSyncDecision {
             return new FeedSyncDecision(Metadata.NOTHING, Image.NOTHING);
         }
         return new FeedSyncDecision(metadata(remote, base, local),
-                image(remoteImages, base, local, baseImage, localImage));
+                image(remoteImage(currentImages, remoteImages, baseImage), base, local, baseImage, localImage));
+    }
+
+    /** As above with no image bound to the current M. */
+    public static FeedSyncDecision decide(TmmDraft remote, TmmDraft base, TmmDraft local,
+                                          List<byte[]> remoteImages, ImageState baseImage,
+                                          ImageState localImage) {
+        return decide(remote, base, local, Collections.<byte[]>emptyList(), remoteImages, baseImage, localImage);
+    }
+
+    /** U4 H: a digest, NONE when no image is bound, or null when AMBIGUOUS. */
+    static ImageState remoteImage(List<byte[]> current, List<byte[]> all, ImageState baseImage) {
+        List<ImageState> bound = distinct(current);
+        if (!bound.isEmpty()) {
+            return bound.size() == 1 ? bound.get(0) : null;
+        }
+        List<ImageState> any = distinct(all);
+        if (any.isEmpty()) {
+            return ImageState.NONE;
+        }
+        if (any.size() == 1) {
+            return any.get(0);
+        }
+        // Several, none bound to the current M: the base stays current if it is among them.
+        for (ImageState d : any) {
+            if (d.sameAs(baseImage)) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+    private static List<ImageState> distinct(List<byte[]> digests) {
+        List<ImageState> distinct = new ArrayList<ImageState>();
+        for (byte[] digest : digests) {
+            ImageState s = ImageState.of(digest);
+            boolean seen = false;
+            for (ImageState d : distinct) {
+                seen |= d.sameAs(s);
+            }
+            if (!seen) {
+                distinct.add(s);
+            }
+        }
+        return distinct;
     }
 
     private static Metadata metadata(TmmDraft r, TmmDraft b, TmmDraft l) {
@@ -107,37 +158,14 @@ public final class FeedSyncDecision {
         return b != null && ImportReview.sameMetadata(b, l) ? Metadata.APPLY : Metadata.CONFLICT;
     }
 
-    private static Image image(List<byte[]> bound, TmmDraft b, TmmDraft l,
+    private static Image image(ImageState h, TmmDraft b, TmmDraft l,
                                ImageState baseImage, ImageState localImage) {
-        List<ImageState> distinct = new ArrayList<ImageState>();
-        for (byte[] digest : bound) {
-            ImageState s = ImageState.of(digest);
-            boolean seen = false;
-            for (ImageState d : distinct) {
-                seen |= d.sameAs(s);
-            }
-            if (!seen) {
-                distinct.add(s);
-            }
+        if (h == null) {
+            return Image.AMBIGUOUS;
         }
-        if (distinct.isEmpty()) {
-            return Image.NOTHING;
-        }
-        ImageState h = distinct.get(0);
-        if (distinct.size() > 1) {
-            // Amended U4: the one digest that differs from a known image base is H.
-            ImageState differing = null;
-            int count = 0;
-            for (ImageState d : distinct) {
-                if (!d.sameAs(baseImage)) {
-                    differing = d;
-                    count++;
-                }
-            }
-            if (count != 1) {
-                return Image.AMBIGUOUS;
-            }
-            h = differing;
+        if (h == ImageState.NONE) {
+            // U3 R = L with "no image" on both sides: store image base NONE (H = none).
+            return l != null && localImage == ImageState.NONE && baseImage.unknown ? Image.ADOPT_BASE : Image.NOTHING;
         }
         if (b == null && l == null) {
             return Image.APPLY;

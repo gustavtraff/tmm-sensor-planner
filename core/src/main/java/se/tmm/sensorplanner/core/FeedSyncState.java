@@ -12,7 +12,7 @@ import java.util.*;
 /** Approved feed sync state v1 (docs/FEED_SYNC_STATE_FORMAT.md): bytes and file store only, no fetch, conflict or transport logic. */
 public final class FeedSyncState {
     static final int MAX_RECORDS = 256, MAX_CONTEXT_BYTES = 4096, MAX_LABEL_BYTES = 1024;
-    static final int IMAGE_UNKNOWN = 0, IMAGE_NONE = 1, IMAGE_DIGEST = 2;
+    public static final int IMAGE_UNKNOWN = 0, IMAGE_NONE = 1, IMAGE_DIGEST = 2;
     static final int MAX_BYTES = 57 + MAX_CONTEXT_BYTES + 2 * MAX_LABEL_BYTES + MAX_RECORDS * 116 + 32;
     private static final int MAGIC = 0x544d4d53, VERSION = 1, MIN_BYTES = 57 + 3 + 32;
     private static final String CONTEXT_PREFIX = "mission-api-v1|";

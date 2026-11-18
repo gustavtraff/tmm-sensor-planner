@@ -121,6 +121,9 @@ public final class LocalImages {
 
         private Pending(String reference) { this.reference = reference; }
 
+        /** The owned reference this copy will have, so an adoption can be recorded before commit (U5). */
+        public String reference() { return reference; }
+
         /** Preview the normalized copy, then either commit or close to cancel. */
         public synchronized byte[] preview() throws IOException {
             if (closed) throw new IOException("Image preview is closed");

@@ -182,13 +182,15 @@ final class LocalPlanner {
             public String coordinates(Position position){return positionText(position);}
             public void changed(UUID uid){storageUi.load(false);}
         });
-        feedFollow=new FeedFollowUi(context,store,new java.io.File(context.getNoBackupFilesDir(),"se.tmm.sensorplanner").toPath(),worker,new FeedFollowUi.Host(){
+        feedFollow=new FeedFollowUi(context,store,images,new java.io.File(context.getNoBackupFilesDir(),"se.tmm.sensorplanner").toPath(),worker,new FeedFollowUi.Host(){
             public void post(Runnable action){ui.queueEvent(action);}public boolean available(){return !closed&&localAllowed.getAsBoolean();}
             public java.util.List<String> profiles(){return ConfiguredMissionSource.profiles();}
             public boolean configured(String stream){return ConfiguredMissionSource.configured(stream);}
             public boolean defaultProvider(){return MissionSnapshotHttp.defaultProvider();}
             public FeedFollowUi.Transport connect(se.tmm.sensorplanner.plugin.ingress.MissionEndpoint endpoint){return new MissionSnapshotHttp(()->!closed&&localAllowed.getAsBoolean()&&ConfiguredMissionSource.connected(endpoint.stream),endpoint);}
             public void notice(String text){if(!closed)ui.showToast(text);}
+            // Automatic apply may have changed local devices; reload the layer as after other received changes.
+            public void onFetchCompleted(java.util.List<UUID> receiptIds,java.util.List<se.tmm.sensorplanner.core.ImageAssociationRegistry.Record> records){if(!closed&&feedFollow.applied()>0)storageUi.load(false);}
         });
         feedFollow.start();
     }

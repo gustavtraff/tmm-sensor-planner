@@ -106,14 +106,36 @@ public final class FeedSyncDecisionTest {
         assert image(NO_IMAGES, M1, M1, base, img(H2)) == Image.NOTHING;      // missing image never clears
         assert image(NO_IMAGES, M1, M1, base, ImageState.NONE) == Image.NOTHING;
         assert image(NO_IMAGES, null, null, ImageState.UNKNOWN, ImageState.NONE) == Image.NOTHING;
+        // No image on either side is R = L: adopt base NONE once, then nothing; a local image is never rebased.
+        assert image(NO_IMAGES, M1, M1, ImageState.UNKNOWN, ImageState.NONE) == Image.ADOPT_BASE;
+        assert image(NO_IMAGES, null, M1, ImageState.UNKNOWN, ImageState.NONE) == Image.ADOPT_BASE;
+        assert image(NO_IMAGES, M1, M1, ImageState.NONE, ImageState.NONE) == Image.NOTHING;
+        assert image(NO_IMAGES, M1, M1, ImageState.UNKNOWN, img(H1)) == Image.NOTHING;
+        assert image(NO_IMAGES, M1, null, ImageState.UNKNOWN, ImageState.NONE) == Image.NOTHING;  // deleted locally
         assert image(Arrays.asList(H2, digest(2)), M1, M1, base, base) == Image.APPLY;  // duplicates count once
-        assert image(Arrays.asList(H1, H2), M1, M1, base, base) == Image.APPLY;         // H2 differs from base
-        assert image(Arrays.asList(H2, H1), M1, M1, base, img(H2)) == Image.ADOPT_BASE; // normal U3 path
-        assert image(Arrays.asList(H2, H3), M1, M1, base, base) == Image.AMBIGUOUS;     // both differ
+        // U4 amended twice. Bound to the current M wins: the new photo applies, the old one is ignored.
+        assert current(one(H2), Arrays.asList(H1, H2), base, base) == Image.APPLY;
+        assert current(one(H2), Arrays.asList(H2, H1), base, img(H2)) == Image.ADOPT_BASE; // normal U3 path
+        // After adopting H2 nothing flips back, even with the old photo still in the feed.
+        assert current(one(H2), Arrays.asList(H1, H2), img(H2), img(H2)) == Image.NOTHING;
+        // Status-only update: neither photo bound to the new M, the base is among them and stays current.
+        assert image(Arrays.asList(H1, H2), M1, M1, img(H2), img(H2)) == Image.NOTHING;
+        assert image(Arrays.asList(H1, H2, H3), M1, M1, base, base) == Image.NOTHING;
+        // Two different photos bound to the current M are ambiguous, whatever the base.
+        assert current(Arrays.asList(H2, H3), Arrays.asList(H1, H2, H3), base, base) == Image.AMBIGUOUS;
+        assert current(Arrays.asList(H1, H2), Arrays.asList(H1, H2), base, base) == Image.AMBIGUOUS;
+        assert current(Arrays.asList(H2, digest(2)), Arrays.asList(H1, H2), base, base) == Image.APPLY; // same bytes
+        // None bound to the current M, several, base absent among them: ambiguous.
+        assert image(Arrays.asList(H2, H3), M1, M1, base, base) == Image.AMBIGUOUS;
         assert image(Arrays.asList(H2, H3), M1, M1, ImageState.UNKNOWN, ImageState.NONE) == Image.AMBIGUOUS;
         assert image(Arrays.asList(H2, H3), M1, M1, ImageState.NONE, ImageState.NONE) == Image.AMBIGUOUS;
-        assert image(Arrays.asList(H1, H2, H3), M1, M1, base, base) == Image.AMBIGUOUS; // two differ
-        assert image(Arrays.asList(H1, H1, H2), M1, null, base, ImageState.NONE) == Image.CONFLICT; // H2 vs base, deleted
+        assert image(Arrays.asList(H1, H1, H2), M1, null, base, ImageState.NONE) == Image.NOTHING; // deleted, base stays
+        assert FeedSyncDecision.decide(M1, M1, null, one(H2), Arrays.asList(H1, H2), base, ImageState.NONE).image
+                == Image.CONFLICT; // deleted locally, a new photo for the current M
+    }
+
+    private static Image current(List<byte[]> current, List<byte[]> all, ImageState base, ImageState local) {
+        return FeedSyncDecision.decide(M1, M1, M1, current, all, base, local).image;
     }
 
     private static void independentDecisions() {
