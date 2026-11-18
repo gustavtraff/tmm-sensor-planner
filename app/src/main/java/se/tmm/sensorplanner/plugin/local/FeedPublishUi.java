@@ -107,6 +107,14 @@ public final class FeedPublishUi {
         try{
             if(host.hostCopyExists(p.prepared.metadata.uid)){
                 p.update=Objects.requireNonNull(host.inspectUpdate(p.prepared,p.label));old=p.update.previous();
+                // A photo-only save (e.g. adopting the published PNG) bumps the local revision but not the shared M.
+                // Keep the host's own "ID · rN" label then, so an unchanged Publicera makes no host write.
+                String kept=p.update.previousLabel();
+                if(!p.label.equals(kept)&&sameShared(old,p.prepared.metadata)
+                        &&kept.matches(java.util.regex.Pattern.quote(old.displayId+" · r")+"[1-9][0-9]*")){
+                    p.update.close();p.update=null;
+                    p.update=Objects.requireNonNull(host.inspectUpdate(p.prepared,kept));old=p.update.previous();
+                }
             }
         }catch(RuntimeException refused){
             p.close();
@@ -219,6 +227,13 @@ public final class FeedPublishUi {
         for(FeedSyncState.Record r:s.records)if(r.deviceUid.equals(draft.uid))
             return r.imageKind!=FeedSyncState.IMAGE_DIGEST||!MessageDigest.isEqual(FeedSyncApply.sha256(images.read(draft.imageRef)),r.imageDigest());
         return true;
+    }
+    /** The shared M as the host copy carries it (PublicationCodec fields); the revision is local only. */
+    private static boolean sameShared(ShareReview.Metadata a,ShareReview.Metadata b){
+        return a.uid.equals(b.uid)&&a.displayId.equals(b.displayId)&&a.type==b.type&&a.status==b.status&&Objects.equals(a.owner,b.owner)
+                &&a.createdAt.equals(b.createdAt)&&a.updatedAt.equals(b.updatedAt)&&Objects.equals(a.deployedAt,b.deployedAt)
+                &&Objects.equals(a.comment,b.comment)&&a.position.latitude==b.position.latitude&&a.position.longitude==b.position.longitude
+                &&Objects.equals(a.bearingDeg,b.bearingDeg);
     }
     // U4 binds a photo to the exact M, so the readback compares edit time too.
     private static boolean exact(TmmDraft remote,TmmDraft saved){return FeedSyncDecision.sameContent(remote,saved)&&remote.updatedAt.equals(saved.updatedAt);}
