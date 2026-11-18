@@ -14,15 +14,15 @@ import se.tmm.sensorplanner.core.FeedSyncDecision.ImageState;
  * <p>Conservative choices: a device that would be new in a full state file (256 records) gets
  * NOTHING/NOTHING, is left out of nextSync and is listed in {@link #overCapacity}. Devices only
  * in the sync file get NOTHING (U3: missing never deletes). A NEVER_SEEN local device counts as
- * absent locally, exactly like DELETED. If several feed images share the chosen digest, the
- * first in {@code feedImages} order is the remote image record.
+ * absent locally, exactly like DELETED. If several feed images share the chosen digest, one bound
+ * to the current M is the remote image record, else the first in {@code feedImages} order.
  */
 public final class FeedSyncPlan {
     public static final class Entry {
         public final UUID deviceUid;
         public final FeedSyncDecision decision;
         public final TmmDraft remote;                              // null when not in this fetch
-        public final ImageAssociationRegistry.Record remoteImage;  // only for image APPLY or ADOPT_BASE
+        public final ImageAssociationRegistry.Record remoteImage;  // image APPLY or ADOPT_BASE; null for ADOPT_BASE with H = no image
         public final LocalV2.State local;
 
         Entry(UUID deviceUid, FeedSyncDecision decision, TmmDraft remote,
@@ -106,13 +106,16 @@ public final class FeedSyncPlan {
             }
             List<ImageAssociationRegistry.Record> bound = images.containsKey(uid)
                     ? images.get(uid) : Collections.<ImageAssociationRegistry.Record>emptyList();
-            List<byte[]> digests = new ArrayList<byte[]>();
-            for (ImageAssociationRegistry.Record r : bound) digests.add(r.sha256());
-            FeedSyncDecision d = FeedSyncDecision.decide(receipt.incoming, base, localDraft, digests, baseImage, localImage);
+            List<byte[]> digests = new ArrayList<byte[]>(), current = new ArrayList<byte[]>();
+            for (ImageAssociationRegistry.Record r : bound) {
+                digests.add(r.sha256());
+                if (receipt.id.equals(r.receiptId)) current.add(r.sha256());
+            }
+            FeedSyncDecision d = FeedSyncDecision.decide(receipt.incoming, base, localDraft, current, digests, baseImage, localImage);
 
             ImageAssociationRegistry.Record chosen = null;
-            if (d.image == FeedSyncDecision.Image.APPLY || d.image == FeedSyncDecision.Image.ADOPT_BASE) {
-                chosen = chooseH(bound, baseImage);
+            if (d.image == FeedSyncDecision.Image.APPLY || d.image == FeedSyncDecision.Image.ADOPT_BASE && !bound.isEmpty()) {
+                chosen = chooseH(bound, receipt.id, FeedSyncDecision.remoteImage(current, digests, baseImage));
             }
             entries.add(new Entry(uid, d, receipt.incoming, chosen, state));
 
@@ -121,8 +124,8 @@ public final class FeedSyncPlan {
             byte[] digest = rec == null ? null : rec.imageDigest();
             if (d.metadata == FeedSyncDecision.Metadata.ADOPT_BASE) newBase = receipt.id;
             if (d.image == FeedSyncDecision.Image.ADOPT_BASE) {
-                kind = FeedSyncState.IMAGE_DIGEST;
-                digest = chosen.sha256();
+                kind = chosen == null ? FeedSyncState.IMAGE_NONE : FeedSyncState.IMAGE_DIGEST;
+                digest = chosen == null ? null : chosen.sha256();
             }
             next.put(uid, new FeedSyncState.Record(uid, receipt.id, newBase, kind, digest,
                     rec == null ? null : rec.adoptNew, rec == null ? null : rec.adoptOld));
@@ -132,17 +135,17 @@ public final class FeedSyncPlan {
         return new FeedSyncPlan(entries, nextSync, over);
     }
 
-    /** H per amended U4: the only digest, or the single one differing from a known image base. */
-    private static ImageAssociationRegistry.Record chooseH(List<ImageAssociationRegistry.Record> bound, ImageState baseImage) {
-        List<ImageAssociationRegistry.Record> distinct = new ArrayList<ImageAssociationRegistry.Record>();
+    /** The record whose digest is H, preferring one bound to the current M, then registry order. */
+    private static ImageAssociationRegistry.Record chooseH(List<ImageAssociationRegistry.Record> bound, UUID current,
+                                                           ImageState h) {
+        ImageAssociationRegistry.Record first = null;
         for (ImageAssociationRegistry.Record r : bound) {
-            boolean seen = false;
-            for (ImageAssociationRegistry.Record d : distinct) seen |= Arrays.equals(d.sha256(), r.sha256());
-            if (!seen) distinct.add(r);
+            if (!ImageState.of(r.sha256()).sameAs(h)) continue;
+            if (current.equals(r.receiptId)) return r;
+            if (first == null) first = r;
         }
-        if (distinct.size() == 1) return distinct.get(0);
-        for (ImageAssociationRegistry.Record r : distinct) if (!ImageState.of(r.sha256()).sameAs(baseImage)) return r;
-        throw new IllegalStateException("No distinct remote image");
+        if (first == null) throw new IllegalStateException("No record for the remote image");
+        return first;
     }
 
     private static final Comparator<UUID> UNSIGNED = new Comparator<UUID>() {

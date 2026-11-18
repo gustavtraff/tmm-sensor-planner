@@ -70,7 +70,7 @@ bytes. The largest file is 35,929 bytes.
 As in the association registry, the inbox already keeps every exact variant M under
 one receipt ID per (context, device, M). Referencing it avoids a second spelling of
 every field. The remote image is not stored either: U4 derives it from the registry
-record bound to the remote M.
+records for the device, preferring one bound to the remote M.
 
 ## How the fields give the U3 decision
 
@@ -162,3 +162,48 @@ conflict, adoption, UI or transport code, so nothing in the APK writes the file 
 Python oracle covers, the exact 35,929-byte maximum and 257 records refused, create
 and reopen, stale writes, identical rewrites, failed replacement and an unknown
 future version left unrewritten. No SDK build, emulator, phone or server was involved.
+
+## Executor — 2026-11-18
+
+`se.tmm.sensorplanner.plugin.local.FeedSyncApply` (#242) is the first writer of records. It runs on
+the planner's serialized worker inside each `FeedFollowUi` fetch, after the inbox and image intake,
+so only one fetch and apply run at a time. Nothing in it sends anything (U8).
+
+1. **Recovery first.** On load and before every plan, each record with adoptNew is resolved exactly
+   as in "Image adoption recovery" above.
+2. **Plan.** The local image state of every ACTIVE device is the SHA-256 of its owned bytes
+   (`LocalImages.read`, cached per reference because owned files are never rewritten). An owned
+   image that cannot be read gets a digest that matches nothing, so it is never replaced.
+   `FeedSyncPlan.nextSync` is written with `FeedSyncState.replace(expected, next)`.
+3. **Metadata ADD** reuses the import Add path: `ImportDecisionPreparation.addLocally` (no re-add
+   confirmation, so a known local deletion is never re-added) and `LocalV2Store.commit`. The new
+   device has no image. After read-back the base becomes the remote receipt and the image base
+   "none", which is what the local draft then holds (precondition 3).
+4. **Metadata APPLY** uses `LocalV2Store.save` bound to the exact expected state, with R's fields,
+   R's `updatedAt`, the local `createdAt`, imageRef and revision + 1. The import `useSelected` path
+   cannot express this: it requires a separate local edit time, so L would never equal R and the
+   device would look unpublished after every update. A different `createdAt`, or an R `updatedAt`
+   earlier than the local one, cannot give L = R; the device is reported as a conflict instead.
+   After read-back the base becomes the remote receipt.
+5. **Image APPLY** reads the staged entry, checks its PNG digest against the association,
+   `prepareReceived` (which reads the copy back), writes adoptNew/adoptOld, calls
+   `DraftAttachments.attach` with the local `updatedAt` (R's whenever L's metadata equals R; otherwise
+   unpublished local metadata is left alone), then sets the image base from the adopted bytes and
+   clears the adoption. `attach` already deletes the old copy after a fresh unreferenced check;
+   step 4 repeats that check for recovery. `LocalImages.Pending.reference()` was added so adoptNew can
+   be written before the commit.
+6. **Image ADOPT_BASE with no image** (no bound image, no local image, UNKNOWN base) is bookkeeping in
+   `nextSync` only: the image base becomes NONE (kind 1), so the deployer's first photo applies.
+7. **CONFLICT / AMBIGUOUS** change nothing locally. `FeedFollowUi.conflicts()` and `unpublished()`
+   (L ≠ B against the stored base) are read-only, in-memory sets for the list UI.
+
+A stale local state, or any failure, skips that device for the round; the next fetch retries. No
+device is deleted and no image is cleared because something is missing. Robolectric tests are in
+`FeedSyncApplyTest`: ADD, ADD with image, image replacement, metadata APPLY keeping the image,
+conflict leaving local files byte-identical, duplicate fetch leaving every file byte-identical,
+stale local state, a simulated process kill after each U5 step, and recovery after a user image change.
+
+The photo alternation found during review (old and new photo both in the feed) is fixed by the
+second U4 amendment: an image bound to the feed's current M is H, so the old photo no longer wins
+after an adoption. `FeedSyncApplyTest` covers photo 2 published with M2 while photo 1 is still in the
+feed, a byte-identical next fetch, and a later status-only M3 keeping photo 2.
