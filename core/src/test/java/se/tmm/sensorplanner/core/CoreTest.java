@@ -37,6 +37,7 @@ public final class CoreTest {
         rejects(() -> trial.begin("", all));
         trial.begin(selected, all);
         assert trial.allows(Arrays.asList(ok, off), true) : "disabled streams do not count";
+        assert ConfiguredPublicationTrial.onlyStream(Arrays.asList(ok, off), selected) && !ConfiguredPublicationTrial.onlyStream(Arrays.asList(ok), null);
         Object[][] refusals = {
                 {Arrays.asList(new ConfiguredPublicationTrial.Stream(true, false, selected)), true},
                 {Arrays.asList(new ConfiguredPublicationTrial.Stream(true, true, "ssl://other.example.invalid:8089")), true},
@@ -52,6 +53,7 @@ public final class CoreTest {
             session.begin(selected, all);
             @SuppressWarnings("unchecked")
             Iterable<ConfiguredPublicationTrial.Stream> streams = (Iterable<ConfiguredPublicationTrial.Stream>) refusal[0];
+            if ((Boolean) refusal[1]) assert !ConfiguredPublicationTrial.onlyStream(streams, selected) : "M2 uses the same rule";
             assert !session.allows(streams, (Boolean) refusal[1]);
             assert !session.live() : "a failed check ends consent";
             assert !session.allows(Arrays.asList(ok), true) : "consent never resumes";
