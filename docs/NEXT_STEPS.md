@@ -25,6 +25,9 @@ top of [the image contract](IMAGE_SHARING_CONTRACT.md).
   confirmation: native host copy or update with G1–G5 geometry, readback of the exact M
   from the followed feed, then the photo upload. M1–M7 and the implementation are in
   [the metadata route](PUBLISH_METADATA_ROUTE_PROPOSAL.md). Tested with fakes only.
+- **Candidate 31** (`0.1.0-feed-sync-trial.1`, #252) is the first candidate with
+  automatic sync, **Publicera** with photo (#264) and reviewed geometry updates (#259).
+  Its source is prepared for the owner's signing handoff (B3); it is not signed yet.
 - **Candidate 30** (signed, not runtime-tested) is the bounded viewing trial
   ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)), not the finished workflow.
 - Nothing above has run on ATAK, a phone or TAK Server 5.6.
