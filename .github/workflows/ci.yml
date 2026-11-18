@@ -53,24 +53,42 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 2
+      - name: Detect docs-only pull request
+        id: scope
+        run: |
+          code=true
+          if [ "${{ github.event_name }}" = pull_request ] && files=$(git diff --name-only HEAD^1 HEAD) && [ -n "$files" ] \
+            && ! echo "$files" | grep -qvE '^docs/|\.md$'; then
+            code=false # docs-only: keep the job so the required check still reports
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
       - name: Check Gradle wrapper against the published checksum
+        if: steps.scope.outputs.code == 'true'
         run: |
           version=$(sed -n 's#.*/gradle-\(.*\)-bin\.zip#\1#p' gradle/wrapper/gradle-wrapper.properties)
           expected=$(curl -fsSL "https://services.gradle.org/distributions/gradle-$version-wrapper.jar.sha256")
           echo "$expected  gradle/wrapper/gradle-wrapper.jar" | sha256sum -c -
       - name: Set up public Android SDK
+        if: steps.scope.outputs.code == 'true'
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
         with:
           cmdline-tools-version: '12266719'
           packages: 'platforms;android-36 build-tools;35.0.0'
           log-accepted-android-sdk-licenses: false
+      - name: Set up Gradle cache
+        if: steps.scope.outputs.code == 'true'
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Test and lint image library and compile standalone probes
+        if: steps.scope.outputs.code == 'true'
         run: |
           export JAVA_HOME="$JAVA_HOME_17_X64"
           ./gradlew -p images --no-daemon testDebugUnitTest lintDebug assembleDebugAndroidTest
       - name: Verify standalone probe APK fixture bytes
+        if: steps.scope.outputs.code == 'true'
         run: python3 scripts/check-image-stage-apk.py
       - name: Verify image stage after abrupt worker exit
+        if: steps.scope.outputs.code == 'true'
         run: |
           export JAVA_HOME="$JAVA_HOME_17_X64"
           python3 scripts/test-image-stage-restart.py
