@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -185,13 +186,16 @@ public class FeedPublishUiTest {
     }
     @Test public void uiCancelDuringUploadPreventsTheLaterAssociation()throws Exception {
         attachSecondPhoto();
+        AtomicBoolean returnedAfterCancel=new AtomicBoolean();
         photo.afterUpload=()->{
             CountDownLatch cancelled=new CountDownLatch(1);
             ui.add(()->{publish.cancel();cancelled.countDown();});
             try{assertTrue("UI cancellation must finish before upload returns",cancelled.await(3,TimeUnit.SECONDS));}
             catch(InterruptedException e){Thread.currentThread().interrupt();throw new AssertionError(e);}
+            returnedAfterCancel.set(true);
         };
         open();confirm();
+        assertTrue("Upload returned successfully after UI cancellation",returnedAfterCancel.get());
         assertEquals(Arrays.asList("host-update","fetch","upload"),calls);
         assertFalse(publish.isBusy());assertNull(dialog());assertEquals(0,published);
         assertFalse(photos.awaitingRemoval(device));
