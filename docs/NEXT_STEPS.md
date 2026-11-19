@@ -1,57 +1,52 @@
-# Current implementation and next steps — 2026-11-18
+# Current implementation and next steps — 2026-11-19
 
 ## Target workflow (owner-confirmed 2026-11-18)
 
-Users share one existing Data Sync feed. The planner creates a device. The person who
-deploys it updates the same UUID with actual position, status, bearing and a placement
-photo, then publishes. Every connected client fetches automatically and shows that
-update as current when it does not conflict with unpublished local work. Conflicts
-keep both versions and ask the user. Publishing is always explicit. Offline clients
-keep their last data and catch up after reconnecting. The full statement is at the
-top of [the image contract](IMAGE_SHARING_CONTRACT.md).
+Users share one existing Data Sync feed. The planner creates a device; the deployer
+updates the same UUID with position, status, bearing and a photo, then publishes.
+Connected clients fetch automatically, apply conflict-free updates and keep both
+versions of conflicts. Publishing is explicit. Offline clients retain their data
+and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT.md).
 
-## Where the implementation is
+## Current candidate
 
-- **Automatic receiving is built (#236, #242).** On main: **Följ feed**, GET-only
-  fetching every 60 s and on reconnect, automatic application of conflict-free
-  metadata and photos, base-based conflict detection, crash recovery for photo
-  replacement, and resuming after restart ([ADR 0013](decisions/0013-followed-feed-connected-use.md)).
-  Decisions: U1–U8 with U4 amended twice, S1–S4 and W1–W5, all approved 2026-11-18. See
-  [the proposal](AUTOMATIC_FEED_SYNC_PROPOSAL.md) and [sync-state v1](FEED_SYNC_STATE_FORMAT.md).
-- **Photo upload is verified in the lab only (#241, closed).** Upload, association and
-  removal work on TAK Server 5.8 with a token-less request on an open feed whose default
-  role is Subscriber. That matches the owner's feed.
-- **Publicera is built (B1, #243), pending owner merge approval.** One preview and one
-  confirmation: native host copy or update with G1–G5 geometry, readback of the exact M
-  from the followed feed, then the photo upload. M1–M7 and the implementation are in
-  [the metadata route](PUBLISH_METADATA_ROUTE_PROPOSAL.md). Tested with fakes only.
-- **Candidate 31** (`0.1.0-feed-sync-trial.1`, #252) is the first candidate with
-  automatic sync, **Publicera** with photo (#264) and reviewed geometry updates (#259).
-  Its source is prepared for the owner's signing handoff (B3); it is not signed yet.
-- **Candidate 30** (signed, not runtime-tested) is the bounded viewing trial
-  ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)), not the finished workflow.
-- Nothing above has run on ATAK, a phone or TAK Server 5.6.
+- Automatic receiving (#236/#242), **Publicera** with photo (#243/#264), and geometry
+  updates (#189/#259) are merged. The approved decisions are U1–U8, S1–S4, W1–W5,
+  M1–M7 and G1–G5; their contracts remain authoritative.
+- **Candidate 31** (`versionCode 31`, `0.1.0-feed-sync-trial.1`, #252) is signed from
+  main `7df6347`. Its hash, signature and APK packaging checks passed; its signer
+  matches candidates 29/30. The private record is
+  `private-data/releases/v31/verification.json`.
+- The earlier SDK-host lab exercised follow, automatic fetch, upload, association
+  and removal on TAK Server 5.8. Its native Data Sync step was a stand-in.
+- Signed candidate 31 installed on both isolated standard lab clients. Native
+  two-client acceptance remains **unverified**: the run was interrupted by host
+  memory pressure before any acceptance point passed. Installation is not loading
+  or workflow acceptance; the signing record predates this installation attempt.
+- The two-emulator plus Docker lab is stopped. Do not restart that combination on
+  the 8 GiB development laptop. The private launchers are disabled; use the
+  [resource preflight and guard procedure](TESTING.md#resource-bounded-lab-runs).
+- Candidate 30 remains the bounded viewing-trial fallback
+  ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)). The owner decides its use.
 
-## Plan and owners
+## Remaining acceptance (#252)
 
-| Step | Work | Who | Depends on |
-|---|---|---|---|
-| A1 | #242: **Konflikt** and **Ej publicerad** markers, **Behåll min** / **Använd inkommande** | Sonnet agent, Opus review | — |
-| A2 | #243: photo upload, association and W4 removal as a non-UI service with fake-transport tests | Opus agent | — |
-| A3 | #251: proposal for the metadata route of ordinary **Publicera** (P2) | Opus agent, then owner decision | — |
-| B1 | #243: **Publicera** UI joining metadata (A3 decision) and photo (A2) | Opus agent | A1, A2, A3 |
-| B2 | #252: version bump and SDK-host two-client lab acceptance on 5.8 | Opus agent | B1 |
-| B3 | #252: signing handoff and signature check | Owner signs, Opus verifies | B2 |
-| B4 | #252: step-by-step owner protocol for the 5.6 two-phone trial | Sonnet agent, Opus review | B1 |
-| B5 | #253: Swedish user guide for the online workflow | Sonnet agent | B1 |
-| C1 | #252: two-phone trial on the real 5.6 server, then go/no-go | Owner | B3, B4 |
-
-Gated merges need explicit owner approval: A2 and B1 (outbound transport) and B3
-(signing). A1, A3, B2, B4 and B5 may be merged once checks are green.
-
-Related tracking: #26 parent for images, #25 Data Sync route, #171 selected-feed Fetch,
-#178 configured publication. G1–G5 for [#189 geometry](SHARED_GEOMETRY_UPDATE.md)
-remain approved and independent.
+1. Prepare a host memory budget and supervised, staged lab startup. Validate one
+   client before considering two; keep all server access inside the isolated
+   loopback lab. No lab startup while the owner needs this laptop for normal work.
+2. Run the native two-client checks in [Testing](TESTING.md#candidate-31-pending-acceptance):
+   native import and update prompts, second-client deployment update/photo on the
+   same UUID, native **Nej**, conflicts, restart, reconnect and interrupted work.
+   Use actual Data Sync; a scripted send cannot pass these checks.
+3. Owner runs [the exercise protocol](EXERCISE_TRIAL_PROTOCOL.md) on TAK Server 5.6
+   and records go/no-go. Lab Server 5.8 evidence does not close this step. Operational
+   access is outside agent authorization.
+4. Check the Swedish guide's native steps against the signed candidate before
+   handing it to users. Physical/coexistence and release gates remain in
+   [Testing](TESTING.md#manual-acceptance-and-release-gates).
+5. Resolve #268 before closing cancellation acceptance: static review found that
+   cancelling during photo upload can still be followed by a new association
+   request. Its outbound-behavior proposal awaits owner approval before code.
 
 ## Maintenance and acceptance
 
