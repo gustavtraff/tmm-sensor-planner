@@ -1,6 +1,7 @@
 package se.tmm.sensorplanner.core;
 
 import android.app.*;
+import android.preference.PreferenceManager;
 import android.view.*;
 import android.view.inputmethod.EditorInfo;
 import android.widget.*;
@@ -21,6 +22,7 @@ public class MissionSourceChoiceUiTest {
     private List<String> profiles;private final List<MissionEndpoint> selected=new ArrayList<>();
     @Before public void setup(){
         activity=Robolectric.buildActivity(Activity.class).setup().get();profiles=new ArrayList<>(Collections.singletonList("tak.example.invalid:8089:ssl"));
+        PreferenceManager.getDefaultSharedPreferences(activity).edit().remove("apiSecureServerPort").commit();
         host=new MissionSourceChoiceUi.Host(){
             public boolean available(){return available;}
             public List<String> profiles(){if(failProfiles)throw new IllegalStateException("PRIVATE SOURCE DETAIL");return profiles;}
@@ -59,6 +61,36 @@ public class MissionSourceChoiceUiTest {
         button(root,"Dölj anslutningsinställningar").performClick();click(AlertDialog.BUTTON_POSITIVE);
         assertTrue(selected.isEmpty());assertEquals(View.VISIBLE,((View)port.getParent()).getVisibility());
         port.setText("9443");click(AlertDialog.BUTTON_POSITIVE);assertEquals(1,selected.size());assertEquals("https://tak.example.invalid:9443",selected.get(0).base);
+    }
+    @Test public void atakPortSuggestionRequiresConfirmationInBothModes(){
+        PreferenceManager.getDefaultSharedPreferences(activity).edit().putString("apiSecureServerPort","9443").commit();
+        for(boolean following:new boolean[]{false,true}){
+            ui.close();selected.clear();ui=new MissionSourceChoiceUi(activity,host,"Read only. ",following);
+            ui.show();choose();assertTrue(selected.isEmpty());
+            assertEquals("9443",input(dialog().getWindow().getDecorView()).getText().toString());
+            click(AlertDialog.BUTTON_POSITIVE);assertEquals(1,selected.size());
+            assertEquals("https://tak.example.invalid:9443",selected.get(0).base);
+        }
+    }
+    @Test public void manualOverrideDoesNotChangeAtakPreference(){
+        PreferenceManager.getDefaultSharedPreferences(activity).edit().putString("apiSecureServerPort","9443").commit();
+        ui.show();choose();input(dialog().getWindow().getDecorView()).setText("10443");click(AlertDialog.BUTTON_POSITIVE);
+        assertEquals("https://tak.example.invalid:10443",selected.get(0).base);
+        assertEquals("9443",PreferenceManager.getDefaultSharedPreferences(activity).getString("apiSecureServerPort",null));
+    }
+    @Test public void invalidOrWrongTypeAtakPreferenceRequiresManualPort(){
+        for(String value:new String[]{"","0","65536","-1","8443text","123456"}){
+            PreferenceManager.getDefaultSharedPreferences(activity).edit().putString("apiSecureServerPort",value).commit();
+            assertManualPortRequired();
+        }
+        PreferenceManager.getDefaultSharedPreferences(activity).edit().putInt("apiSecureServerPort",9443).commit();
+        assertManualPortRequired();
+    }
+    private void assertManualPortRequired(){
+        ui.close();ui=new MissionSourceChoiceUi(activity,host,"Read only. ",true);ui.show();choose();
+        EditText port=input(dialog().getWindow().getDecorView());assertEquals("",port.getText().toString());
+        assertEquals(View.VISIBLE,((View)port.getParent()).getVisibility());
+        click(AlertDialog.BUTTON_POSITIVE);assertTrue(selected.isEmpty());
     }
     @Test public void retiredSourceAndPortCancelCannotDismissFreshChoices(){
         ui.show();AlertDialog source=dialog();choose();AlertDialog port=dialog();

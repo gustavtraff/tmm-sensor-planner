@@ -37,7 +37,10 @@ credential, subscription or background poll is created by opening the planner.
    metadata · test**, then explicitly choose that connected profile. Select only
    a server you are authorized to test; the development agent does not contact an
    operational server on your behalf.
-3. Confirm the separate Mission API HTTPS port (default **8443**). ATAK's stream
+3. Confirm the separate Mission API HTTPS port. The editable suggestion comes from
+   ATAK's `apiSecureServerPort` preference; a missing setting uses **8443** and an
+   invalid/unreadable value requires manual entry. This reads host preferences only;
+   it changes neither ATAK settings nor an already-followed endpoint. ATAK's stream
    port, commonly 8089, is not this port. The API must be on the same configured
    ASCII DNS/IPv4 host; reverse-proxy paths, IPv6 literals, separate API hosts and Basic
    authentication are not supported by this trial.
