@@ -5,8 +5,8 @@ on the real TAK Server 5.6 with two phones. It implements the M4 clarification i
 [the metadata route proposal](PUBLISH_METADATA_ROUTE_PROPOSAL.md): about 15 minutes of
 checks with one synthetic device, then real exercise data only after the owner
 records a go, otherwise the candidate 30 fallback (#222). The steps and the result
-form are Swedish because the owner reads them in the field. The integrated UI
-(PR #264) is in signed candidate 31; the #270 usability changes are newer source.
+form are Swedish because the owner reads them in the field. The steps follow
+candidate 32 source, including the usability changes and #268 cancellation fix.
 Record the exact signed build and verify its labels, including ATAK's native
 Add Items, Done and publication prompt. Record results without operational
 data (no real locations, photos, server names or accounts).
@@ -17,8 +17,8 @@ Två telefoner, A och B. Testenhet: ett tydligt falskt namn (till exempel
 "TESTENHET-INTE-RIKTIG") och en testbild utan operativt värde. Använd aldrig
 verkliga platser eller bilder under kontrollerna.
 
-**Om gränssnittet:** i uppdateringen efter kandidat 31 heter listans **Ej publicerad**
-i stället **Ändringar att publicera**; betydelsen är densamma. Om publiceringsdialogen
+**Om gränssnittet:** listan visar **Ändringar att publicera** när lokala ändringar
+väntar på publicering. Resultatdialogen kan heta **Ej publicerad**. Om publiceringsdialogen
 visar **Fortsätt i ATAK**, tryck där för att komma åt Data Sync. TMM fortsätter då
 kontrollera feeden i upp till 30 sekunder. Knappen **Avbryt** är inte samma sak.
 
@@ -88,13 +88,13 @@ Förväntat: ny status på B, bilden finns kvar, ingen **Konflikt**.
 
 1. Ändra kommentaren på testenheten till olika text på A och på B. Publicera bara på A.
    B ska inte hinna hämta före sin egen ändring: ändra på B först, publicera sedan på A.
-2. På B (nu **Ej publicerad**): vänta eller tryck **Uppdatera nu**.
+2. På B (nu **Ändringar att publicera**): vänta eller tryck **Uppdatera nu**.
 
 Förväntat: B visar **Konflikt** på enheten, B:s egen text är kvar. Konfliktvyn visar
 lokalt och inkommande bredvid varandra.
 
 3. Prova **Behåll min**: B:s text finns kvar, **Konflikt** försvinner och enheten är
-   **Ej publicerad** tills B publicerar.
+   **Ändringar att publicera** tills B publicerar.
 4. Upprepa konflikten (nya olika kommentarer) och prova **Använd inkommande**: B får A:s
    text och **Konflikt** försvinner.
 
@@ -116,7 +116,7 @@ Förväntat: B kommer ikapp och visar A:s ändring. Inget förlorades medan B va
    publiceringsfråga (kontrollera mot signerad version).
 2. Kontrollera enheten på B och feeden på A (**Uppdatera nu**).
 
-Förväntat: enheten är **Ej publicerad** på B. Ingen bild laddades upp. A ser ingen ny
+Förväntat: enheten visar **Ändringar att publicera** på B. Ingen bild laddades upp. A ser ingen ny
 bild eller ny status.
 
 - [ ] OK  - [ ] FEL
@@ -157,7 +157,7 @@ senaste signerade paketet, utan att TMM delar bilder. Använd inte Publicera fö
   Inget skickas av sig självt.
 - Appen hämtar nya versioner själv ungefär varje minut. Tryck **Uppdatera nu** om du väntar
   på något eller kommer tillbaka från ingen täckning.
-- **Ej publicerad** betyder egna ändringar som inte nått feeden. **Publicerad** syns först
+- **Ändringar att publicera** betyder egna ändringar som inte nått feeden. **Publicerad** syns först
   när feeden visat samma version.
 - **Konflikt**: du och en annan har ändrat samma enhet. Öppna enheten och jämför.
   **Behåll min** behåller din (du måste publicera själv sedan), **Använd inkommande** tar den andras.

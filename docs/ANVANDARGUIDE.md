@@ -1,9 +1,9 @@
 # TMM Sensor Planner - användarguide
 
-<!-- Maintainers: full reference for the usability source changes after signed candidate 31. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The concise PDF is generated from SNABBGUIDE.md with scripts/render-quick-guide.py. -->
+<!-- Maintainers: full reference for candidate 32 source. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The concise PDF is generated from SNABBGUIDE.md with scripts/render-quick-guide.py. -->
 
-**Om versionen:** Guiden beskriver det uppdaterade gränssnittet efter kandidat 31.
-Det ingår ännu inte i den signerade kandidat 31. Kontrollera vilken version du har.
+**Om versionen:** Guiden beskriver kandidat 32. Motsvarande signerad APK och
+telefonprov återstår. Kontrollera vilken version du har.
 Använd bara övningsdata tills ansvarig person har godkänt användningen.
 
 ## 1. Kom igång
@@ -149,9 +149,9 @@ hämtat dem.
 **Visa detaljer** öppnar tekniska publiceringsuppgifter om du behöver hjälp med ett fel.
 
 **Avbryta:** före bekräftelsen kan du avstå utan att starta publiceringen. När ett
-anrop redan pågår kan skickade uppgifter inte tas tillbaka. En känd brist i
-avbrytandet under bilduppladdning utreds; lita därför inte på **Avbryt** som garanti
-för att bilden inte kopplas till feeden. Kontrollera resultatet i feeden vid osäkerhet.
+anrop redan pågår kan kartändringar och skickade uppgifter inte tas tillbaka.
+Ett redan påbörjat anrop kan slutföras även efter **Avbryt**. Kontrollera resultatet
+i feeden vid osäkerhet.
 
 <!-- page -->
 

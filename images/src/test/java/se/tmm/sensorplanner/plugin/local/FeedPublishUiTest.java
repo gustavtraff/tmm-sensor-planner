@@ -12,6 +12,9 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -181,6 +184,22 @@ public class FeedPublishUiTest {
         click(AlertDialog.BUTTON_POSITIVE);photos.fetchCompleted(Collections.singletonList(h1));drainUi();
         assertEquals(Arrays.asList("host-update","fetch","upload"),calls);assertTrue(work.isEmpty());
     }
+    @Test public void uiCancelDuringUploadPreventsTheLaterAssociation()throws Exception {
+        attachSecondPhoto();
+        AtomicBoolean returnedAfterCancel=new AtomicBoolean();
+        photo.afterUpload=()->{
+            CountDownLatch cancelled=new CountDownLatch(1);
+            ui.add(()->{publish.cancel();cancelled.countDown();});
+            try{assertTrue("UI cancellation must finish before upload returns",cancelled.await(3,TimeUnit.SECONDS));}
+            catch(InterruptedException e){Thread.currentThread().interrupt();throw new AssertionError(e);}
+            returnedAfterCancel.set(true);
+        };
+        open();confirm();
+        assertTrue("Upload returned successfully after UI cancellation",returnedAfterCancel.get());
+        assertEquals(Arrays.asList("host-update","fetch","upload"),calls);
+        assertFalse(publish.isBusy());assertNull(dialog());assertEquals(0,published);
+        assertFalse(photos.awaitingRemoval(device));
+    }
     @Test public void replacedPhotoIsRemovedOnlyByAnExplicitPublicera()throws Exception {
         attachSecondPhoto();open();confirm();assertEquals("Publicerad",title());click(AlertDialog.BUTTON_POSITIVE);
         ImageAssociationRegistry.Record fresh=intake(ImageContainerCodec.read(new ByteArrayInputStream(photo.body)));
@@ -239,10 +258,10 @@ public class FeedPublishUiTest {
         try{TmmDraft d=saved();assertEquals(d.updatedAt,prepared.metadata.updatedAt);if(nativePublishes)remote=feedCopy(d);}catch(IOException e){throw new AssertionError(e);}
     }
     private final class Photo implements FeedPhotoPublication.Transport {
-        byte[] body;WriteFailure.Kind uploadFailure;
+        byte[] body;WriteFailure.Kind uploadFailure;Runnable afterUpload=()->{};
         public String upload(String name,String creatorUid,byte[] container,MissionReadAttempt attempt)throws WriteFailure {
             calls.add("upload");body=container.clone();if(uploadFailure!=null)throw new WriteFailure(uploadFailure);
-            try{StringBuilder out=new StringBuilder();for(byte b:java.security.MessageDigest.getInstance("SHA-256").digest(container))out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();}
+            afterUpload.run();try{StringBuilder out=new StringBuilder();for(byte b:java.security.MessageDigest.getInstance("SHA-256").digest(container))out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();}
             catch(Exception e){throw new AssertionError(e);}
         }
         public void associate(String guid,String hash,String creatorUid,MissionReadAttempt attempt){calls.add("associate");}

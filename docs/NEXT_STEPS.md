@@ -13,7 +13,12 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - Automatic receiving (#236/#242), **Publicera** with photo (#243/#264), and geometry
   updates (#189/#259) are merged. The approved decisions are U1–U8, S1–S4, W1–W5,
   M1–M7 and G1–G5; their contracts remain authoritative.
-- **Candidate 31** (`versionCode 31`, `0.1.0-feed-sync-trial.1`, #252) is signed from
+- **Candidate 32** (`versionCode 32`, `0.1.0-feed-sync-trial.2`, #252) is prepared
+  for owner review and signing. It contains the usability/API-port updates and
+  the approved #268 cancellation fix. It is not signed or device-tested. The owner
+  must approve the exact PR/source before merge and signing; the archive procedure
+  is [here](SIGNING_SOURCE.md#prepare-the-exact-reviewed-source).
+- **Candidate 31** (`versionCode 31`, `0.1.0-feed-sync-trial.1`, #252) remains signed from
   main `7df6347`. Its hash, signature and APK packaging checks passed; its signer
   matches candidates 29/30. The private record is
   `private-data/releases/v31/verification.json`.
@@ -31,8 +36,8 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - **Usability updates (#270/#272)** separate ordinary work from **Avancerat / test**,
   clarify connection settings and the native publication handoff, and update the
   guides. New feed setup suggests ATAK's saved API port; existing following stays
-  unchanged. These source changes are newer than signed candidate 31; a new
-  owner-approved signed package and its device checks are still needed.
+  unchanged. The guides now describe candidate 32; signed candidate 31 does not
+  contain these changes.
 
 ## Remaining acceptance (#252)
 
@@ -49,9 +54,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 4. Check the Swedish guide's native steps against the signed candidate before
    handing it to users. Physical/coexistence and release gates remain in
    [Testing](TESTING.md#manual-acceptance-and-release-gates).
-5. Resolve #268 before closing cancellation acceptance: static review found that
-   cancelling during photo upload can still be followed by a new association
-   request. Its outbound-behavior proposal awaits owner approval before code.
+5. The #268 fix rechecks cancellation before each new photo request. Its proposal
+   was owner-approved before code; merge approval remains required. Native
+   cancellation/interruption acceptance stays open under #252 after merge.
 
 ## Maintenance and acceptance
 
