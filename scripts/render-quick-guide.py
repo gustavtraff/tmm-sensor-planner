@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the user guide's headings, paragraphs and lists as a four-page PDF.
+"""Render the quick guide's headings, paragraphs and lists as a PDF.
 
 Requires reportlab. Page comments in the Markdown define the printed sections.
 """
@@ -70,7 +70,7 @@ def render(source, output, font_dir):
         canvas.setFillColor(teal)
         canvas.rect(0, height - 8, width, 8, fill=1, stroke=0)
         canvas.setFont("GuideBold", 8.5)
-        canvas.drawString(43, height - 31, "TMM SENSOR PLANNER  /  ANVÄNDARGUIDE")
+        canvas.drawString(43, height - 31, "TMM SENSOR PLANNER  /  SNABBGUIDE")
         canvas.setStrokeColor(HexColor("#d6e0e3"))
         canvas.line(43, 44, width - 43, 44)
         canvas.setFillColor(muted)
@@ -81,7 +81,7 @@ def render(source, output, font_dir):
 
     output.parent.mkdir(parents=True, exist_ok=True)
     SimpleDocTemplate(str(output), pagesize=A4, rightMargin=43, leftMargin=43,
-                      topMargin=48, bottomMargin=59, title="TMM Sensor Planner - användarguide",
+                      topMargin=48, bottomMargin=59, title="TMM Sensor Planner - snabbguide",
                       author="TMM Sensor Planner").build(story, onFirstPage=frame, onLaterPages=frame)
     if len(rendered_pages) != len(sections):
         raise ValueError("Guide overflowed its intended pages; shorten content before delivery")
@@ -90,7 +90,7 @@ def render(source, output, font_dir):
 if __name__ == "__main__":
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=root / "docs/ANVANDARGUIDE.md")
+    parser.add_argument("--source", type=Path, default=root / "docs/SNABBGUIDE.md")
     parser.add_argument("--output", type=Path, default=root / "output/pdf/tmm-sensor-planner-snabbguide.pdf")
     parser.add_argument("--font-dir", type=Path, default=Path("/System/Library/Fonts/Supplemental"))
     args = parser.parse_args()
