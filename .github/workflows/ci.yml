@@ -30,6 +30,8 @@ jobs:
           python3 scripts/test-datasync-metadata-probe.py
       - name: Check local auth helper without network
         run: python3 scripts/test-github-auth.py
+      - name: Check lab memory guard without a lab
+        run: python3 scripts/test-lab-memory-guard.py
       - name: Check signing-source archive boundaries without network
         run: python3 scripts/test-signing-source.py
       - name: Generate and verify synthetic attachment fixture
