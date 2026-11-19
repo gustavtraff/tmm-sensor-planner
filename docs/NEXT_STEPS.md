@@ -69,6 +69,7 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 ## Where to look
 
 [Open issues](https://github.com/gustavtraff/tmm-sensor-planner/issues) own bounded
-remaining work. [The Swedish user guide](ANVANDARGUIDE.md) (#253) covers the online workflow. [Testing](TESTING.md) owns reusable checks and release gates.
+remaining work. [The Swedish quick guide](SNABBGUIDE.md) covers first use from the supplied APK;
+[the full user guide](ANVANDARGUIDE.md) (#253) is the reference. [Testing](TESTING.md) owns reusable checks and release gates.
 [Data model](DATA_MODEL.md) indexes contracts; dated evidence and old status are in
 [the archive](archive/README.md). Replace this status on update; do not append history.

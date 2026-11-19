@@ -1,12 +1,28 @@
 # TMM Sensor Planner - användarguide
 
-<!-- Maintainers: this guide follows the usability source changes after signed candidate 31. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The PDF is generated from this Markdown with scripts/render-quick-guide.py; page comments control its layout. -->
+<!-- Maintainers: full reference for the usability source changes after signed candidate 31. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The concise PDF is generated from SNABBGUIDE.md with scripts/render-quick-guide.py. -->
 
 **Om versionen:** Guiden beskriver det uppdaterade gränssnittet efter kandidat 31.
 Det ingår ännu inte i den signerade kandidat 31. Kontrollera vilken version du har.
 Använd bara övningsdata tills ansvarig person har godkänt användningen.
 
 ## 1. Kom igång
+
+### Installera APK:n från ansvarig
+
+Om ATAK redan är anslutet och du prenumererar på gruppens feed i Data Sync ska du
+inte skapa en ny serveranslutning. Spara den mottagna APK-filen på telefonen, öppna
+den och välj **Installera**. Tillåt installation från appen som öppnar filen om
+Android frågar. Starta om ATAK och godkänn att TMM laddas om frågan visas. Öppna
+**TMM Sensor Planner** i ATAK:s verktygsmeny. Saknas TMM eller nekas laddningen,
+kontakta den som skickade APK:n för kontroll av rätt version.
+
+Om **Arbeta uppkopplad** visas, läs villkoren och välj **Fortsätt**. Vid en helt ny
+installation kan TMM sedan fråga **Starta utan lokal historik?**. Välj **Starta utan
+historik** endast om du inte har tidigare TMM-data att bevara. Har du använt TMM
+tidigare och historik saknas oväntat, avbryt och utred med ansvarig.
+
+### Välj feed i TMM
 
 TMM hjälper dig att skapa enheter, ändra dem vid utplacering och dela uppdateringar
 med gruppen. En **feed** är gruppens gemensamma samling i ATAK:s Data Sync.
@@ -18,14 +34,13 @@ och den ska vara ansluten.
 
 1. Anslut servern i ATAK. Öppna gruppens feed i **Data Sync** och prenumerera där.
    TMM:s **Följ feed** ersätter inte den prenumerationen.
-2. Öppna **TMM Sensor Planner** i ATAK:s verktygsmeny. Om **Arbeta uppkopplad**
-   visas första gången: läs villkoren och välj **Fortsätt** om de är uppfyllda.
-   Denna version kräver övningsdata i en separat testmiljö. Välj sedan **Följ feed**.
+2. Öppna **TMM Sensor Planner** i ATAK:s verktygsmeny. Välj **Följ feed**.
 3. Välj den anslutna ATAK-servern. I **Anslut delad feed** föreslås API-porten som
    redan är sparad i ATAK. Kontrollera att den gäller vald server.
    Ändra vid behov under **Anslutningsinställningar** och välj **Läs tillgängliga feeds**.
 4. Välj gruppens feed i **Välj feed att följa**. Läs sammanfattningen och bekräfta
-   med **Följ feed**. Bekräfta eventuell fråga om att starta mottagningshistorik.
+   med **Följ feed**. Vid första installationen, välj **Starta saknad historik** om
+   frågan visas. Saknas tidigare historik oväntat: avbryt och kontakta ansvarig.
 5. Kontrollera att rätt feed visas. TMM hämtar nu uppdateringar automatiskt medan
    ATAK körs och pluginet är laddat.
 
@@ -51,7 +66,7 @@ publicerar ingenting. Anslutningen till en server delar inte dina privata utkast
 
 1. Tryck **Skapa enhet**. Ange **Enhetens ID**, typ (Mini, Scout, PIR eller Gateway),
    ägare och status. Använd samma ID som på enhetens märkning.
-2. Välj **Välj plats på kartan**, flytta kartan och bekräfta med **Använd plats**.
+2. Välj **Välj plats på kartan**, flytta kartan så att siktet ligger rätt och bekräfta med **Använd plats**.
    Du kan också skriva en fullständig MGRS-referens i formuläret.
 3. För **PIR** och **Scout**: ange **Bäring** i hela mils på en 6400-milscirkel.
    Mini och Gateway har ingen bäring. Sann nord är referensen och vinkeln går medurs:
@@ -97,19 +112,25 @@ bestämmer vart uppgifterna skickas.
 2. Granska **Publicera till** och feedens namn, uppgifterna och eventuell ny bild.
    Vid flytt ser du gammal och ny position och måste bekräfta att den nya positionen
    är kontrollerad. Tryck **Publicera** för att gå vidare.
-3. I publiceringsdialogen, tryck **Fortsätt i ATAK** för att stänga dialogen
-   och utföra nästa steg. TMM fortsätter kontrollera feeden i bakgrunden.
-   **Ny enhet:** öppna den avsedda feeden i ATAK:s **Data Sync**, välj **Add Items**,
-   markera enheten och tryck **Done**. Publicera i TMM gör alltså inte hela detta
-   första steg åt dig.
-4. **Befintlig enhet:** ATAK kan visa **Publish Content to Feeds**. Välj bara den
-   avsedda feeden och besvara frågan. **Nej** återställer inte en kartändring som
-   redan gjorts i ATAK.
-5. TMM väntar upp till cirka 30 sekunder på att exakt de publicerade uppgifterna
-   syns i feeden och laddar därefter upp en ny bild. En oförändrad bild laddas inte
-   upp igen. Utan bild publiceras bara uppgifterna. Du får ett resultat när försöket
-   är klart. Om dialogen är kvar visas **Väntar på feeden** och vid en ny bild
-   **Publicerar bilden**; efter **Fortsätt i ATAK** är dialogen stängd under väntan.
+3. Om TMM-dialogen ligger i vägen, tryck **Fortsätt i ATAK** för att stänga den
+   och utföra rätt alternativ nedan. TMM fortsätter kontrollera feeden i bakgrunden.
+
+Följ TMM:s förhandsvisning. Även en enhet som redan finns i feeden kan behöva en
+ny kartkopia i ATAK på den här telefonen.
+
+**TMM visar NY ENHET I KARTAN:** öppna den avsedda feeden i ATAK:s
+**Data Sync**, välj **Add Items**, markera enheten och tryck **Done**.
+Publicera i TMM gör inte hela detta första steg åt dig.
+
+**Annars, uppdatering av befintlig kartkopia:** ATAK kan visa **Publish Content to Feeds**.
+Välj bara den avsedda feeden och besvara frågan. **Nej** återställer inte en
+kartändring som redan gjorts i ATAK.
+
+TMM väntar upp till cirka 30 sekunder på att exakt de publicerade uppgifterna
+syns i feeden och laddar därefter upp en ny bild. En oförändrad bild laddas inte
+upp igen. Utan bild publiceras bara uppgifterna. Du får ett resultat när försöket
+är klart. Om dialogen är kvar visas **Väntar på feeden** och vid en ny bild
+**Publicerar bilden**; efter **Fortsätt i ATAK** är dialogen stängd under väntan.
 
 ATAK:s egna knapptexter kan skilja sig mellan installationer. Data Sync bestämmer
 metadataflödets destination; kontrollera därför feedvalet där också. **Publicerad**
