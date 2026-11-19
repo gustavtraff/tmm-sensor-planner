@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.view.View;
 import android.view.inputmethod.*;
 import android.widget.*;
 import java.util.*;
@@ -17,16 +18,18 @@ public final class MissionSourceChoiceUi {
         void selected(MissionEndpoint endpoint);
     }
     private final String purpose;
+    private final boolean following;
     private final Context context;private final Host host;private AlertDialog dialog;private boolean closed;
     public MissionSourceChoiceUi(Context context,Host host){this(context,host,
             "Endast uttrycklig hämtning av metadata. Dina utkast, positioner och bilder skickas inte. Ingen publicering, prenumeration eller bildhämtning startas. ");}
-    public MissionSourceChoiceUi(Context context,Host host,String purpose){this.context=context;this.host=host;this.purpose=purpose;}
+    public MissionSourceChoiceUi(Context context,Host host,String purpose){this(context,host,purpose,false);}
+    public MissionSourceChoiceUi(Context context,Host host,String purpose,boolean following){this.context=context;this.host=host;this.purpose=purpose;this.following=following;}
     public boolean isBusy(){return dialog!=null&&dialog.isShowing();}
     public void show(){
         if(closed||isBusy()||!host.available())return;
         try{
             List<String> streams=new ArrayList<>(host.profiles());
-            if(streams.isEmpty()){info("Ingen ansluten TLS-server","Anslut en SSL-server i ATAK först. Endast den vanliga kommunikationsleverantören och DNS/IPv4-profiler stöds i detta prov.");return;}
+            if(streams.isEmpty()){info("Ingen ansluten TLS-server","Anslut servern i ATAK först. TMM använder ATAK:s vanliga TLS-anslutning; servernamn och IPv4-adresser stöds.");return;}
             if(streams.size()>32||new HashSet<>(streams).size()!=streams.size())throw new IllegalArgumentException();
             for(String stream:streams)MissionEndpoint.fromProfile(stream,8443);
             AlertDialog next=new AlertDialog.Builder(context).setTitle("Välj ansluten ATAK-server")
@@ -39,13 +42,25 @@ public final class MissionSourceChoiceUi {
         LinearLayout body=new LinearLayout(context);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(24,16,24,16);
         TextView message=new TextView(context);message.setText("Vald ATAK-anslutning: "+stream
                 +"\n\n"+purpose
-                +"ATAK:s befintliga TLS-profil används utan att TMM kopierar nycklar eller lösenord. Bekräfta att du får använda servern för testet."
-                +"\n\nHTTPS-port för Mission API (ofta 8443). Detta är inte strömporten ovan. Fråga serverägaren vid behov.");body.addView(message);
-        EditText input=new EditText(context);input.setContentDescription("HTTPS-port för Mission API");input.setInputType(InputType.TYPE_CLASS_NUMBER);input.setSingleLine(true);
+                +"ATAK:s befintliga TLS-profil används utan att TMM kopierar nycklar eller lösenord. "
+                +(following?"Kontrollera att detta är servern för gruppens delade feed.":"Bekräfta att du får använda servern för testet."));body.addView(message);
+        TextView portSummary=new TextView(context);portSummary.setText("HTTPS-port: 8443");if(following)body.addView(portSummary);
+        LinearLayout settings=new LinearLayout(context);settings.setOrientation(LinearLayout.VERTICAL);
+        TextView explanation=new TextView(context);explanation.setText("HTTPS-port för feedens metadata och bilder (Mission API, ofta 8443). "
+                +"Den är separat från ATAK:s vanliga anslutningsport. Behåll 8443 om serveransvarig har bekräftat den; ändra annars till det värde du fått.");settings.addView(explanation);
+        EditText input=new EditText(context);input.setContentDescription("HTTPS-port för feeden");input.setInputType(InputType.TYPE_CLASS_NUMBER);input.setSingleLine(true);
         input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(5)});input.setText("8443");input.setSelectAllOnFocus(true);input.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        input.setOnEditorActionListener((v,action,event)->{if(action!=EditorInfo.IME_ACTION_DONE)return false;InputMethodManager keyboard=(InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);if(keyboard!=null)keyboard.hideSoftInputFromWindow(input.getWindowToken(),0);input.clearFocus();return true;});body.addView(input);
+        input.setOnEditorActionListener((v,action,event)->{if(action!=EditorInfo.IME_ACTION_DONE)return false;InputMethodManager keyboard=(InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);if(keyboard!=null)keyboard.hideSoftInputFromWindow(input.getWindowToken(),0);input.clearFocus();return true;});settings.addView(input);
+        Button toggle=new Button(context);toggle.setText("Anslutningsinställningar");toggle.setMinHeight(Math.round(48*context.getResources().getDisplayMetrics().density));
+        if(following){
+            settings.setVisibility(View.GONE);body.addView(toggle);
+            toggle.setOnClickListener(v->{boolean show=settings.getVisibility()!=View.VISIBLE;settings.setVisibility(show?View.VISIBLE:View.GONE);
+                toggle.setText(show?"Dölj anslutningsinställningar":"Anslutningsinställningar");portSummary.setText("HTTPS-port: "+input.getText());});
+        }
+        body.addView(settings);
         TextView error=new TextView(context);body.addView(error);
-        AlertDialog next=new AlertDialog.Builder(context).setTitle("Bekräfta server för hämtning").setView(body)
+        ScrollView scroll=new ScrollView(context);scroll.addView(body);
+        AlertDialog next=new AlertDialog.Builder(context).setTitle(following?"Anslut delad feed":"Bekräfta server för hämtning").setView(scroll)
                 .setNegativeButton("Avbryt",(d,w)->{if(dialog==d)cancel();}).setPositiveButton("Läs tillgängliga feeds",null).create();replace(next);
         next.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
             if(closed||dialog!=next)return;if(!host.available()){cancel();return;}
@@ -54,7 +69,7 @@ public final class MissionSourceChoiceUi {
                 String value=input.getText().toString();if(!value.matches("[0-9]{1,5}"))throw new IllegalArgumentException();
                 endpoint=MissionEndpoint.fromProfile(stream,Integer.parseInt(value));
                 if(!host.profiles().contains(stream))throw new IllegalArgumentException();
-            }catch(RuntimeException unsupported){error.setText("Ange en port 1–65535 och kontrollera att samma TLS-profil fortfarande är ansluten. Ingen hämtning startades.");return;}
+            }catch(RuntimeException unsupported){settings.setVisibility(View.VISIBLE);toggle.setText("Dölj anslutningsinställningar");error.setText("Ange en port 1–65535 och kontrollera att samma TLS-profil fortfarande är ansluten. Ingen hämtning startades.");return;}
             cancel();try{host.selected(endpoint);}catch(RuntimeException unavailable){info("Starten är obekräftad","Servervalet kunde inte slutföras. Kontrollera anslutningen och inkorgen före ett nytt försök. Ingen annan källa väljs automatiskt.");}
         });
     }

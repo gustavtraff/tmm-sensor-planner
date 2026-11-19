@@ -103,8 +103,8 @@ public class FeedPublishUiTest {
         assertTrue(calls.isEmpty());
         confirm();
         assertEquals(Arrays.asList("host-update","fetch","upload","associate"),calls);
-        assertEquals("Publicerad",title());assertTrue(message().contains("Metadata finns i Synthetic follow"));
-        assertTrue("No delivery claim from the native step",message().contains("obekräftade"));assertEquals(1,published);
+        assertEquals("Publicerad",title());assertTrue(message().contains("Uppgifterna finns i feeden Synthetic follow"));
+        assertTrue("No delivery claim from the native step",details().contains("obekräftade"));assertEquals(1,published);
         // The container is bound to exactly the M read back (U4 rule 1).
         ReceivedImagePayload sent=ImageContainerCodec.read(new ByteArrayInputStream(photo.body));
         assertEquals(saved().updatedAt,sent.offer.metadata.updatedAt);assertEquals(device,sent.offer.metadata.uid);
@@ -130,6 +130,20 @@ public class FeedPublishUiTest {
         hostCopy=false;
         String preview=open();assertTrue(preview,preview.contains("NY ENHET")&&preview.contains("Add Items")&&preview.contains("Done"));
         confirm();assertEquals(Arrays.asList("host-create","fetch"),calls);assertEquals("Publicerad",title());
+    }
+    @Test public void continuingInAtakDismissesTheModalWithoutCancellingTheConfirmedAttempt()throws Exception {
+        hostCopy=false;
+        open();click(AlertDialog.BUTTON_POSITIVE);
+        assertEquals("Nästa steg i ATAK",title());
+        assertTrue(message().contains("Add Items")&&message().contains("Done"));
+        assertEquals("Fortsätt i ATAK",dialog().getButton(AlertDialog.BUTTON_NEUTRAL).getText().toString());
+        AlertDialog shown=dialog();click(AlertDialog.BUTTON_NEUTRAL);
+        assertFalse(shown.isShowing());assertTrue(publish.isBusy());assertNull(dialog());
+        runWorker();
+        assertEquals(Arrays.asList("host-create","fetch"),calls);
+        assertEquals("Publicerad",title());
+        assertFalse("Technical host diagnostics stay behind details",message().contains("Kartsteg:"));
+        assertTrue(details().contains("Kartsteg:"));assertEquals("Publicerad",title());
     }
     @Test public void positionChangeNeedsTheSecondAcknowledgement()throws Exception {
         TmmDraft d=saved();save(d.edit(d.displayId,d.type,d.status,d.owner,d.deployedAt,d.comment,new Position(d.position.latitude+0.5,d.position.longitude),d.bearingDeg,d.imageRef,Instant.now()));
@@ -176,7 +190,7 @@ public class FeedPublishUiTest {
         calls.clear();String preview=open();confirm();
         assertTrue(preview,preview.contains("Bilden är oförändrad"));
         assertEquals("W4 first; adopting the sent PNG left M unchanged, so no host write and no upload",Arrays.asList("remove","fetch"),calls);
-        assertTrue(message().contains("ersatta bilden togs bort")&&message().contains("Oförändrad kartkopia"));assertFalse(photos.awaitingRemoval(device));
+        String diagnostics=details();assertTrue(diagnostics.contains("ersatta bilden togs bort")&&diagnostics.contains("Oförändrad kartkopia"));assertFalse(photos.awaitingRemoval(device));
         assertEquals("Publicerad",title());
     }
     @Test public void unchangedPubliceraAfterAPhotoPublishMakesNoHostWrite()throws Exception {
@@ -185,7 +199,7 @@ public class FeedPublishUiTest {
         String written=hostLabel;assertNotEquals("Adopting the sent PNG bumped the local revision",written,label(saved()));
         calls.clear();open();confirm();
         assertEquals(Collections.singletonList("fetch"),calls);assertEquals(written,hostLabel);
-        assertTrue(message().contains("Oförändrad kartkopia"));assertEquals("Publicerad",title());
+        assertTrue(details().contains("Oförändrad kartkopia"));assertEquals("Publicerad",title());
         // A real metadata change still writes, with the current revision in the label.
         click(AlertDialog.BUTTON_POSITIVE);calls.clear();
         TmmDraft d=saved();save(d.edit(d.displayId,d.type,DeviceStatus.values()[(d.status.ordinal()+1)%DeviceStatus.values().length],d.owner,d.deployedAt,d.comment,d.position,d.bearingDeg,d.imageRef,Instant.now()));
@@ -265,6 +279,10 @@ public class FeedPublishUiTest {
     private AlertDialog dialog()throws Exception {Field f=FeedPublishUi.class.getDeclaredField("dialog");f.setAccessible(true);return (AlertDialog)f.get(publish);}
     private String title()throws Exception {return shadowOf(dialog()).getTitle().toString();}
     private String message()throws Exception {CharSequence m=shadowOf(dialog()).getMessage();return m==null?"":m.toString();}
+    private String details()throws Exception {
+        click(AlertDialog.BUTTON_NEUTRAL);assertEquals("Publiceringsdetaljer",title());
+        String text=message();click(AlertDialog.BUTTON_POSITIVE);return text;
+    }
     private static String text(View view){
         if(view instanceof android.widget.TextView)return ((android.widget.TextView)view).getText().toString();
         StringBuilder out=new StringBuilder();

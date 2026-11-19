@@ -5,10 +5,10 @@ on the real TAK Server 5.6 with two phones. It implements the M4 clarification i
 [the metadata route proposal](PUBLISH_METADATA_ROUTE_PROPOSAL.md): about 15 minutes of
 checks with one synthetic device, then real exercise data only after the owner
 records a go, otherwise the candidate 30 fallback (#222). The steps and the result
-form are Swedish because the owner reads them in the field. TMM texts are quoted from the
-integrated UI (PR #264). Only ATAK's own native steps (Add Items, Done, the native
-publish prompt and its **Nej**) say "(kontrollera mot signerad version)", because the
-signed candidate may word them differently. Record results without operational
+form are Swedish because the owner reads them in the field. The integrated UI
+(PR #264) is in signed candidate 31; the #270 usability changes are newer source.
+Record the exact signed build and verify its labels, including ATAK's native
+Add Items, Done and publication prompt. Record results without operational
 data (no real locations, photos, server names or accounts).
 
 # Övningsprov: protokoll
@@ -16,6 +16,11 @@ data (no real locations, photos, server names or accounts).
 Två telefoner, A och B. Testenhet: ett tydligt falskt namn (till exempel
 "TESTENHET-INTE-RIKTIG") och en testbild utan operativt värde. Använd aldrig
 verkliga platser eller bilder under kontrollerna.
+
+**Om gränssnittet:** i uppdateringen efter kandidat 31 heter listans **Ej publicerad**
+i stället **Ändringar att publicera**; betydelsen är densamma. Om publiceringsdialogen
+visar **Fortsätt i ATAK**, tryck där för att komma åt Data Sync. TMM fortsätter då
+kontrollera feeden i upp till 30 sekunder. Knappen **Avbryt** är inte samma sak.
 
 ## 1. Förberedelser
 

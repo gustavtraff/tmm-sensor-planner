@@ -59,6 +59,7 @@ final class LocalPlanner {
     private LocalV2Store.Inspection storage;
     private final BooleanSupplier localAllowed;
     private final BooleanSupplier labAllowed;
+    private final Runnable labTools;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final DraftAttachments attachments;
     private final LocalImageUi imagesUi;
@@ -82,13 +83,17 @@ final class LocalPlanner {
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
     private AlertDialog confirmation;
+    private AlertDialog listDialog;
+    private Button feedButton;
+    private TextView feedStatus;
     private MapPositionPicker positionPicker;
     private volatile boolean closed;
 
     LocalPlanner(MapView map, IHostUIService ui, BooleanSupplier localAllowed, BooleanSupplier labAllowed,
-                 String imageCopyNotice) throws Exception {
+                 String imageCopyNotice, Runnable labTools) throws Exception {
         this.localAllowed = localAllowed;
         this.labAllowed = labAllowed;
+        this.labTools = Objects.requireNonNull(labTools);
         this.map = map;
         this.context = map.getContext();
         this.ui = ui;
@@ -225,6 +230,7 @@ final class LocalPlanner {
             }
             public String summary(TmmDraft draft){return draftSummary(draft);}
             public void resolved(){if(!closed){marks=currentMarks();storageUi.load(false);}}
+            public void statusChanged(){updateFeedStatus();}
         });
         feedFollow.start();
     }
@@ -295,7 +301,7 @@ final class LocalPlanner {
 
     private boolean localAccess() {
         if (localAllowed.getAsBoolean()) return true;
-        ui.showToast("Öppna TMM och välj lokalt test, eller använd offline-läge");
+        ui.showToast("Öppna TMM och välj Arbeta uppkopplad, eller använd offline-läge");
         return false;
     }
 
@@ -304,22 +310,72 @@ final class LocalPlanner {
         LocalV2.Snapshot listed = storage.snapshot;
         String[] rows = new String[drafts.size()];
         for (int i = 0; i < rows.length; i++) {
-            String marker = feedFollow.marker(drafts.get(i).uid);
-            rows[i] = title(drafts.get(i)) + (marker == null ? "" : " · " + marker) + "\nLokalt utkast";
+            rows[i] = title(drafts.get(i)) + "\n" + deviceState(drafts.get(i).uid);
         }
         dismiss();
         LinearLayout inboxActions = column(); inboxActions.addView(label(LocalStorageUi.warning(storage)));
-        inboxActions.addView(button(feedFollow.label(), () -> { dismiss(); feedFollow.show(); }));
-        inboxActions.addView(button("Bilddelning · test", () -> { dismiss(); imageTrial.show(null); }));
-        inboxActions.addView(button("Mottagna metadata", () -> { dismiss(); inboxUi.show(); }));
-        inboxActions.addView(button("Hämta metadata · test", () -> { dismiss(); inboxUi.cancel(); sourceChoice.show(); }));
-        dialog = new AlertDialog.Builder(context).setTitle("TMM – lokala utkast (" + rows.length + ")"
-                        + (labAllowed.getAsBoolean() ? "" : " · testläge"))
+        feedButton=button(feedFollow.label(), () -> { dismiss(); feedFollow.show(); });
+        feedStatus=label(feedFollow.connectionStatus());
+        inboxActions.addView(feedButton);
+        inboxActions.addView(feedStatus);
+        inboxActions.addView(label("Dina ändringar sparas lokalt. Dela dem med Publicera.\nEndast syntetiska data i denna version."));
+        inboxActions.addView(button("Avancerat / test", () -> advanced(null)));
+        dialog = new AlertDialog.Builder(context).setTitle("TMM – enheter (" + rows.length + ")")
                 .setItems(rows, (ignored, index) -> review(listed.select(listed.activeDrafts().get(index).uid)))
                 .setView(inboxActions)
                 .setPositiveButton("Skapa enhet", (ignored, which) -> form(null))
                 .setNeutralButton("Uppdatera", (ignored, which) -> { dismiss(); show(); })
                 .setNegativeButton("Stäng", null).create();
+        listDialog=dialog;
+        dialog.show();
+    }
+
+    private void updateFeedStatus() {
+        if (!closed && dialog != null && dialog == listDialog && dialog.isShowing()) {
+            feedButton.setText(feedFollow.label());
+            feedStatus.setText(feedFollow.connectionStatus());
+        }
+    }
+
+    private String deviceState(UUID uid) {
+        String marker = feedFollow.marker(uid);
+        if ("Konflikt".equals(marker)) return "Konflikt";
+        if ("Ej publicerad".equals(marker)) return "Ändringar att publicera";
+        // No marker is not evidence that the current local version has reached the feed.
+        return "Sparad lokalt";
+    }
+
+    private void advanced(Selection selected) {
+        if (closed || !localAccess() || isBusy()) return;
+        UUID uid = selected == null ? null : selected.draft.uid;
+        LinearLayout tools = column();
+        tools.addView(label("Äldre manuella testverktyg. De behövs inte när du använder Följ feed och Publicera.\nAnvänd endast enligt testprotokollet."));
+        tools.addView(button("Bilddelning · test", () -> { dismiss(); imageTrial.show(uid); }));
+        tools.addView(button("Mottagna metadata", () -> { dismiss(); inboxUi.show(); }));
+        tools.addView(button("Hämta metadata · test", () -> { dismiss(); inboxUi.cancel(); sourceChoice.show(); }));
+        if (labAllowed.getAsBoolean()) tools.addView(button("CoT-labb", () -> {
+            if (labAllowed.getAsBoolean()) { dismiss(); labTools.run(); }
+        }));
+        if (selected != null) {
+            tools.addView(button("Mottagna bilder", () -> { dismiss(); imageTrial.received(uid); }));
+            tools.addView(button("Förbered metadatakopia", () -> { dismiss(); preparation.show(uid); }));
+            tools.addView(button("Publiceringsprov mot server", () -> { dismiss(); startServerTrial(uid); }));
+            if (labAllowed.getAsBoolean()) {
+                tools.addView(button("Skapa granskad kartkopia · labb", () -> {
+                    if (!ShareLabRoute.connected(context)) {
+                        ui.showToast("Kartkopieprovet kräver isolerat loopback-labb, flygplansläge och ansluten labbserver");
+                        return;
+                    }
+                    dismiss(); copyUi.show(uid);
+                }));
+                tools.addView(button("Dela metadata i isolerat labb", () -> { dismiss(); sharing.show(selected.draft); }));
+            }
+        }
+        dismiss();
+        dialog = new AlertDialog.Builder(context).setTitle("Avancerat / test").setView(scroll(tools))
+                .setNegativeButton(selected == null ? "Till listan" : "Till enheten", (d,w) -> {
+                    if (selected == null) list(); else review(selected);
+                }).create();
         dialog.show();
     }
 
@@ -333,12 +389,13 @@ final class LocalPlanner {
         content.addView(status);
         String warning = LocalStorageUi.warning(storage);
         if (!warning.isEmpty()) content.addView(label(warning));
-        content.addView(label("Lokalt utkast · delas inte automatiskt"));
+        content.addView(label(deviceState(draft.uid) + " · ändringar delas med Publicera"));
         content.addView(button("Publicera", () -> { dismiss(); publishUi.show(draft.uid); }));
         String marker = feedFollow.marker(draft.uid);
         if (marker != null) {
-            content.addView(label(marker + (feedFollow.conflicts().contains(draft.uid)
-                    ? " · din version och den inkommande skiljer sig" : " · lokala ändringar som inte är publicerade")));
+            content.addView(label(feedFollow.conflicts().contains(draft.uid)
+                    ? "Din version och den inkommande skiljer sig. Båda behålls tills du väljer."
+                    : "Lokala ändringar som inte är publicerade."));
             if (feedFollow.conflicts().contains(draft.uid)) {
                 content.addView(button("Lös konflikt", () -> { dismiss(); feedFollow.showConflict(draft.uid); }));
             }
@@ -365,7 +422,6 @@ final class LocalPlanner {
             content.addView(buttonRow(button("Visa bild", () -> imagesUi.view(draft)),
                     button("Ersätt bild", () -> imagesUi.pick(selected))));
         } else content.addView(button("Lägg till bild", () -> imagesUi.pick(selected)));
-        content.addView(button("Mottagna bilder", () -> { dismiss(); imageTrial.received(draft.uid); }));
         if (draft.type.supportsBearing()) {
             LinearLayout bearing = new LinearLayout(context);
             bearing.addView(label("Bäring: " + (draft.bearingDeg == null ? "Ej angiven" :
@@ -392,22 +448,10 @@ final class LocalPlanner {
         LinearLayout details = new LinearLayout(context);
         details.setOrientation(LinearLayout.VERTICAL);
         details.addView(label("Skapad: " + localTime(draft.createdAt) + "\nÄndrad: " + localTime(draft.updatedAt)
-                + "\nRevision: " + draft.revision + "\nLokal = utkast på denna enhet. Serveranslutning innebär inte synkronisering eller bekräftad delning."
+                + "\nRevision: " + draft.revision + "\nSparad på denna telefon. Följ feed tar emot uppdateringar; Publicera delar dina ändringar."
                 + "\nEndast syntetiska testdata i denna prototyp.\nKartpilen är en 100 m riktningsmarkering från sann nord, inte sensorräckvidd."));
         if (draft.imageRef != null) details.addView(button("Ta bort bild", () -> imagesUi.detach(selected)));
-        details.addView(button("Förbered metadatakopia", () -> preparation.show(draft.uid)));
-        if (labAllowed.getAsBoolean()) {
-            details.addView(button("Skapa granskad kartkopia · labb", () -> {
-                if (!ShareLabRoute.connected(context)) {
-                    ui.showToast("Kartkopieprovet kräver isolerat loopback-labb, flygplansläge och ansluten labbserver");
-                    return;
-                }
-                copyUi.show(draft.uid);
-            }));
-            details.addView(button("Dela metadata i isolerat labb", () -> sharing.show(draft)));
-        }
-        details.addView(button("Bilddelning · test", () -> { dismiss(); imageTrial.show(draft.uid); }));
-        details.addView(button("Publiceringsprov mot server", () -> startServerTrial(draft.uid)));
+        details.addView(button("Avancerat / test", () -> advanced(selected)));
         details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(selected)));
         details.setVisibility(View.GONE);
         Button expand = button("Fler uppgifter", () -> { });
@@ -444,7 +488,7 @@ final class LocalPlanner {
         LocalV2.Snapshot formSnapshot = storage.snapshot;
         if (closed || isBusy() || !localAccess()) return;
         LinearLayout fields = column();
-        fields.addView(label("Lokalt utkast – delas inte. Använd endast syntetiska testdata.\n"
+        fields.addView(label("Dina ändringar sparas lokalt. Dela dem med Publicera. Använd endast syntetiska testdata.\n"
                 + "Position anges i MGRS (5 + 5 siffror, 1 m ruta). Välj även plats på kartan."));
         String storageWarning = LocalStorageUi.warning(storage);
         if (!storageWarning.isEmpty()) fields.addView(label(storageWarning));
@@ -785,6 +829,7 @@ final class LocalPlanner {
     private static String distance(DistanceCalculator.Distance distance) { return distance.draft.displayId + " · " + Math.round(distance.meters) + " m"; }
     private static String localTime(Instant instant) { return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z").withZone(ZoneId.systemDefault()).format(instant); }
     private void dismiss() {
+        listDialog = null; feedButton = null; feedStatus = null;
         if (confirmation != null) { confirmation.dismiss(); confirmation = null; }
         if (dialog != null) { dialog.dismiss(); dialog = null; }
     }

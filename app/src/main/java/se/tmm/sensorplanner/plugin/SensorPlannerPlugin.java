@@ -25,7 +25,6 @@ import gov.tak.platform.marshal.MarshalManager;
 public final class SensorPlannerPlugin implements IPlugin {
     private final IHostUIService hostUi;
     private final ToolbarItem entry;
-    private final ToolbarItem cotEntry;
     private final String imageCopyNotice;
     private volatile boolean started;
     private final LocalTrialSession localSession = new LocalTrialSession();
@@ -64,36 +63,30 @@ public final class SensorPlannerPlugin implements IPlugin {
                     }
                 })
                 .build();
-        cotEntry = new ToolbarItem.Builder("TMM CoT-labb", icon)
-                .setIdentifier("se.tmm.sensorplanner.plugin.cotlab")
-                .setListener(new ToolbarItemAdapter() {
-                    @Override
-                    public void onClick(ToolbarItem item) {
-                        hostUi.queueEvent(() -> {
-                            if (!started) return;
-                            if (!labAllowed()) {
-                                hostUi.showToast("CoT-labbet är avstängt under uppkopplat lokalt test och kräver annars offline-läge");
-                                return;
-                            }
-                            if (labMenu != null) labMenu.dismiss();
-                            labMenu = new AlertDialog.Builder(MapView.getMapView().getContext())
-                                    .setTitle("Välj isolerat labbprov")
-                                    .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov", "Produktionsformat · syntetiskt prov", "Källkontext · syntetisk observation", "Mission API · läs labböversikt"}, (d, which) -> {
-                                        if (!started || !labAllowed()) return;
-                                        try {
-                                            if (which == 0) openCotLab();
-                                            else if (which == 1) openPublicationLab();
-                                            else if (which == 2) openEnvelopeLab();
-                                            else if(which==3) openIngressProbe();
-                                            else openMissionReadProbe();
-                                        } catch (RuntimeException unavailable) {
-                                            hostUi.showToast("Labbprovet kunde inte startas");
-                                        }
-                                    }).setNegativeButton("Avbryt", null).create();
-                            labMenu.show();
-                        });
+    }
+
+    private void openLabMenu() {
+        if (!started) return;
+        if (!labAllowed()) {
+            hostUi.showToast("Labbverktygen är avstängda vid uppkopplat arbete och kräver annars offline-läge");
+            return;
+        }
+        if (labMenu != null) labMenu.dismiss();
+        labMenu = new AlertDialog.Builder(MapView.getMapView().getContext())
+                .setTitle("Välj isolerat labbprov")
+                .setItems(new String[]{"Tidigare CoT-labb", "Syntetiskt SDK-importprov", "Produktionsformat · syntetiskt prov", "Källkontext · syntetisk observation", "Mission API · läs labböversikt"}, (d, which) -> {
+                    if (!started || !labAllowed()) return;
+                    try {
+                        if (which == 0) openCotLab();
+                        else if (which == 1) openPublicationLab();
+                        else if (which == 2) openEnvelopeLab();
+                        else if (which == 3) openIngressProbe();
+                        else openMissionReadProbe();
+                    } catch (RuntimeException unavailable) {
+                        hostUi.showToast("Labbprovet kunde inte startas");
                     }
-                }).build();
+                }).setNegativeButton("Avbryt", null).create();
+        labMenu.show();
     }
 
     private void openIngressProbe() {
@@ -149,7 +142,6 @@ public final class SensorPlannerPlugin implements IPlugin {
     public void onStart() {
         if (!started) {
             hostUi.addToolbarItem(entry);
-            hostUi.addToolbarItem(cotEntry);
             started = true;
             hostUi.queueEvent(() -> {
                 try { openPlanner(false); }
@@ -173,25 +165,25 @@ public final class SensorPlannerPlugin implements IPlugin {
         if (!localAllowed()) {
             if (showList && trialConsent == null) {
                 trialConsent = new AlertDialog.Builder(map.getContext())
-                        .setTitle("Uppkopplat lokalt test")
-                        .setMessage("Endast syntetiska testdata i en separat testmiljö. "
-                                + "TMM:s publicering och CoT-labb är avstängda i detta läge. "
-                                + "Valfri metadatahämtning kräver separat server- och feedval med uttrycklig bekräftelse; dina utkast och bilder skickas inte. "
-                                + "Testläget gäller tills pluginet avlastas (Unload) eller ATAK startas om.")
+                        .setTitle("Arbeta uppkopplad")
+                        .setMessage("Dina enheter och ändringar sparas lokalt. "
+                                + "Välj Följ feed för att ta emot gruppens uppdateringar. Dina ändringar delas först när du väljer Publicera och bekräftar. "
+                                + "Den här versionen får bara användas med syntetiska data i en separat testmiljö. "
+                                + "Detta val gäller tills pluginet avlastas (Unload) eller ATAK startas om; en sparad följning återupptas efter omstart.")
                         .setNegativeButton("Avbryt", null)
-                        .setPositiveButton("Starta lokalt test", (dialog, which) -> {
+                        .setPositiveButton("Fortsätt", (dialog, which) -> {
                             if (!started) return;
                             localSession.startConnectedTrial();
                             closeLabTools();
                             try { openPlanner(true); }
-                            catch (Exception unavailable) { hostUi.showToast("Det lokala testet kunde inte startas"); }
+                            catch (Exception unavailable) { hostUi.showToast("TMM kunde inte öppnas"); }
                         }).create();
                 trialConsent.setOnDismissListener(dialog -> { if (trialConsent == dialog) trialConsent = null; });
                 trialConsent.show();
             }
             return;
         }
-        if (planner == null) planner = new LocalPlanner(map, hostUi, this::localAllowed, this::labAllowed, imageCopyNotice);
+        if (planner == null) planner = new LocalPlanner(map, hostUi, this::localAllowed, this::labAllowed, imageCopyNotice, this::openLabMenu);
         if (showList) planner.show();
         else planner.restore();
     }
@@ -235,7 +227,6 @@ public final class SensorPlannerPlugin implements IPlugin {
             labMenu = null;
             if (stoppingMenu != null) hostUi.queueEvent(stoppingMenu::dismiss);
             hostUi.removeToolbarItem(entry);
-            hostUi.removeToolbarItem(cotEntry);
             if (cotProbe != null) {
                 cotProbe.close();
                 cotProbe = null;

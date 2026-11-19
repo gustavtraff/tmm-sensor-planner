@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.widget.*;
 import java.io.*;
 import java.net.URI;
 import java.nio.file.*;
@@ -51,6 +53,8 @@ public final class FeedFollowUi {
         default String summary(TmmDraft draft){return draft.displayId;}
         /** A conflict was resolved: reload local devices and the markers. */
         default void resolved(){}
+        /** Update a visible summary without reopening or dismissing the user's view. */
+        default void statusChanged(){}
     }
     private interface Network<T>{T run(MissionReadAttempt attempt)throws Exception;}
     static final long INTERVAL=60_000,MAX_INTERVAL=300_000;
@@ -80,7 +84,7 @@ public final class FeedFollowUi {
         sourceChoice=new MissionSourceChoiceUi(context,new MissionSourceChoiceUi.Host(){
             public boolean available(){return !closed&&host.available();}public List<String> profiles(){return host.profiles();}
             public void selected(MissionEndpoint endpoint){listFeeds(endpoint);}
-        },"Följ feed: TMM hämtar metadata och bilder från vald feed vid start, vid anslutning, var 60:e sekund och vid Uppdatera nu, så länge pluginet är laddat. Endast läsning (GET). Dina utkast och bilder skickas inte; ingen publicering, uppladdning, prenumeration eller kvittens. ");
+        },"Följ feed för att ta emot gruppens enheter och bilder automatiskt. Dina ändringar delas först när du väljer Publicera. ",true);
     }
 
     /** Plugin load: read the stored choice and fetch at once when following. A reader never creates the file. */
@@ -92,7 +96,7 @@ public final class FeedFollowUi {
             // U5: resolve an unconfirmed image adoption before any fetch; a failure is retried before the next plan.
             if(read!=null)try{FeedSyncState.Snapshot recovered=apply.recover();if(recovered!=null)read=recovered;}catch(Exception|OutOfMemoryError retry){}
             FeedSyncState.Snapshot value=read;String failure=error;
-            host.post(()->{if(closed)return;state=value;broken=failure;loaded=true;if(failure!=null)status=failure;trigger();});
+            host.post(()->{if(closed)return;state=value;broken=failure;loaded=true;if(failure!=null)status=failure;host.statusChanged();trigger();});
         });
     }
     public boolean isBusy(){return busy||conflictUi.isBusy()||dialog!=null&&dialog.isShowing()||sourceChoice.isBusy();}
@@ -110,6 +114,17 @@ public final class FeedFollowUi {
         FeedSyncState.Snapshot s=state;
         if(broken!=null)return "Följ feed · stoppad";if(s==null)return "Följ feed";if(!s.following)return "Följ feed · avstängd";
         return paused!=null?"Följer "+s.feedName+" · pausad":"Följer "+s.feedName;
+    }
+    /** A display summary only; connection and fetch behavior are unchanged. */
+    public String connectionStatus(){
+        if(!loaded)return "Läser inställningar för delad feed …";
+        if(broken!=null)return "Följningen är stoppad. Öppna Följ feed för mer information.";
+        FeedSyncState.Snapshot s=state;
+        if(s==null)return "Ingen delad feed vald. Dina enheter sparas lokalt.";
+        if(!s.following)return "Följningen är avstängd. Dina enheter och ändringar är sparade lokalt.";
+        if("Den sparade profilen är inte ansluten.".equals(paused))return "Offline – dina enheter och ändringar är sparade lokalt. Hämtningen fortsätter när anslutningen kommer tillbaka.";
+        if(paused!=null)return "Följningen är pausad: "+paused+" Dina enheter är sparade lokalt.";
+        return running?"Hämtar uppdateringar …":status;
     }
     /** ATAK connection callback: resumes when the stored profile became connected, pauses when it went away. */
     public void connectionChanged(){
@@ -132,11 +147,13 @@ public final class FeedFollowUi {
         try{transport=host.connect(endpoint);}catch(RuntimeException unavailable){pause("Den sparade källan kunde inte öppnas.");reschedule();return;}
         long token=generation.incrementAndGet();running=true;status="Hämtar …";
         try{network.execute(()->fetch(token,s,transport));}catch(RejectedExecutionException stopping){running=false;}
+        host.statusChanged();
     }
     private void reschedule(){handler.removeCallbacks(tick);if(!closed&&following())handler.postDelayed(tick,delay);}
     private void pause(String reason){
         if(!reason.equals(paused))host.notice("TMM-följning pausad: "+reason);
         paused=reason;status="Pausad: "+reason+" Ingen annan källa används.";
+        host.statusChanged();
     }
     private String pauseReason(){
         FeedSyncState.Snapshot s=state;
@@ -229,6 +246,7 @@ public final class FeedFollowUi {
             if(reason!=null)pause(reason);
             else{delay=Math.min(delay*2,MAX_INTERVAL);status="Hämtningen misslyckades. Nytt försök om "+delay/1000+" s. Mottagen historik behålls.";}
         }
+        host.statusChanged();
         reschedule();
     }
     private void stopAttempt(){generation.incrementAndGet();running=false;MissionReadAttempt a=pending;pending=null;if(a!=null)a.cancel();}
@@ -238,10 +256,16 @@ public final class FeedFollowUi {
         if(broken!=null){info("Följning stoppad",broken);return;}
         FeedSyncState.Snapshot s=state;
         if(s==null){sourceChoice.show();return;}
-        String text="Feed: "+s.feedName+"\nKälla: "+s.contextId.substring("mission-api-v1|".length())+"\nProfil: "+s.streamConnect+"\n\n"
-                +(s.following?status:"Följningen är avstängd. Mottagen historik finns kvar.")
-                +"\n\nEndast läsning (GET). Inget publiceras, laddas upp eller kvitteras. Mottaget sparas i inkorgen och bildhistoriken. Konfliktfria uppdateringar tillämpas på lokala enheter och bilder; vid konflikt behålls din version.";
+        String text="Feed: "+s.feedName+"\n\n"+connectionStatus()
+                +"\n\nAndras uppdateringar tas emot automatiskt medan du följer feeden. Vid konflikt behålls båda versionerna. Dina egna ändringar delas först när du väljer Publicera.";
+        LinearLayout details=new LinearLayout(context);details.setOrientation(LinearLayout.VERTICAL);details.setPadding(24,0,24,16);
+        TextView technical=new TextView(context);technical.setText("Källa: "+s.contextId.substring("mission-api-v1|".length())+"\nProfil: "+s.streamConnect
+                +"\n\nHämtning använder endast läsning (GET). Ingen publicering, uppladdning, prenumeration eller kvittens startas av hämtningen.");technical.setVisibility(View.GONE);
+        Button expand=new Button(context);expand.setText("Visa anslutningsdetaljer");expand.setMinHeight(Math.round(48*context.getResources().getDisplayMetrics().density));
+        expand.setOnClickListener(v->{boolean show=technical.getVisibility()!=View.VISIBLE;technical.setVisibility(show?View.VISIBLE:View.GONE);expand.setText(show?"Dölj anslutningsdetaljer":"Visa anslutningsdetaljer");});
+        details.addView(expand);details.addView(technical);
         AlertDialog.Builder b=new AlertDialog.Builder(context).setTitle(s.following?"Följer feed":"Följning avstängd").setMessage(text)
+                .setView(details)
                 .setNegativeButton("Stäng",(d,w)->{if(dialog==d)dismiss();});
         if(s.following)b.setPositiveButton("Uppdatera nu",(d,w)->{if(dialog==d){dismiss();refresh();}}).setNeutralButton("Sluta följa",(d,w)->{if(dialog==d)setFollowing(false);});
         else b.setPositiveButton("Följ igen",(d,w)->{if(dialog==d)setFollowing(true);});
@@ -261,6 +285,7 @@ public final class FeedFollowUi {
                 if(result==null){info("Ändringen är obekräftad","Följningsfilen kan redan vara ändrad. Öppna Följ feed igen för att läsa aktuellt läge.");loaded=false;start();return;}
                 state=result;if(result.following){paused=null;delay=INTERVAL;status="Ingen hämtning ännu.";trigger();}
                 else status="Följningen är avstängd.";
+                host.statusChanged();
                 show();
             });
         });

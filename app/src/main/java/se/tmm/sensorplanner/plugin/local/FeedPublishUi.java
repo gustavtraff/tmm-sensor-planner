@@ -141,10 +141,9 @@ public final class FeedPublishUi {
         if(p.bitmap!=null){ImageView image=new ImageView(context);image.setImageBitmap(p.bitmap);image.setAdjustViewBounds(true);image.setContentDescription("Bild som publiceras");body.addView(image);}
         // M3: Data Sync decides the metadata destination; TMM reports success only from readback.
         TextView route=new TextView(context);
-        route.setText("\nATAK:s Data Sync bestämmer vart metadata går; TMM kan inte styra det. Välj endast "+feed+"."
-                +(old==null?" Ny enhet: öppna "+feed+" i Data Sync, välj Add Items, markera enheten och tryck Done."
-                        :" ATAK kan fråga Publish Content to Feeds. Nej ångrar inte kartändringen.")
-                +"\nTMM visar Publicerad först när en hämtning av "+feed+" visar exakt denna metadata (upp till 30 s)."
+        route.setText("\nNÄSTA STEG I ATAK\n"+nativeStep(old==null,feed)
+                +"\nATAK:s Data Sync bestämmer vart uppgifterna går; TMM kan inte styra det. Välj endast "+feed+"."
+                +"\nTMM visar Publicerad när samma uppgifter har lästs tillbaka från "+feed+" (upp till 30 s)."
                 +(p.photo!=null?" Syns den inte laddas ingen bild upp.":"")
                 +"\nEndast syntetiska data i denna version.");
         body.addView(route);
@@ -159,7 +158,9 @@ public final class FeedPublishUi {
         position.setOnCheckedChangeListener((b,checked)->shown.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(checked));
         shown.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
             synchronized(lifecycle){if(!valid(token)||pending!=p||!position.isChecked())return;pending=null;}
-            progress("Publicerar","Svara på eventuell Data Sync-fråga i ATAK och välj endast "+feed+". TMM väntar sedan upp till 30 s på att metadata syns i feeden.");
+            progress("Nästa steg i ATAK",nativeStep(p.update==null,feed)
+                    +"\n\nTryck Fortsätt i ATAK för att komma åt Data Sync. TMM fortsätter kontrollera feeden i upp till 30 s."
+                    +" Avbryt ångrar inte kartändringar eller sådant som redan skickats.",true);
             worker.execute(()->{try{commit(p,token);}finally{p.close();}});
         });
     }
@@ -177,18 +178,21 @@ public final class FeedPublishUi {
         String written=handoff(()->p.update!=null?p.update.commit():host.create(p.prepared,p.label),token);
         if(written==null)return;
         String step="Kartsteg: "+written;
-        if(written.startsWith("Inte ")){post(token,()->result("Ej publicerad",step+out));return;}
+        if(written.startsWith("Inte ")){post(token,()->result("Ej publicerad","Kartsteget kunde inte slutföras. Dina sparade ändringar finns kvar.",step+out));return;}
+        stage(token,"Väntar på feeden",nativeStep(p.update==null,p.destination.feedName)
+                +"\n\nTMM kontrollerar att uppgifterna syns i "+p.destination.feedName+". Om det tar mer än 30 s behöver du trycka Publicera igen.");
         Boolean seen=readBack(p,active);
         if(seen==null)return;
         if(!seen){
             String why=p.photo!=null?NOT_IN_FEED+" Ingen bild har laddats upp.":"Metadata ännu inte i feeden. Kontrollera Data Sync-steget och tryck Publicera igen.";
-            post(token,()->result("Ej publicerad",why+" Enheten är fortfarande Ej publicerad.\n\n"+step+out));return;
+            post(token,()->result("Ej publicerad",why+" Dina sparade ändringar finns kvar.",step+out));return;
         }
+        if(p.photo!=null)stage(token,"Publicerar bilden","Uppgifterna finns i "+p.destination.feedName+". Bilden laddas nu upp till samma feed.");
         FeedPhotoPublication.Result photo=p.photo==null?null:photos.publish(p.photo,active);
         boolean done=photo==null||photo.outcome==FeedPhotoPublication.Outcome.SUCCEEDED;
-        String text="Metadata finns i "+p.destination.feedName+"."+(photo==null?"":"\n\n"+photo.message)
-                +"\n\nMarkeringen Ej publicerad försvinner vid nästa hämtning. TMM påstår inget om andra feeds.\n\n"+step+out;
-        post(token,()->{host.published();result(done?"Publicerad":"Metadata publicerad · bilden inte bekräftad",text);});
+        String text="Uppgifterna finns i feeden "+p.destination.feedName+"."+(photo==null?"":"\n\n"+photo.message)
+                +"\n\nStatusen i listan uppdateras vid nästa hämtning.";
+        post(token,()->{host.published();result(done?"Publicerad":"Metadata publicerad · bilden inte bekräftad",text,step+out);});
     }
     /** M5 readback: the same GET as fetching, repeated until the feed's M for this UUID is exactly the saved M. Null when cancelled. */
     private Boolean readBack(Preview p,BooleanSupplier active){
@@ -263,10 +267,30 @@ public final class FeedPublishUi {
         catch(RuntimeException unavailable){return false;}
     }
     private void progress(String title,String message){
-        replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setNegativeButton("Avbryt",(d,w)->cancel()).create());
+        progress(title,message,false);
+    }
+    private void progress(String title,String message,boolean nativeStep){
+        AlertDialog.Builder builder=new AlertDialog.Builder(context).setTitle(title).setMessage(message).setNegativeButton("Avbryt",(d,w)->cancel());
+        // Dismissing the modal exposes ATAK without cancelling the already confirmed attempt.
+        if(nativeStep)builder.setNeutralButton("Fortsätt i ATAK",(d,w)->{if(dialog==d)dialog=null;});
+        replace(builder.create());
+    }
+    private void stage(long token,String title,String message){
+        post(token,()->{if(dialog!=null&&dialog.isShowing()){dialog.setTitle(title);dialog.setMessage(message);}});
+    }
+    private static String nativeStep(boolean newDevice,String feed){
+        return newDevice?"Ny enhet: öppna "+feed+" i Data Sync, välj Add Items, markera enheten och tryck Done."
+                :"Om ATAK visar Publish Content to Feeds, välj endast "+feed+" och bekräfta. Nej återställer inte den lokala kartändringen.";
     }
     private void result(String title,String message){
-        replace(new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng",(d,w)->finish()).create());
+        result(title,message,null);
+    }
+    private void result(String title,String message,String details){
+        AlertDialog.Builder builder=new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("Stäng",(d,w)->finish());
+        if(details!=null&&!details.isEmpty())builder.setNeutralButton("Visa detaljer",(d,w)->
+                replace(new AlertDialog.Builder(context).setTitle("Publiceringsdetaljer").setMessage(details)
+                        .setPositiveButton("Tillbaka",(x,y)->result(title,message,details)).create()));
+        replace(builder.create());
     }
     private void replace(AlertDialog next){
         if(dialog!=null)dialog.dismiss();

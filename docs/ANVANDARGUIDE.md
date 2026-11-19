@@ -1,118 +1,175 @@
-# Användarguide: TMM Sensor Planner (online)
+# TMM Sensor Planner - användarguide
 
-For maintainers: this Swedish guide describes the integrated candidate after PR #264
-(Följ feed, Publicera, automatic fetch, Konflikt). The texts are taken from that PR and
-must be checked against the signed version before the guide goes to users. ATAK's own
-native steps are marked "(kontrollera mot signerad version)".
+<!-- Maintainers: this guide follows the usability source changes after signed candidate 31. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The PDF is generated from this Markdown with scripts/render-quick-guide.py; page comments control its layout. -->
 
-Guiden är för dig som planerar och placerar ut enheter tillsammans med andra i ATAK.
-Den innehåller inga verkliga platser, konton eller servrar.
+**Om versionen:** Guiden beskriver det uppdaterade gränssnittet efter kandidat 31.
+Det ingår ännu inte i den signerade kandidat 31. Kontrollera vilken version du har.
+Använd bara övningsdata tills ansvarig person har godkänt användningen.
 
-## 1. Komma igång
+## 1. Kom igång
 
-**Du behöver**
+TMM hjälper dig att skapa enheter, ändra dem vid utplacering och dela uppdateringar
+med gruppen. En **feed** är gruppens gemensamma samling i ATAK:s Data Sync.
 
-- ATAK och TMM-pluginet, installerade och aktiva.
-- Den delade feeden i ATAK:s Data Sync, och att telefonen är ansluten till servern.
-- Rollen **Subscriber** i feeden.
-- En feed utan lås: den får inte vara lösenordsskyddad eller kräva inbjudan.
+**Du behöver:** ATAK och TMM aktiverade, rätt serveranslutning i ATAK och åtkomst till
+gruppens feed. Feeden ska sakna lösenord och inbjudningskrav, och din roll ska vara
+**Subscriber**. För **Publicera** ska bara den avsedda serverprofilen vara aktiverad
+och den ska vara ansluten.
 
-**Följ feed**
+1. Anslut servern i ATAK. Öppna gruppens feed i **Data Sync** och prenumerera där.
+   TMM:s **Följ feed** ersätter inte den prenumerationen.
+2. Öppna **TMM Sensor Planner** i ATAK:s verktygsmeny. Om **Arbeta uppkopplad**
+   visas första gången: läs villkoren och välj **Fortsätt** om de är uppfyllda.
+   Denna version kräver övningsdata i en separat testmiljö. Välj sedan **Följ feed**.
+3. Välj den anslutna ATAK-servern. I **Anslut delad feed** visas **HTTPS-port: 8443**.
+   Ändra vid behov under **Anslutningsinställningar** och välj **Läs tillgängliga feeds**.
+4. Välj gruppens feed i **Välj feed att följa**. Läs sammanfattningen och bekräfta
+   med **Följ feed**. Bekräfta eventuell fråga om att starta mottagningshistorik.
+5. Kontrollera att rätt feed visas. TMM hämtar nu uppdateringar automatiskt medan
+   ATAK körs och pluginet är laddat.
 
-1. Öppna TMM och tryck **Följ feed**.
-2. Välj feeden i listan **Välj feed att följa**.
-3. Läs sammanfattningen och tryck **Följ feed** igen för att bekräfta.
+### Vad är anslutningsporten?
 
-Därefter hämtar TMM nya uppgifter åt dig. Det går bara att följa en feed per telefon.
+ATAK:s vanliga serveranslutning används inte för alla typer av information. TMM
+använder också serverns HTTPS-tjänst för att läsa feeden och överföra bilder.
+Den har en egen port, vanligtvis **8443**, som visas vid första inställningen.
+Det är inte ATAK:s strömport. Behåll standardvärdet om det stämmer med gruppens
+inställningar; annars ger serveransvarig dig rätt värde.
 
-**Efter en omstart** av telefonen eller ATAK fortsätter följandet av sig självt. Knappen
-visar **Följer** och feedens namn. Du behöver inte välja om. Vill du sluta, öppna knappen och
-tryck **Sluta följa**. Det du redan har finns kvar, och **Följ igen** startar på nytt.
+Du väljer feed en gång per telefon. Efter omstart fortsätter följandet. Via feedens
+knapp kan du välja **Uppdatera nu**, **Sluta följa** eller **Följ igen**. Att sluta
+följa behåller det du redan har sparat.
 
-## 2. Planera en enhet
+**Arbeta lokalt:** Du kan skapa och redigera utan att följa en feed. Att spara lokalt
+publicerar ingenting. Anslutningen till en server delar inte dina privata utkast.
 
-1. Tryck **Skapa enhet**, fyll i typ, ID, status och eventuell position, och tryck
-   **Spara lokalt**. Enheten är nu ett lokalt utkast och delas inte.
-2. Öppna enheten och tryck **Publicera**.
-3. Granska förhandsvisningen **Publicera till** *feedens namn*. En ny enhet visas som
-   **NY ENHET I KARTAN**. Tryck **Publicera** för att bekräfta, eller **Avbryt**.
-4. En ny enhet kräver också ATAK:s eget steg: öppna feeden i Data Sync, välj **Add Items**,
-   markera enheten och tryck **Done** (kontrollera mot signerad version).
+<!-- page -->
 
-När feeden visar enheten visar TMM **Publicerad**. Då kan andra se den.
+## 2. Skapa och placera ut
 
-## 3. Placera ut
+1. Tryck **Skapa enhet**. Ange **Enhetens ID**, typ (Mini, Scout, PIR eller Gateway),
+   ägare och status. Använd samma ID som på enhetens märkning.
+2. Välj **Välj plats på kartan**, flytta kartan och bekräfta med **Använd plats**.
+   Du kan också skriva en fullständig MGRS-referens i formuläret.
+3. För **PIR** och **Scout**: ange **Bäring** i hela mils på en 6400-milscirkel.
+   Mini och Gateway har ingen bäring. Sann nord är referensen och vinkeln går medurs:
+   **0/6400 norr**, **1600 öster**, **3200 söder**, **4800 väster**.
+4. Tryck **Spara lokalt**. Öppna enheten och kontrollera uppgifterna. Den är sparad
+   på telefonen men har ännu inte publicerats.
+5. Lägg till en bild med **Lägg till bild**. Granska och bekräfta. Använd
+   **Ersätt bild** för att välja en annan bild. Tryck på bilden eller **Visa bild**
+   för att förstora, zooma och panorera.
 
-Den som placerar ut enheten uppdaterar samma enhet med verkligt läge:
+### När enheten placeras ut
 
-- **Redigera**: ändra status och bäring (bäring finns bara för vissa typer), och tryck
-  **Spara lokalt**.
-- **Flytta på kartan**: sätt den faktiska positionen.
-- **Lägg till bild** (eller **Ersätt bild**): lägg till ett foto av placeringen.
+Öppna samma enhet i listan eller via dess TMM-symbol på kartan. Skapa inte en ny
+kopia för utplaceringen. Använd **Redigera** för status, bäring, ägare, kommentar
+eller utplaceringstid. **Flytta på kartan** öppnar kartvalet; avsluta med
+**Spara lokalt**. Lägg till eller ersätt bilden och publicera därefter ändringarna.
 
-Tryck sedan **Publicera**.
+Du väljer själv mellan **Planerad**, **Utplacerad**, **Aktiv**, **Intagen** och
+**Avbruten**. Utplaceringstiden anges manuellt; statusbytet sätter den inte automatiskt.
 
-**Förhandsvisning.** Om position eller bäring ändrats visar den
-**ÄNDRAD GEOMETRI · före → efter**, med gammal och ny **Position · MGRS** och **Bäring**.
-Är positionen flyttad måste du också kryssa i **Jag har kontrollerat den nya positionen.
-Den ersätter den gamla för alla som ser enheten.** Det är en extra säkerhet, eftersom
-alla ser den nya positionen. En ny bild laddas upp direkt när metadata syns i feeden.
-Om ATAK frågar om att publicera till feeden (kontrollera mot signerad version) och du svarar
-**Nej**, publiceras ingenting och enheten blir **Ej publicerad**.
+### Hitta och hantera enheten
 
-**Vad statusarna betyder**
+- **Visa på kartan** centrerar kartan. **Kopiera MGRS** kopierar positionen.
+- **Närmaste annan TMM** och gatewayavstånd är kartmått, inte radiotäckning.
+  Bara Planerad, Utplacerad och Aktiv räknas som möjliga grannar.
+- **Fler uppgifter** innehåller bland annat **Ta bort bild** och lokal radering.
+  Lokal radering tar inte tillbaka sådant som redan har publicerats.
 
-- **Publicerad**: feeden visar exakt det du publicerade (TMM väntar upp till 30 sekunder).
-- **Ej publicerad**: du har ändringar som inte nått feeden. Inget har gått förlorat.
-- **Metadata ännu inte i feeden, tryck Publicera igen**: uppgifterna syntes inte i feeden i
-  tid, ofta när ATAK:s egna steg tog lång tid. Bilden laddades inte upp. Vänta en stund och
-  tryck **Publicera** igen.
-- **Okänt om bilden kom fram**: TMM vet inte om bilden nådde feeden. Tryck inte om direkt.
-  Tryck **Uppdatera nu** och se om bilden finns. TMM skickar inte om själv.
+Enheten har en lokal bild åt gången. Originalfilen ändras inte. TMM sparar en
+separat PNG utan inbäddad metadata, högst 1920 pixlar på längsta sidan. En vald
+JPEG/PNG får vara högst 10 MiB. Kartpilen visar bäring, inte sensorns räckvidd.
 
-## 4. Se andras uppdateringar
+<!-- page -->
 
-TMM hämtar nya uppgifter automatiskt ungefär varje minut, och när telefonen får kontakt igen.
-Vill du inte vänta, öppna **Följer** *feedens namn* och tryck **Uppdatera nu**.
+## 3. Publicera till gruppens feed
 
-- Ändringar från andra som inte krockar med dina tillämpas direkt.
-- En bild du får blir enhetens aktuella bild.
-- Dina egna oskickade ändringar skrivs aldrig över.
+**Publicera är ett eget val.** Att spara, ta emot eller lösa en konflikt skickar
+inte dina ändringar. TMM visar din valda feed som mål i förhandsvisningen.
+Kontrollera att du väljer samma feed i ATAK:s Data Sync; det är Data Sync som
+bestämmer vart uppgifterna skickas.
 
-Att hämta publicerar aldrig något.
+1. Öppna den sparade enheten och tryck **Publicera**.
+2. Granska **Publicera till** och feedens namn, uppgifterna och eventuell ny bild.
+   Vid flytt ser du gammal och ny position och måste bekräfta att den nya positionen
+   är kontrollerad. Tryck **Publicera** för att gå vidare.
+3. I publiceringsdialogen, tryck **Fortsätt i ATAK** för att stänga dialogen
+   och utföra nästa steg. TMM fortsätter kontrollera feeden i bakgrunden.
+   **Ny enhet:** öppna den avsedda feeden i ATAK:s **Data Sync**, välj **Add Items**,
+   markera enheten och tryck **Done**. Publicera i TMM gör alltså inte hela detta
+   första steg åt dig.
+4. **Befintlig enhet:** ATAK kan visa **Publish Content to Feeds**. Välj bara den
+   avsedda feeden och besvara frågan. **Nej** återställer inte en kartändring som
+   redan gjorts i ATAK.
+5. TMM väntar upp till cirka 30 sekunder på att exakt de publicerade uppgifterna
+   syns i feeden och laddar därefter upp en ny bild. En oförändrad bild laddas inte
+   upp igen. Utan bild publiceras bara uppgifterna. Du får ett resultat när försöket
+   är klart. Om dialogen är kvar visas **Väntar på feeden** och vid en ny bild
+   **Publicerar bilden**; efter **Fortsätt i ATAK** är dialogen stängd under väntan.
 
-## 5. Konflikt
+ATAK:s egna knapptexter kan skilja sig mellan installationer. Data Sync bestämmer
+metadataflödets destination; kontrollera därför feedvalet där också. **Publicerad**
+betyder att TMM har verifierat uppgifterna i feeden, inte att alla mottagare har
+hämtat dem.
 
-**Konflikt** betyder att du och någon annan har ändrat samma enhet. TMM väljer inte åt dig
-och behåller din version tills du bestämmer dig. Öppna enheten och tryck **Lös konflikt**.
-Du ser **Lokalt (din version)** och **Inkommande** bredvid varandra.
+### Om publiceringen inte blir klar
 
-- **Behåll min**: din version blir kvar och visas som **Ej publicerad** tills du publicerar.
-- **Använd inkommande**: den andras version tas in lokalt.
-- **Stäng**: ingenting ändras.
+- **Metadata ännu inte i feeden, tryck Publicera igen:** slutför Data Sync-steget
+  och vänta en stund. Ingen ny bild laddades upp. Tryck sedan **Publicera** igen.
+- **Okänt om bilden kom fram:** kontrollera feeden med **Uppdatera nu** innan du
+  försöker igen. TMM skickar inte om automatiskt.
+- **Metadata publicerad · bilden inte bekräftad:** läs resultatet; uppgifterna och
+  bilden kan ha olika utfall. En publiceringsbekräftelse är ingen mottagarkvittens.
 
-Inget av valen skickar eller publicerar något.
+**Visa detaljer** öppnar tekniska publiceringsuppgifter om du behöver hjälp med ett fel.
 
-Om flera bilder hör till enheten visas de som **Bildkandidat** 1, 2 och så vidare. Tryck
-**Välj bild** på den du vill ha och sedan **Använd inkommande**. Ingen bild väljs åt dig.
-Vill du behålla din egen bild, tryck **Behåll min**.
+**Avbryta:** före bekräftelsen kan du avstå utan att starta publiceringen. När ett
+anrop redan pågår kan skickade uppgifter inte tas tillbaka. En känd brist i
+avbrytandet under bilduppladdning utreds; lita därför inte på **Avbryt** som garanti
+för att bilden inte kopplas till feeden. Kontrollera resultatet i feeden vid osäkerhet.
 
-## 6. Utan uppkoppling
+<!-- page -->
 
-Allt du redan har går att läsa och ändra utan uppkoppling. När telefonen får kontakt igen
-kommer TMM ikapp av sig självt, eller när du trycker **Uppdatera nu**. Ingenting publiceras av
-sig självt: ändringar du gjorde offline är **Ej publicerad** tills du trycker **Publicera**.
+## 4. Ta emot och fortsätt arbeta
 
-## 7. Bra att veta
+När du följer en feed hämtar TMM nya uppgifter och bilder ungefär varje minut och
+när telefonen återfår kontakt. Du behöver inte göra en manuell import för varje
+ändring. Via feedens knapp finns **Uppdatera nu** om du vill kontrollera direkt.
 
-- Att en bild tas bort ur feeden är inte radering på servern. Filen finns kvar där tills en
-  administratör rensar den.
-- Lösenordsskyddade feeds och feeds som kräver inbjudan fungerar inte. Be feedens ägare om en
-  öppen feed där du har rollen **Subscriber**.
-- Publicering är alltid ett eget val. Du trycker **Publicera**, granskar och bekräftar. Inget
-  skickas av sig självt.
-- Efter publicering ersätts din lokala bild av exakt den publicerade bilden. Det är samma bild
-  (samma pixlar), men den sparas om i ett strikt format. Därför får inte din egen nästa hämtning
-  en falsk **Konflikt**.
-- En följd feed per telefon.
-- Använd bara övnings- och testdata tills ansvarig person har sagt något annat.
+Ändringar som inte krockar med ditt lokala arbete tillämpas automatiskt. TMM använder
+samma enhets identitet, så att en utplacerad enhet uppdateras i stället för att bli
+en ny enhet. En mottagen bild kan bli enhetens aktuella lokala bild.
+
+### Läs enhetens delningsstatus
+
+- **Sparad lokalt:** enheten finns på telefonen. Texten är inte en bekräftelse
+  på att enheten är publicerad.
+- **Ändringar att publicera:** du har lokala ändringar som inte matchar feeden.
+- **Konflikt:** din version och den inkommande skiljer sig; jämför innan du väljer.
+- En feedstatus visar anslutning och hämtning. Den är inte i sig ett besked om att
+  en viss enhet eller bild har levererats till alla.
+
+### Lös en konflikt
+
+Öppna enheten och tryck **Lös konflikt**. Jämför **Lokalt (din version)** med
+**Inkommande**. TMM behåller din version tills du väljer.
+
+- **Behåll min** behåller ditt arbete. Det behöver publiceras om gruppen ska få det.
+- **Använd inkommande** tar in den andra versionen lokalt.
+- **Stäng** lämnar konflikten oförändrad.
+
+Om flera bilder visas som **Bildkandidat**, välj en med **Välj bild** innan du
+väljer **Använd inkommande**. Ingen bild väljs åt dig. Inget av konfliktvalen
+publicerar något.
+
+### Utan uppkoppling
+
+Allt du redan har går att läsa och ändra. Ändringarna sparas lokalt. När kontakten
+återkommer hämtar TMM ikapp; du publicerar dina egna ändringar när du är redo.
+
+Äldre manuella funktioner för metadatahämtning, bildexport och publiceringsprov
+finns under **Avancerat / test**. De behövs inte för arbetsflödet i denna guide.
+Att ta bort en bild ur feeden raderar inte serverns innehållslager; serveransvarig
+hanterar eventuell rensning där.
