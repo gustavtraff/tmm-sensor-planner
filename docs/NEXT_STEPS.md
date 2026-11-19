@@ -28,6 +28,10 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   [resource preflight and guard procedure](TESTING.md#resource-bounded-lab-runs).
 - Candidate 30 remains the bounded viewing-trial fallback
   ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)). The owner decides its use.
+- **Usability update (#270)** separates ordinary work from **Avancerat / test**,
+  clarifies connection settings and the native publication handoff, and updates
+  the guides. These source changes are newer than signed candidate 31; a new
+  owner-approved signed package and its device checks are still needed.
 
 ## Remaining acceptance (#252)
 

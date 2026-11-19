@@ -33,6 +33,7 @@ public class FeedFollowUiTest {
     private final MissionSnapshotInput.Feed feed=new MissionSnapshotInput.Feed("Synthetic follow","00000000-0000-4000-8000-000000000242","https://lab.example.invalid:8443");
     private final Deque<Runnable> worker=new ConcurrentLinkedDeque<>();
     private final AtomicInteger lists=new AtomicInteger(),fetches=new AtomicInteger(),imageLists=new AtomicInteger(),downloads=new AtomicInteger(),notices=new AtomicInteger(),resolved=new AtomicInteger();
+    private final AtomicInteger statusChanges=new AtomicInteger();
     private final List<List<UUID>> completedReceipts=new CopyOnWriteArrayList<>();private final List<List<ImageAssociationRegistry.Record>> completedRecords=new CopyOnWriteArrayList<>();
     private volatile boolean connected=true,configured=true,failing;private volatile CountDownLatch entered,release;
     private Activity activity;private FeedFollowUi ui;private LocalV2Store local;private Path privateRoot,syncDir;private byte[] container,localBefore;private TmmDraft incoming;
@@ -50,6 +51,7 @@ public class FeedFollowUiTest {
             public boolean defaultProvider(){return true;}
             public void notice(String text){notices.incrementAndGet();}
             public void resolved(){resolved.incrementAndGet();}
+            public void statusChanged(){statusChanges.incrementAndGet();}
             public String summary(TmmDraft draft){return draft.displayId+"\nKommentar: "+draft.comment;}
             public void onFetchCompleted(List<UUID> receipts,List<ImageAssociationRegistry.Record> records){completedReceipts.add(receipts);completedRecords.add(records);}
             public FeedFollowUi.Transport connect(MissionEndpoint endpoint){assertEquals(STREAM,endpoint.stream);assertEquals(feed.service,endpoint.base);return new FeedFollowUi.Transport(){
@@ -73,7 +75,7 @@ public class FeedFollowUiTest {
 
     @Test public void followCreatesStoredSourceWithoutCredentialAndFetchesAtOnce()throws Exception {
         ui.start();settle();assertNull(new FeedSyncState(syncDir).read());assertEquals(0,lists.get());
-        ui.show();await("Välj ansluten ATAK-server");pick(0);await("Bekräfta server för hämtning");click(AlertDialog.BUTTON_POSITIVE);
+        ui.show();await("Välj ansluten ATAK-server");pick(0);await("Anslut delad feed");click(AlertDialog.BUTTON_POSITIVE);
         await("Välj feed att följa");pick(0);await("Följ feed?");click(AlertDialog.BUTTON_POSITIVE);
         await("Starta mottagen bildhistorik?");assertFalse("No silent history initialization",Files.exists(privateRoot.resolve("metadata-inbox-v1/inbox.bin")));
         click(AlertDialog.BUTTON_POSITIVE);await("Följer feed");settle();
@@ -89,7 +91,7 @@ public class FeedFollowUiTest {
         assertTrue(ui.conflicts().isEmpty());assertTrue(ui.unpublished().isEmpty());
     }
     @Test public void cancelAtHistoryConfirmationCreatesNothing()throws Exception {
-        ui.start();settle();ui.show();await("Välj ansluten ATAK-server");pick(0);await("Bekräfta server för hämtning");click(AlertDialog.BUTTON_POSITIVE);
+        ui.start();settle();ui.show();await("Välj ansluten ATAK-server");pick(0);await("Anslut delad feed");click(AlertDialog.BUTTON_POSITIVE);
         await("Välj feed att följa");pick(0);await("Följ feed?");click(AlertDialog.BUTTON_POSITIVE);await("Starta mottagen bildhistorik?");click(AlertDialog.BUTTON_NEGATIVE);drain();
         assertNull(new FeedSyncState(syncDir).read());assertFalse(Files.exists(privateRoot.resolve("metadata-inbox-v1")));idleFor(600);assertEquals(1,lists.get());
     }
@@ -106,8 +108,12 @@ public class FeedFollowUiTest {
         following(Collections.emptyList());ui.start();settle();assertEquals(1,lists.get());
         idleFor(59);assertEquals(1,lists.get());idleFor(1);settle();assertEquals(2,lists.get());
         ui.refresh();settle();assertEquals(3,lists.get());
+        int beforeOffline=statusChanges.get();
         connected=false;ui.connectionChanged();idle();idleFor(300);settle();assertEquals(3,lists.get());assertTrue(ui.label().contains("pausad"));
+        assertTrue("The visible summary is notified without reopening the list",statusChanges.get()>beforeOffline);
+        assertTrue(ui.connectionStatus().startsWith("Offline"));assertTrue(ui.connectionStatus().contains("sparade lokalt"));
         connected=true;ui.connectionChanged();idle();settle();assertEquals(4,lists.get());assertFalse(ui.label().contains("pausad"));
+        assertFalse(ui.connectionStatus().startsWith("Offline"));
     }
     @Test public void failureDoublesIntervalUpToFiveMinutesAndSuccessResets()throws Exception {
         following(Collections.emptyList());failing=true;ui.start();settle();assertEquals(1,lists.get());
@@ -127,7 +133,7 @@ public class FeedFollowUiTest {
         assertEquals(0,lists.get());assertTrue(ui.label().contains("pausad"));assertEquals(1,notices.get());
         ui.refresh();idleFor(600);settle();assertEquals(0,lists.get());assertEquals("Same reason is not repeated",1,notices.get());
         ui.show();await("Följer feed");assertTrue(message().contains("saknas eller har ändrat"));click(AlertDialog.BUTTON_NEGATIVE);
-        configured=true;ui.connectionChanged();idle();ui.show();await("Följer feed");assertTrue(message().contains("inte ansluten"));click(AlertDialog.BUTTON_NEGATIVE);
+        configured=true;ui.connectionChanged();idle();ui.show();await("Följer feed");assertTrue(message().contains("Offline"));click(AlertDialog.BUTTON_NEGATIVE);
         assertEquals(STREAM,new FeedSyncState(syncDir).read().streamConnect);assertEquals(0,lists.get());
     }
     @Test public void unloadCancelsAttemptAndIgnoresLaterCallbacks()throws Exception {
