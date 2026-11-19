@@ -57,7 +57,7 @@ public final class SensorPlannerPlugin implements IPlugin {
                             try {
                                 openPlanner(true);
                             } catch (Exception error) {
-                                hostUi.showToast("Den lokala prototypen kunde inte startas");
+                                hostUi.showToast("TMM kunde inte öppnas");
                             }
                         });
                     }
@@ -155,7 +155,7 @@ public final class SensorPlannerPlugin implements IPlugin {
     private synchronized void openPlanner(boolean showList) throws Exception {
         if (!started) return;
         if (Build.VERSION.SDK_INT < 26) {
-            if (showList) hostUi.showToast("Den lokala prototypen kräver Android 8 eller senare");
+            if (showList) hostUi.showToast("TMM kräver Android 8 eller senare");
             return;
         }
         MapView map = Objects.requireNonNull(MapView.getMapView());

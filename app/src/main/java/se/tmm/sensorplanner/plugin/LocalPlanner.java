@@ -449,7 +449,7 @@ final class LocalPlanner {
         details.setOrientation(LinearLayout.VERTICAL);
         details.addView(label("Skapad: " + localTime(draft.createdAt) + "\nÄndrad: " + localTime(draft.updatedAt)
                 + "\nRevision: " + draft.revision + "\nSparad på denna telefon. Följ feed tar emot uppdateringar; Publicera delar dina ändringar."
-                + "\nEndast syntetiska testdata i denna prototyp.\nKartpilen är en 100 m riktningsmarkering från sann nord, inte sensorräckvidd."));
+                + "\nEndast syntetiska data i denna version.\nKartpilen är en 100 m riktningsmarkering från sann nord, inte sensorräckvidd."));
         if (draft.imageRef != null) details.addView(button("Ta bort bild", () -> imagesUi.detach(selected)));
         details.addView(button("Avancerat / test", () -> advanced(selected)));
         details.addView(button("Ta bort lokalt utkast", () -> confirmDelete(selected)));

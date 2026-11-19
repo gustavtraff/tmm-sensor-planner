@@ -218,7 +218,7 @@ public final class FeedPublishUi {
     }
     /** M2 plus W2: following, the same stored destination, provider, connected profile and the single-stream rule. */
     private String gate(FeedSyncState.Snapshot s){
-        if(s==null||!s.following)return "TMM följer ingen feed. Välj Följ feed först; Publicera skickar bara till den följda feeden.";
+        if(s==null||!s.following)return "TMM följer ingen feed. Välj Följ feed först. Den valda feeden visas som mål när du publicerar.";
         String changed=photos.destinationChanged(s);
         if(changed!=null)return changed;
         try{if(!host.singleStream(s.streamConnect))return "Publicera kräver att den följda profilen är den enda aktiverade serverprofilen i ATAK och att den är ansluten.";}
