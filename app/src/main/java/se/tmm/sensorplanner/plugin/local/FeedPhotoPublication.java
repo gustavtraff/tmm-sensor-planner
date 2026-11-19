@@ -112,16 +112,17 @@ public final class FeedPhotoPublication implements AutoCloseable {
             if(creator==null)return failed(uid,"ATAK:s enhets-ID kunde inte användas.");
             try{guid=guid(shown);}catch(RuntimeException unsupported){return failed(uid,"Den sparade källan stöds inte längre.");}
             // W2: recheck immediately before the first byte leaves the device.
-            changed=destinationChanged(shown);if(changed!=null||!active.getAsBoolean())return failed(uid,changed!=null?changed:"Publiceringen avbröts.");
+            changed=destinationChanged(shown);if(changed!=null||!canContinue(active))return failed(uid,changed!=null?changed:"Publiceringen avbröts.");
             Transport transport;
             try{transport=host.connect(endpoint(shown));}catch(RuntimeException unavailable){return failed(uid,"Den sparade källan kunde inte öppnas.");}
+            if(!canContinue(active))return failed(uid,"Publiceringen avbröts.");
             String returned;
             try{returned=transport.upload(name,creator,bytes,attempt(UPLOAD_SECONDS));}
             catch(WriteFailure f){return outcome(uid,f.kind,"");}
             catch(RuntimeException unexpected){return new Result(uid,Outcome.UNKNOWN,UNKNOWN_TEXT);}
             if(!hash.equals(returned))return failed(uid,"Servern bekräftade inte samma bildinnehåll. Bilden kopplades inte till feeden.");
             String stored=" Bilden finns kvar i serverns innehållslager men är inte kopplad till feeden.";
-            changed=destinationChanged(shown);if(changed!=null)return failed(uid,changed+stored);
+            changed=destinationChanged(shown);if(changed!=null||!canContinue(active))return failed(uid,(changed!=null?changed:"Publiceringen avbröts.")+stored);
             try{transport.associate(guid,hash,creator,attempt(WRITE_SECONDS));}
             catch(WriteFailure f){
                 if(f.kind==WriteFailure.Kind.UNKNOWN)remember(uid,shown,hash,oldHash);
@@ -176,9 +177,11 @@ public final class FeedPhotoPublication implements AutoCloseable {
             if(r.oldHash==null||!seenFor(r.oldHash,uid,r.destination.contextId))continue;
             String changed=destinationChanged(r.destination),creator=creator();
             if(changed==null&&creator==null)changed="ATAK:s enhets-ID kunde inte användas.";
-            if(changed!=null||!active.getAsBoolean()){results.add(failed(uid,"Den ersatta bilden togs inte bort ur feeden: "+(changed!=null?changed:"avbrutet.")));continue;}
+            if(changed!=null||!canContinue(active)){results.add(failed(uid,"Den ersatta bilden togs inte bort ur feeden: "+(changed!=null?changed:"avbrutet.")));continue;}
             try{
-                host.connect(endpoint(r.destination)).remove(guid(r.destination),r.oldHash,creator,attempt(WRITE_SECONDS));
+                Transport transport=host.connect(endpoint(r.destination));
+                if(!canContinue(active)){results.add(failed(uid,"Den ersatta bilden togs inte bort ur feeden: avbrutet."));continue;}
+                transport.remove(guid(r.destination),r.oldHash,creator,attempt(WRITE_SECONDS));
                 results.add(new Result(uid,Outcome.SUCCEEDED,"Den ersatta bilden togs bort ur feeden. Den finns kvar i serverns innehållslager och hos klienter som redan hämtat den."));
             }catch(WriteFailure f){
                 results.add(f.kind==WriteFailure.Kind.REFUSED?new Result(uid,Outcome.REFUSED,REFUSED_TEXT)
@@ -263,6 +266,7 @@ public final class FeedPhotoPublication implements AutoCloseable {
         try{String value=host.creatorUid();return value!=null&&value.matches("[A-Za-z0-9._:-]{1,128}")?value:null;}catch(RuntimeException unavailable){return null;}
     }
     private static Result failed(UUID uid,String why){return new Result(uid,Outcome.FAILED,why+" Enheten är fortfarande Ej publicerad.");}
+    private boolean canContinue(BooleanSupplier active){return !closed&&!Thread.currentThread().isInterrupted()&&active.getAsBoolean();}
     private static void require(BooleanSupplier active)throws IOException {if(Thread.currentThread().isInterrupted()||!active.getAsBoolean())throw new IOException();}
     private static MissionEndpoint endpoint(FeedSyncState.Snapshot s){return FeedFollowUi.endpoint(s);}
     private static String guid(FeedSyncState.Snapshot s){

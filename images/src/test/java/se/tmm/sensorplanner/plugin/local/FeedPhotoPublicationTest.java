@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -29,7 +30,7 @@ public class FeedPhotoPublicationTest {
     private Path root;private LocalV2Store local;private LocalImages images;private InboxStore inbox;private ImageAssociationRegistry registry;
     private ImageStageStore stage;private FeedSyncState sync;private ImageAssociationRegistry.Record h1;private UUID device;
     private final Fake fake=new Fake();private final List<String> profiles=new ArrayList<>(Collections.singletonList(STREAM));
-    private boolean provider=true;private FeedPhotoPublication service;
+    private boolean provider=true;private FeedPhotoPublication service;private Runnable onConnect=()->{};
 
     @Before public void setup()throws Exception {
         root=temp.newFolder().toPath();
@@ -51,7 +52,7 @@ public class FeedPhotoPublicationTest {
         service=new FeedPhotoPublication(local,images,root,new FeedPhotoPublication.Host(){
             public boolean available(){return true;}public boolean defaultProvider(){return provider;}
             public List<String> profiles(){return profiles;}
-            public Transport connect(MissionEndpoint endpoint){assertEquals("https://lab.example.invalid:8443",endpoint.base);assertEquals(STREAM,endpoint.stream);return fake;}
+            public Transport connect(MissionEndpoint endpoint){assertEquals("https://lab.example.invalid:8443",endpoint.base);assertEquals(STREAM,endpoint.stream);onConnect.run();return fake;}
             public String creatorUid(){return "ANDROID-synthetic";}
         });
         service.fetchCompleted(Collections.singletonList(h1));
@@ -75,6 +76,36 @@ public class FeedPhotoPublicationTest {
         Result result=publish();
         assertEquals(Outcome.FAILED,result.outcome);assertTrue(result.message.contains("inte samma"));
         assertEquals(Collections.singletonList("upload"),fake.calls);assertFalse(service.awaitingRemoval(device));
+    }
+    @Test public void cancellationDuringUploadDoesNotStartAssociationOrAdoptThePhoto()throws Exception {
+        AtomicBoolean active=new AtomicBoolean(true);fake.afterUpload=()->active.set(false);
+        TmmDraft before=local.load().select(device).draft;
+        Result result=service.publish(service.review(device),active::get);
+        assertEquals(Outcome.FAILED,result.outcome);assertTrue(result.message.contains("avbröts")&&result.message.contains("inte kopplad"));
+        assertEquals(Collections.singletonList("upload"),fake.calls);
+        assertEquals(before.imageRef,local.load().select(device).draft.imageRef);
+        assertFalse(service.awaitingRemoval(device));assertNoOutboxFile();
+    }
+    @Test public void interruptionDuringUploadDoesNotStartAssociation()throws Exception {
+        fake.afterUpload=()->Thread.currentThread().interrupt();
+        try{
+            assertEquals(Outcome.FAILED,publish().outcome);
+            assertEquals(Collections.singletonList("upload"),fake.calls);
+        }finally{Thread.interrupted();}
+        assertNoOutboxFile();
+    }
+    @Test public void cancellationDuringConnectionDoesNotStartUpload()throws Exception {
+        AtomicBoolean active=new AtomicBoolean(true);onConnect=()->active.set(false);
+        assertEquals(Outcome.FAILED,service.publish(service.review(device),active::get).outcome);
+        assertTrue(fake.calls.isEmpty());assertNoOutboxFile();
+    }
+    @Test public void cancellationDuringRemovalConnectionDoesNotStartRemoval()throws Exception {
+        assertEquals(Outcome.SUCCEEDED,publish().outcome);
+        ImageAssociationRegistry.Record fresh=intake(ImageContainerCodec.read(new ByteArrayInputStream(fake.body)));
+        service.fetchCompleted(Arrays.asList(h1,fresh));fake.calls.clear();
+        AtomicBoolean active=new AtomicBoolean(true);onConnect=()->active.set(false);
+        List<Result> results=service.removeReplaced(active::get);
+        assertEquals(1,results.size());assertEquals(Outcome.FAILED,results.get(0).outcome);assertTrue(fake.calls.isEmpty());
     }
     @Test public void forbiddenUploadOrAssociationGivesThePermissionMessage()throws Exception {
         fake.uploadFailure=WriteFailure.Kind.REFUSED;
@@ -174,10 +205,11 @@ public class FeedPhotoPublicationTest {
     private static final class Fake implements Transport {
         final List<String> calls=new ArrayList<>();String name,creator,guid,associated,removed,reply;byte[] body;
         WriteFailure.Kind uploadFailure,associateFailure,removeFailure;
+        Runnable afterUpload=()->{};
         public String upload(String name,String creatorUid,byte[] container,MissionReadAttempt attempt)throws WriteFailure {
             calls.add("upload");assertTrue(attempt.active(System.nanoTime()));this.name=name;creator=creatorUid;body=container.clone();
             if(uploadFailure!=null)throw new WriteFailure(uploadFailure);
-            try{return reply!=null?reply:sha256(container);}catch(Exception e){throw new AssertionError(e);}
+            afterUpload.run();try{return reply!=null?reply:sha256(container);}catch(Exception e){throw new AssertionError(e);}
         }
         public void associate(String guid,String hash,String creatorUid,MissionReadAttempt attempt)throws WriteFailure {
             calls.add("associate");this.guid=guid;associated=hash;if(associateFailure!=null)throw new WriteFailure(associateFailure);
