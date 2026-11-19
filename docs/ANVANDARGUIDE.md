@@ -21,7 +21,8 @@ och den ska vara ansluten.
 2. Öppna **TMM Sensor Planner** i ATAK:s verktygsmeny. Om **Arbeta uppkopplad**
    visas första gången: läs villkoren och välj **Fortsätt** om de är uppfyllda.
    Denna version kräver övningsdata i en separat testmiljö. Välj sedan **Följ feed**.
-3. Välj den anslutna ATAK-servern. I **Anslut delad feed** visas **HTTPS-port: 8443**.
+3. Välj den anslutna ATAK-servern. I **Anslut delad feed** föreslås API-porten som
+   redan är sparad i ATAK. Kontrollera att den gäller vald server.
    Ändra vid behov under **Anslutningsinställningar** och välj **Läs tillgängliga feeds**.
 4. Välj gruppens feed i **Välj feed att följa**. Läs sammanfattningen och bekräfta
    med **Följ feed**. Bekräfta eventuell fråga om att starta mottagningshistorik.
@@ -30,11 +31,12 @@ och den ska vara ansluten.
 
 ### Vad är anslutningsporten?
 
-ATAK:s vanliga serveranslutning används inte för alla typer av information. TMM
-använder också serverns HTTPS-tjänst för att läsa feeden och överföra bilder.
-Den har en egen port, vanligtvis **8443**, som visas vid första inställningen.
-Det är inte ATAK:s strömport. Behåll standardvärdet om det stämmer med gruppens
-inställningar; annars ger serveransvarig dig rätt värde.
+TMM föreslår värdet från ATAK:s **Secure Server API port**. Du behöver normalt inte
+leta fram och skriva in det igen. Värdet används för att läsa feeden och överföra
+bilder; det är inte ATAK:s strömport. Saknas inställningen visas **8443** som standard.
+Om ett ogiltigt värde läses måste du ange rätt port under **Anslutningsinställningar**.
+Kontakta serveransvarig om värdet är okänt. TMM ändrar inte ATAK:s inställning eller
+adressen för en feed du redan följer.
 
 Du väljer feed en gång per telefon. Efter omstart fortsätter följandet. Via feedens
 knapp kan du välja **Uppdatera nu**, **Sluta följa** eller **Följ igen**. Att sluta
