@@ -69,9 +69,10 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   check, matching UUID/current metadata, last successful check and unknown/stale
   state on failure. The list currently falls back to **Sparad lokalt** and cannot
   display confirmed publication. Keep metadata and photo confirmation distinct.
-- **#277:** restore list/create-action access in landscape. The owner confirmed
-  portrait as a temporary workaround. Retest affected dialogs in both orientations.
-- #277, #279 and #283 target candidate 34 together with the #280 fix.
+- **#277 (fixed in main after candidate 34):** device rows and feed controls now share
+  one scroll view; the actions stay in the dialog button bar. Other planner dialogs
+  already scroll. Phone check in both orientations is pending a later signed candidate.
+- #279 and #283 follow candidate 34.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync
   log entries and visible map items alone do not pass the integrated acceptance.
 
