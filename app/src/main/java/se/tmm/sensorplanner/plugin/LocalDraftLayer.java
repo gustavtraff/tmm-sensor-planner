@@ -72,7 +72,10 @@ final class LocalDraftLayer {
         }
     }
 
-    void render(List<TmmDraft> drafts) throws DataStoreException {
+    void render(List<TmmDraft> drafts) throws DataStoreException { render(drafts, Collections.emptySet()); }
+
+    /** {@code nativeCopies}: devices whose native map copy already shows their label (#299 B2). */
+    void render(List<TmmDraft> drafts, java.util.Set<UUID> nativeCopies) throws DataStoreException {
         if (closed) throw new IllegalStateException("Draft layer is closed");
         List<TmmDraft> nextDrafts = new ArrayList<>(drafts);
         try {
@@ -89,10 +92,10 @@ final class LocalDraftLayer {
             for (TmmDraft draft : nextDrafts) {
                 int color = color(draft.status);
                 String label = draft.displayId + " · Lokal";
+                Style icon = new IconPointStyle(color, iconUri(draft), 32, 32, 0, 0, 0, false);
                 insert(store, nextSetId, label,
                         new Point(draft.position.longitude, draft.position.latitude),
-                        new CompositeStyle(new Style[]{new IconPointStyle(color,
-                                iconUri(draft), 32, 32, 0, 0, 0, false),
+                        nativeCopies.contains(draft.uid) ? icon : new CompositeStyle(new Style[]{icon,
                                 new LabelPointStyle(label, Color.WHITE, Color.BLACK,
                                         LabelPointStyle.ScrollMode.OFF, 14, 0, 48, 0, 1, 0, false, 14, 1)}));
                 count++;

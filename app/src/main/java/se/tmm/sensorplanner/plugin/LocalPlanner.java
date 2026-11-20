@@ -85,6 +85,7 @@ final class LocalPlanner {
     private AlertDialog dialog;
     private AlertDialog confirmation;
     private AlertDialog listDialog;
+    private NativeCopyIcons nativeIcons;
     private String[] listedRows;
     private Button feedButton;
     private TextView feedStatus;
@@ -302,6 +303,7 @@ final class LocalPlanner {
 
     private void clearLayer() {
         if (nativeMenu != null) { nativeMenu.close(); nativeMenu = null; }
+        if (nativeIcons != null) { nativeIcons.close(); nativeIcons = null; }
         drafts = Collections.emptyList();
         storage = null;
         if (layer != null) layer.close();
@@ -735,7 +737,14 @@ final class LocalPlanner {
         }
         try {
             if (layer == null) layer = new LocalDraftLayer(map, this::selected);
-            layer.render(drafts);
+            java.util.Set<UUID> copies = java.util.Collections.emptySet();
+            try {
+                if (nativeIcons == null) nativeIcons = new NativeCopyIcons(map);
+                java.util.List<UUID> uids = new java.util.ArrayList<>();
+                for (TmmDraft draft : drafts) uids.add(draft.uid);
+                copies = nativeIcons.show(uids);
+            } catch (RuntimeException unavailable) { copies = java.util.Collections.emptySet(); }
+            layer.render(drafts, copies);
         } catch (Exception failure) {
             if (layer != null) layer.close();
             layer = null;
@@ -912,6 +921,7 @@ final class LocalPlanner {
     void close() {
         closed = true;
         if (nativeMenu != null) { nativeMenu.close(); nativeMenu = null; }
+        if (nativeIcons != null) { nativeIcons.close(); nativeIcons = null; }
         publishUi.close();
         photos.close();
         feedFollow.close();
