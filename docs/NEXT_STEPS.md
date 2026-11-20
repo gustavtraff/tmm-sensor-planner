@@ -13,12 +13,14 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - Automatic receiving (#236/#242), **Publicera** with photo (#243/#264), and geometry
   updates (#189/#259) are merged. The approved decisions are U1–U8, S1–S4, W1–W5,
   M1–M7 and G1–G5; their contracts remain authoritative.
-- **Candidate 33** (`versionCode 33`, `0.1.0-feed-sync-diagnostics.1`, #252) is prepared
-  from main `ab3af39` under the owner-approved amended proposal: #285 stage diagnostics,
-  #286 native TMM review menu and #288 rule labels, plus version metadata only. Not yet
-  signed. Owner check after signing: menu opens the right TMM review, Data Sync Map
-  Select still works, then one **Uppdatera nu** and the displayed failure line. The
-  guides still describe candidate 32 and do not cover the new menu.
+- **Candidate 33** (`versionCode 33`, `0.1.0-feed-sync-diagnostics.1`, #252) is signed
+  from main `4967945` (PR #289): #285 stage diagnostics, #286 native TMM review menu and
+  #288 rule labels. Signature, package/version and APK packaging checks passed; its
+  signer matches candidate 32, and build output contains the #286/#288 markers. The
+  private record is `private-data/releases/v33/verification.json`. Not yet installed.
+  Owner check: menu opens the right TMM review, Data Sync Map Select still works, then
+  one **Uppdatera nu** and the displayed failure line. The guides still describe
+  candidate 32 and do not cover the new menu.
 - **Candidate 32** (`versionCode 32`, `0.1.0-feed-sync-trial.2`, #252) is signed from
   owner-approved main `f89f1f4` (PR #276). Signature, package/version and APK packaging
   checks passed; its signer matches candidate 31. Build output contains the #268
@@ -51,7 +53,7 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   listed it without error. Size/count caps and these drawing shapes are ruled out
   (synthetic regression test). PR #285 adds stage/category diagnostics; the #280
   rule-label PR names the exact failed response check (fixed labels only, checks
-  and bounds unchanged). Next: sign candidate 33 with both, then one phone fetch.
+  and bounds unchanged). Next: one phone fetch on signed candidate 33.
 - **#278 (merged, PR #286):** a transient native TMM menu routes accepted local/adopted
   UUIDs to TMM review, replacing irrelevant sensor editing controls. It leaves item
   metadata and exports unchanged. SDK/resource compilation and UUID-gate tests passed.
