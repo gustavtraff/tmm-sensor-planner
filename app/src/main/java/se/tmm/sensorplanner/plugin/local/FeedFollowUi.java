@@ -181,7 +181,7 @@ public final class FeedFollowUi {
         try{
             Feed feed=null;
             for(Feed f:read(false,ok,transport::list))if(f.context().equals(s.contextId)){if(feed!=null)throw new IOException("Ambiguous feed");feed=f;}
-            if(feed==null)throw new IOException("Followed feed not listed");Feed target=feed;
+            if(feed==null)throw new MissionReadFailure.Violation(MissionReadFailure.Rule.FEED_NOT_LISTED);Feed target=feed;
             step=MissionReadFailure.Stage.SNAPSHOT;
             MissionSnapshotInput.Snapshot snapshot=read(false,ok,a->transport.fetch(target,a));
             if(!snapshot.feed.context().equals(s.contextId)||!snapshot.feed.name.equals(target.name))throw new IOException("Snapshot target changed");

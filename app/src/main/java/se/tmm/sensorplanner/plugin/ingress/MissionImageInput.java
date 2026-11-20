@@ -29,19 +29,22 @@ public final class MissionImageInput {
             String text=MissionReadInput.readText(input,active,MAX_BYTES);
             MissionReadInput.boundStructure(text);JSONTokener parser=new JSONTokener(text);
             Object root=parser.nextValue();if(!(root instanceof JSONObject)||parser.nextClean()!=0)throw new IOException();
-            JSONObject object=(JSONObject)root;if(!"Mission".equals(object.get("type")))throw new IOException();
-            JSONArray data=object.getJSONArray("data");if(data.length()!=1)throw new IOException();
+            JSONObject object=(JSONObject)root;JSONArray data=object.optJSONArray("data");
+            if(!"Mission".equals(object.opt("type"))||data==null||data.length()!=1)throw rule(MissionReadFailure.Rule.NOT_MISSION);
             JSONObject mission=data.getJSONObject(0);
-            if(!expected.guid.equals(mission.get("guid"))||!expected.name.equals(mission.get("name")))throw new IOException();
-            JSONArray contents=mission.getJSONArray("contents");if(contents.length()>MAX_RESOURCES)throw new IOException();
+            if(!expected.guid.equals(mission.opt("guid"))||!expected.name.equals(mission.opt("name")))throw rule(MissionReadFailure.Rule.FEED_MISMATCH);
+            JSONArray contents=mission.optJSONArray("contents");if(contents==null)throw rule(MissionReadFailure.Rule.RESOURCE_FIELD);if(contents.length()>MAX_RESOURCES)throw rule(MissionReadFailure.Rule.FEED_COUNT);
             Set<String> hashes=new HashSet<>();List<Resource> result=new ArrayList<>();
             for(int n=0;n<contents.length();n++) {
-                JSONObject item=contents.getJSONObject(n).getJSONObject("data");
-                String hash=string(item,"hash"),name=string(item,"name"),mime=string(item,"mimeType");
-                if(!hash.matches("[0-9a-f]{64}")||!hashes.add(hash))throw new IOException();
-                label(name);Object size=item.get("size");
-                if(!(size instanceof Integer)&&!(size instanceof Long))throw new IOException();
-                long length=((Number)size).longValue();if(length<1)throw new IOException();
+                JSONObject item;String hash,name,mime;long length;
+                try{
+                    item=contents.getJSONObject(n).getJSONObject("data");
+                    hash=string(item,"hash");name=string(item,"name");mime=string(item,"mimeType");
+                    if(!hash.matches("[0-9a-f]{64}")||!hashes.add(hash))throw new IOException();
+                    label(name);Object size=item.get("size");
+                    if(!(size instanceof Integer)&&!(size instanceof Long))throw new IOException();
+                    length=((Number)size).longValue();if(length<1)throw new IOException();
+                }catch(Exception invalid){throw rule(MissionReadFailure.Rule.RESOURCE_FIELD);}
                 if("application/octet-stream".equalsIgnoreCase(mime)&&name.toLowerCase(Locale.ROOT).endsWith(".tmmi")) {
                     if(length>ImageContainerCodec.MAX_BYTES)throw new IOException();
                     result.add(new Resource(hash,name,"application/octet-stream",(int)length));
@@ -49,9 +52,11 @@ public final class MissionImageInput {
             }
             if(!active.getAsBoolean()||Thread.currentThread().isInterrupted())throw new IOException();
             return Collections.unmodifiableList(result);
-        }catch(Exception invalid){throw new IOException("Selected feed image resources could not be verified");}
+        }catch(MissionReadFailure.Violation rule){throw rule;}
+        catch(Exception invalid){throw new IOException("Selected feed image resources could not be verified");}
         catch(OutOfMemoryError exhausted){throw new se.tmm.sensorplanner.images.ImagePreparationException(se.tmm.sensorplanner.images.ImagePreparationException.Reason.LOW_MEMORY);}
     }
+    private static MissionReadFailure.Violation rule(MissionReadFailure.Rule rule){return new MissionReadFailure.Violation(rule);}
     /** #243: the {@code Hash} of one bounded {@code /sync/upload} JSON reply; comparing it with the sent bytes is the caller's job. */
     public static String uploadedHash(InputStream input,BooleanSupplier active)throws IOException {
         try {

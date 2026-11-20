@@ -34,10 +34,10 @@ public final class MissionCotInput {
     }
     static String xmlText(InputStream input,BooleanSupplier active)throws IOException {
         String xml=MissionReadInput.readText(input,active);
-        if(xml.contains("<!DOCTYPE")||xml.startsWith("\ufeff"))throw new IOException();
+        if(xml.contains("<!DOCTYPE")||xml.startsWith("\ufeff"))throw new MissionReadFailure.Violation(MissionReadFailure.Rule.XML_FORBIDDEN);
         if(xml.startsWith("<?xml")){
             int end=xml.indexOf("?>");
-            if(end<0||!DECLARATION.matcher(xml.substring(0,end+2)).matches())throw new IOException();
+            if(end<0||!DECLARATION.matcher(xml.substring(0,end+2)).matches())throw new MissionReadFailure.Violation(MissionReadFailure.Rule.XML_SYNTAX);
             xml=xml.substring(end+2);
         }
         return xml;

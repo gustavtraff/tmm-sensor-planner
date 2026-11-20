@@ -40,10 +40,12 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 ## Immediate follow-up from owner phone testing (#252)
 
 - **First: #280**, the owner sees the test item in native **Map Items**, but TMM
-  receives no metadata after manual refresh. PR #285 adds read-only stage/category
-  diagnostics; requests, validation and formats remain unchanged. Static retry
-  text states an interval, not a countdown. Phone root cause and the next signed
-  diagnostic candidate remain pending.
+  receives no metadata after manual refresh. The followed feed holds one TMM item,
+  four native drawings (one with a geofence) and three non-TMM files; feed setup
+  listed it without error. Size/count caps and these drawing shapes are ruled out
+  (synthetic regression test). PR #285 adds stage/category diagnostics; the #280
+  rule-label PR names the exact failed response check (fixed labels only, checks
+  and bounds unchanged). Next: sign candidate 33 with both, then one phone fetch.
 - **#278 (merged, PR #286):** a transient native TMM menu routes accepted local/adopted
   UUIDs to TMM review, replacing irrelevant sensor editing controls. It leaves item
   metadata and exports unchanged. SDK/resource compilation and UUID-gate tests passed.

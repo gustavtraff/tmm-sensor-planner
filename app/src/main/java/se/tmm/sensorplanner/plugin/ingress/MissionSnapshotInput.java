@@ -44,96 +44,110 @@ public final class MissionSnapshotInput {
     }
     public static List<Feed> feeds(InputStream input,BooleanSupplier active,String service)throws IOException {
         try {
-            JSONArray missions=json(input,active);if(missions.length()>MAX_MEMBERS)throw new IOException();
+            JSONArray missions=json(input,active);if(missions.length()>MAX_MEMBERS)throw rule(MissionReadFailure.Rule.FEED_COUNT);
             List<Feed> result=new ArrayList<>();Set<String> seen=new HashSet<>();
-            for(int n=0;n<missions.length();n++){Feed feed=feed(missions.getJSONObject(n),service);if(!seen.add(feed.guid))throw new IOException();result.add(feed);}
+            for(int n=0;n<missions.length();n++){Feed feed=feed(missions.getJSONObject(n),service);if(!seen.add(feed.guid))throw rule(MissionReadFailure.Rule.FEED_FIELDS);result.add(feed);}
             return Collections.unmodifiableList(result);
-        }catch(Exception invalid){throw failure();}
+        }catch(Exception invalid){throw failure(invalid);}
     }
     public static Set<String> members(Feed expected,InputStream input,BooleanSupplier active)throws IOException {
         try {
-            JSONArray data=json(input,active);if(data.length()!=1)throw new IOException();JSONObject mission=data.getJSONObject(0);Feed actual=feed(mission,expected.service);
-            if(!actual.guid.equals(expected.guid)||!actual.name.equals(expected.name))throw new IOException();
-            JSONArray uids=mission.getJSONArray("uids");if(uids.length()>MAX_MEMBERS)throw new IOException();Set<String> result=new HashSet<>();
+            JSONArray data=json(input,active);if(data.length()!=1)throw rule(MissionReadFailure.Rule.NOT_MISSION);JSONObject mission=data.getJSONObject(0);Feed actual=feed(mission,expected.service);
+            if(!actual.guid.equals(expected.guid)||!actual.name.equals(expected.name))throw rule(MissionReadFailure.Rule.FEED_MISMATCH);
+            JSONArray uids=mission.optJSONArray("uids");if(uids==null)throw rule(MissionReadFailure.Rule.MEMBER_ID);if(uids.length()>MAX_MEMBERS)throw rule(MissionReadFailure.Rule.FEED_COUNT);Set<String> result=new HashSet<>();
             for(int n=0;n<uids.length();n++){
-                Object value=uids.getJSONObject(n).get("data");if(!(value instanceof String))throw new IOException();String uid=(String)value;
-                if(uid.isEmpty()||uid.length()>128||!uid.equals(uid.trim())||!result.add(uid))throw new IOException();
+                JSONObject entry=uids.optJSONObject(n);Object value=entry==null?null:entry.opt("data");if(!(value instanceof String))throw rule(MissionReadFailure.Rule.MEMBER_ID);String uid=(String)value;
+                if(uid.isEmpty()||uid.length()>128||!uid.equals(uid.trim())||!result.add(uid))throw rule(MissionReadFailure.Rule.MEMBER_ID);
             }
             return Collections.unmodifiableSet(result);
-        }catch(Exception invalid){throw failure();}
+        }catch(Exception invalid){throw failure(invalid);}
     }
     private static Feed feed(JSONObject value,String service)throws Exception {
-        Object name=value.get("name"),guid=value.get("guid");if(!(name instanceof String)||!(guid instanceof String))throw new IOException();return new Feed((String)name,(String)guid,service);
+        Object name=value.opt("name"),guid=value.opt("guid");if(!(name instanceof String)||!(guid instanceof String))throw rule(MissionReadFailure.Rule.FEED_FIELDS);
+        try{return new Feed((String)name,(String)guid,service);}catch(IllegalArgumentException invalid){throw rule(MissionReadFailure.Rule.FEED_FIELDS);}
     }
     private static JSONArray json(InputStream input,BooleanSupplier active)throws Exception {
         String text=MissionReadInput.readText(input,active);MissionReadInput.boundStructure(text);JSONTokener parser=new JSONTokener(text);Object root=parser.nextValue();
-        if(!(root instanceof JSONObject)||parser.nextClean()!=0||!"Mission".equals(((JSONObject)root).get("type")))throw new IOException();return ((JSONObject)root).getJSONArray("data");
+        if(!(root instanceof JSONObject)||parser.nextClean()!=0||!"Mission".equals(((JSONObject)root).opt("type")))throw rule(MissionReadFailure.Rule.NOT_MISSION);
+        JSONArray data=((JSONObject)root).optJSONArray("data");if(data==null)throw rule(MissionReadFailure.Rule.NOT_MISSION);return data;
     }
     public static List<TmmDraft> metadata(InputStream input,Set<String> members,BooleanSupplier active)throws IOException {
         try {
             Handler handler=new Handler(active);MissionCotInput.reader(handler).parse(new InputSource(new StringReader(MissionCotInput.xmlText(input,active))));
-            if(!handler.complete||!handler.uids.equals(members)||!active.getAsBoolean())throw new IOException();
+            if(!handler.complete||!active.getAsBoolean())throw new IOException();
+            if(!handler.uids.containsAll(members))throw rule(MissionReadFailure.Rule.COT_MISSING);
+            if(!members.containsAll(handler.uids))throw rule(MissionReadFailure.Rule.COT_EXTRA);
             return Collections.unmodifiableList(handler.drafts);
-        }catch(Exception invalid){throw failure();}
-        catch(javax.xml.parsers.FactoryConfigurationError invalid){throw failure();}
+        }catch(Exception invalid){throw failure(invalid);}
+        catch(javax.xml.parsers.FactoryConfigurationError invalid){throw new IOException("Mission snapshot could not be verified");}
     }
-    private static IOException failure(){return new IOException("Mission snapshot could not be verified");}
+    private static MissionReadFailure.Violation rule(MissionReadFailure.Rule rule){return new MissionReadFailure.Violation(rule);}
+    /** Keeps the fixed rule of a failed check, also through the SAX handler; anything else stays unlabelled. */
+    private static IOException failure(Exception invalid){
+        if(invalid instanceof MissionReadFailure.Violation)return (MissionReadFailure.Violation)invalid;
+        if(invalid instanceof SAXException&&((SAXException)invalid).getException() instanceof MissionReadFailure.Violation)return (MissionReadFailure.Violation)((SAXException)invalid).getException();
+        return new IOException("Mission snapshot could not be verified");
+    }
     private static final class Handler extends DefaultHandler2 {
         final BooleanSupplier active;final Set<String> uids=new HashSet<>();final List<TmmDraft> drafts=new ArrayList<>();
         Map<String,String> event,point;int depth,points,payloads,details;boolean complete,oldTag,inPayload,inDetail,inPoint;int detailChildren;String payload;
         Handler(BooleanSupplier active){this.active=active;}
         private void check()throws SAXException {if(Thread.currentThread().isInterrupted()||!active.getAsBoolean())throw invalid();}
         @Override public void startElement(String uri,String local,String name,Attributes attrs)throws SAXException {
-            check();if(++depth>16||inPoint||!uri.isEmpty()||!local.equals(name)||attrs.getLength()>64||inPayload)throw invalid();
+            check();if(!uri.isEmpty())throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);if(++depth>16||inPoint||!local.equals(name)||attrs.getLength()>64||inPayload)throw invalid(MissionReadFailure.Rule.XML_SHAPE);
             Map<String,String> values=new LinkedHashMap<>();
             for(int n=0;n<attrs.getLength();n++){
                 String key=attrs.getQName(n),value=attrs.getValue(n);
-                if(!attrs.getURI(n).isEmpty()||key.length()>128||value.length()>87384)throw invalid();values.put(key,value);
+                if(!attrs.getURI(n).isEmpty())throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);if(key.length()>128||value.length()>87384)throw invalid(MissionReadFailure.Rule.XML_SHAPE);values.put(key,value);
             }
-            if(depth==1){if(!"events".equals(name)||!values.isEmpty())throw invalid();}
+            if(depth==1){if(!"events".equals(name)||!values.isEmpty())throw invalid(MissionReadFailure.Rule.XML_SHAPE);}
             else if(depth==2){
-                if(!"event".equals(name)||uids.size()==MAX_MEMBERS)throw invalid();event=values;point=null;points=payloads=details=0;oldTag=false;inDetail=inPoint=false;detailChildren=0;payload=null;
-                String uid=event.get("uid");if(uid==null||uid.isEmpty()||uid.length()>128||!uids.add(uid))throw invalid();
-            }else if("event".equals(name)||"events".equals(name))throw invalid();
+                if(!"event".equals(name))throw invalid(MissionReadFailure.Rule.XML_SHAPE);if(uids.size()==MAX_MEMBERS)throw invalid(MissionReadFailure.Rule.FEED_COUNT);event=values;point=null;points=payloads=details=0;oldTag=false;inDetail=inPoint=false;detailChildren=0;payload=null;
+                String uid=event.get("uid");if(uid==null||uid.isEmpty()||uid.length()>128||!uids.add(uid))throw invalid(MissionReadFailure.Rule.MEMBER_ID);
+            }else if("event".equals(name)||"events".equals(name))throw invalid(MissionReadFailure.Rule.XML_SHAPE);
             if(depth==3&&"point".equals(name)){point=values;points++;inPoint=true;}
             if(depth==3&&"detail".equals(name)){details++;inDetail=true;}
-            if(inDetail&&depth==4&&++detailChildren>64)throw invalid();
-            if("tmmPublication".equals(name)&&!(depth==4&&inDetail))throw invalid();
+            if(inDetail&&depth==4&&++detailChildren>64)throw invalid(MissionReadFailure.Rule.DETAIL_CHILDREN);
+            if("tmmPublication".equals(name)&&!(depth==4&&inDetail))throw invalid(MissionReadFailure.Rule.TMM_FIELDS);
             if(depth==4&&inDetail&&"tmmShareLab".equals(name))oldTag=true;
             if(depth==4&&inDetail&&"tmmPublication".equals(name)){
-                if(++payloads!=1||values.size()!=15)throw invalid();inPayload=true;StringBuilder xml=new StringBuilder("<tmmPublication");
+                if(++payloads!=1||values.size()!=15)throw invalid(MissionReadFailure.Rule.TMM_FIELDS);inPayload=true;StringBuilder xml=new StringBuilder("<tmmPublication");
                 for(Map.Entry<String,String> value:values.entrySet())xml.append(' ').append(value.getKey()).append("=\"").append(escape(value.getValue())).append('"');
-                payload=xml.append("/>").toString();if(payload.length()>PublicationCodec.MAX_BYTES)throw invalid();
+                payload=xml.append("/>").toString();if(payload.length()>PublicationCodec.MAX_BYTES)throw invalid(MissionReadFailure.Rule.TMM_FIELDS);
             }
         }
         @Override public void endElement(String uri,String local,String name)throws SAXException {
             check();if(depth==4&&inPayload)inPayload=false;
             if(depth==3){inDetail=false;inPoint=false;}
             if(depth==2&&payload!=null){
+                MissionReadFailure.Rule step=MissionReadFailure.Rule.TMM_EVENT;
                 try {
-                    if(points!=1||details!=1||oldTag||!"2.0".equals(event.get("version"))||!"b-m-p-s-p-loc".equals(event.get("type"))||event.get("how")==null||event.get("how").isEmpty())throw invalid();
-                    for(String key:new String[]{"time","start","stale"})Instant.parse(event.get(key));
-                    ShareReview.Metadata m=PublicationCodec.decode(new ByteArrayInputStream(payload.getBytes(StandardCharsets.UTF_8)));
-                    if(!m.uid.toString().equals(event.get("uid"))||Double.parseDouble(point.get("lat"))!=rounded(m.position.latitude)||Double.parseDouble(point.get("lon"))!=rounded(m.position.longitude))throw invalid();
-                    drafts.add(new TmmDraft(m.uid,m.displayId,m.type,m.status,m.owner,m.createdAt,m.updatedAt,m.deployedAt,m.comment,m.position,m.bearingDeg,null,1));
-                }catch(Exception invalid){throw invalid();}
+                    if(points!=1||details!=1||oldTag||!"2.0".equals(event.get("version"))||!"b-m-p-s-p-loc".equals(event.get("type"))||event.get("how")==null||event.get("how").isEmpty())throw invalid(step);
+                    step=MissionReadFailure.Rule.TMM_TIME;for(String key:new String[]{"time","start","stale"})Instant.parse(event.get(key));
+                    step=MissionReadFailure.Rule.TMM_PAYLOAD;ShareReview.Metadata m=PublicationCodec.decode(new ByteArrayInputStream(payload.getBytes(StandardCharsets.UTF_8)));
+                    if(!m.uid.toString().equals(event.get("uid")))throw invalid(MissionReadFailure.Rule.TMM_EVENT);
+                    step=MissionReadFailure.Rule.TMM_POSITION;if(Double.parseDouble(point.get("lat"))!=rounded(m.position.latitude)||Double.parseDouble(point.get("lon"))!=rounded(m.position.longitude))throw invalid(step);
+                    step=MissionReadFailure.Rule.TMM_PAYLOAD;drafts.add(new TmmDraft(m.uid,m.displayId,m.type,m.status,m.owner,m.createdAt,m.updatedAt,m.deployedAt,m.comment,m.position,m.bearingDeg,null,1));
+                }catch(SAXException labelled){throw labelled;}
+                catch(Exception invalid){throw invalid(step);}
             }
             if(--depth==0)complete=true;
         }
         @Override public void characters(char[] text,int start,int length)throws SAXException {
-            check();if(inPayload||depth<=1)for(int n=start;n<start+length;n++)if(text[n]!=' '&&text[n]!='\t'&&text[n]!='\r'&&text[n]!='\n')throw invalid();
+            check();if(inPayload||depth<=1)for(int n=start;n<start+length;n++)if(text[n]!=' '&&text[n]!='\t'&&text[n]!='\r'&&text[n]!='\n')throw invalid(MissionReadFailure.Rule.XML_SHAPE);
         }
         private static double rounded(double value){return Math.round(value*1e7)/1e7;}
         private static String escape(String v){return v.replace("&","&amp;").replace("<","&lt;").replace("\"","&quot;").replace("\r","&#13;").replace("\n","&#10;").replace("\t","&#9;");}
-        @Override public void startPrefixMapping(String p,String u)throws SAXException {throw invalid();}
-        @Override public void processingInstruction(String t,String d)throws SAXException {throw invalid();}
-        @Override public void startDTD(String n,String p,String s)throws SAXException {throw invalid();}
-        @Override public void startCDATA()throws SAXException {throw invalid();}
-        @Override public void comment(char[] t,int s,int n)throws SAXException {throw invalid();}
-        @Override public InputSource resolveEntity(String p,String s)throws SAXException {throw invalid();}
-        @Override public InputSource resolveEntity(String n,String p,String b,String s)throws SAXException {throw invalid();}
-        @Override public void error(SAXParseException e)throws SAXException {throw invalid();}
-        @Override public void fatalError(SAXParseException e)throws SAXException {throw invalid();}
+        @Override public void startPrefixMapping(String p,String u)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public void processingInstruction(String t,String d)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public void startDTD(String n,String p,String s)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public void startCDATA()throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public void comment(char[] t,int s,int n)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public InputSource resolveEntity(String p,String s)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public InputSource resolveEntity(String n,String p,String b,String s)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_FORBIDDEN);}
+        @Override public void error(SAXParseException e)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_SYNTAX);}
+        @Override public void fatalError(SAXParseException e)throws SAXException {throw invalid(MissionReadFailure.Rule.XML_SYNTAX);}
         private SAXException invalid(){return new SAXException("Invalid mission metadata");}
+        private static SAXException invalid(MissionReadFailure.Rule rule){return new SAXException(new MissionReadFailure.Violation(rule));}
     }
 }
