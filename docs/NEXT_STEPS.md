@@ -20,9 +20,7 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   `private-data/releases/v32/verification.json`. Owner phone testing began on
   20 November: local creation/list access and native Data Sync add/update were
   observed. Integrated native two-client acceptance and owner go/no-go remain open.
-- **Candidate 31** (`versionCode 31`, `0.1.0-feed-sync-trial.1`, #252) remains signed from
-  main `7df6347`. Its hash, signature and APK packaging checks passed; its signer
-  matches candidates 29/30. The private record is
+- **Candidate 31** remains signed from `7df6347`; its private signing record is
   `private-data/releases/v31/verification.json`.
 - The earlier SDK-host lab exercised follow, automatic fetch, upload, association
   and removal on TAK Server 5.8. Its native Data Sync step was a stand-in.
@@ -43,12 +41,16 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 
 ## Immediate follow-up from owner phone testing (#252)
 
-- **First: #280**, diagnose repeated TMM fetch failures despite native Data Sync
-  add/update log entries. The failing stage is unknown; successful native actions
-  do not establish matching metadata readback or second-client receipt.
-- **#278:** published markers open ATAK sensor controls, including unsupported
-  Gateway FOV/video controls, instead of TMM review. Private draft features and
-  imported native MapItems have separate selection paths; verify SDK behavior.
+- **First: #280**, diagnose TMM fetch failure: the owner sees the test item in
+  native **Map Items**, but TMM has no received metadata or review decisions after
+  manual refresh. Add safe stage diagnostics; distinguish an early failure from a
+  snapshot without accepted TMM metadata. Generic retries occur before local apply.
+- **#278:** published markers open native sensor controls instead of TMM review.
+  There is no native TMM review binding; verify the SDK menu mechanism while
+  preserving native Data Sync selection.
+- **#283:** toggling native **Show non-feed content** prompts publication of the
+  existing test item without an intentional TMM edit. Actual unconfirmed sends are
+  not established; reproduce visibility/persist events before choosing a fix.
 - **#279:** make per-device feed verification visible in TMM, including an explicit
   check, matching UUID/current metadata, last successful check and unknown/stale
   state on failure. The list currently falls back to **Sparad lokalt** and cannot
