@@ -107,7 +107,7 @@ public final class MissionSnapshotInput {
             }else if("event".equals(name)||"events".equals(name))throw invalid(MissionReadFailure.Rule.XML_SHAPE);
             if(depth==3&&"point".equals(name)){point=values;points++;inPoint=true;}
             if(depth==3&&"detail".equals(name)){details++;inDetail=true;}
-            if(inDetail&&depth==4&&++detailChildren>64)throw invalid(MissionReadFailure.Rule.DETAIL_CHILDREN);
+            if(inDetail&&depth==4)detailChildren++;
             if("tmmPublication".equals(name)&&!(depth==4&&inDetail))throw invalid(MissionReadFailure.Rule.TMM_FIELDS);
             if(depth==4&&inDetail&&"tmmShareLab".equals(name))oldTag=true;
             if(depth==4&&inDetail&&"tmmPublication".equals(name)){
@@ -120,6 +120,8 @@ public final class MissionSnapshotInput {
             check();if(depth==4&&inPayload)inPayload=false;
             if(depth==3){inDetail=false;inPoint=false;}
             if(depth==2&&payload!=null){
+                // #280: native drawings carry one detail <link> per vertex and are only counted; the cap applies to TMM events.
+                if(detailChildren>64)throw invalid(MissionReadFailure.Rule.DETAIL_CHILDREN);
                 MissionReadFailure.Rule step=MissionReadFailure.Rule.TMM_EVENT;
                 try {
                     if(points!=1||details!=1||oldTag||!"2.0".equals(event.get("version"))||!"b-m-p-s-p-loc".equals(event.get("type"))||event.get("how")==null||event.get("how").isEmpty())throw invalid(step);

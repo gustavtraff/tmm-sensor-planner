@@ -17,9 +17,8 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   from main `4967945` (PR #289): #285 stage diagnostics, #286 native TMM review menu and
   #288 rule labels. Signature, package/version and APK packaging checks passed; its
   signer matches candidate 32, and build output contains the #286/#288 markers. The
-  private record is `private-data/releases/v33/verification.json`. Not yet installed.
-  Owner check: menu opens the right TMM review, Data Sync Map Select still works, then
-  one **Uppdatera nu** and the displayed failure line. The guides still describe
+  private record is `private-data/releases/v33/verification.json`. Installed by the
+  owner; the #278 menu passed on the phone (see #280 below). The guides still describe
   candidate 32 and do not cover the new menu.
 - **Candidate 32** (`versionCode 32`, `0.1.0-feed-sync-trial.2`, #252) is signed from
   owner-approved main `f89f1f4` (PR #276). Signature, package/version and APK packaging
@@ -47,13 +46,14 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 
 ## Immediate follow-up from owner phone testing (#252)
 
-- **First: #280**, the owner sees the test item in native **Map Items**, but TMM
-  receives no metadata after manual refresh. The followed feed holds one TMM item,
-  four native drawings (one with a geofence) and three non-TMM files; feed setup
-  listed it without error. Size/count caps and these drawing shapes are ruled out
-  (synthetic regression test). PR #285 adds stage/category diagnostics; the #280
-  rule-label PR names the exact failed response check (fixed labels only, checks
-  and bounds unchanged). Next: one phone fetch on signed candidate 33.
+- **First: #280.** Root cause found on signed candidate 33 (owner phone, 20 Nov): the
+  metadata read failed with rule "ett objekt har fler än 64 element i detail". The feed
+  holds native drawings, and ATAK writes one detail element per vertex. The 64-child cap
+  applied to every event, although non-TMM events are only counted. The fix limits it to
+  TMM events; the 64 KiB reply bound is unchanged. Owner A/B checks passed on candidate 33:
+  update install, loading, retained data, menu, correct review, drawings unaffected, Map
+  Select and rotation. Next: candidate 34 and one fetch; a later stage (for example the
+  non-TMM files in the resource list) may still fail, and its rule label will show.
 - **#278 (merged, PR #286):** a transient native TMM menu routes accepted local/adopted
   UUIDs to TMM review, replacing irrelevant sensor editing controls. It leaves item
   metadata and exports unchanged. SDK/resource compilation and UUID-gate tests passed.
