@@ -15,7 +15,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   M1–M7 and G1–G5; their contracts remain authoritative.
 - **Candidate 34** (`versionCode 34`, `0.1.0-feed-sync-diagnostics.2`, #252) is prepared
   from main `df9dc5c` under owner approval: candidate 33 plus the #291 fix, version
-  metadata only. Not yet signed. Owner check: update install, then one **Uppdatera nu**.
+  metadata only. Signed: signature, package/version and APK packaging checks passed;
+  signer matches candidate 33. Private record `private-data/releases/v34/verification.json`.
+  Owner check: update install, one **Uppdatera nu**, then the #283 toggle-only test.
 - **Candidate 33** (`versionCode 33`, `0.1.0-feed-sync-diagnostics.1`, #252) is signed
   from main `4967945` (PR #289): #285 stage diagnostics, #286 native TMM review menu and
   #288 rule labels. Signature, package/version and APK packaging checks passed; its
