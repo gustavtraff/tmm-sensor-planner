@@ -213,6 +213,21 @@ public class FeedFollowUiTest {
         assertEquals(completedRecords.get(0).get(0).associationId,completedRecords.get(2).get(0).associationId);
     }
 
+    @Test public void localSaveMarksUnpublishedWithoutWaitingForAFetch()throws Exception {
+        following(Collections.emptyList());
+        UUID baseReceipt=new InboxStore(privateRoot.resolve("metadata-inbox-v1")).receiveBatch(feed.context(),Collections.singletonList(incoming),Collections.emptyMap(),Instant.EPOCH).get(0).id;
+        FeedSyncState sync=new FeedSyncState(syncDir);FeedSyncState.Snapshot empty=sync.read();
+        sync.replace(empty,new FeedSyncState.Snapshot(empty.syncId,empty.inboxId,true,empty.contextId,empty.feedName,empty.streamConnect,
+                Collections.singletonList(new FeedSyncState.Record(incoming.uid,baseReceipt,baseReceipt,FeedSyncState.IMAGE_NONE,null,null,null))));
+        local.save(local.load().storeId,LocalV2.State.neverSeen(incoming.uid),incoming);
+        ui.start();settle();assertNull(ui.marker(incoming.uid));
+        TmmDraft edited=new TmmDraft(incoming.uid,incoming.displayId,incoming.type,incoming.status,incoming.owner,incoming.createdAt,Instant.ofEpochSecond(20),null,"saved later",incoming.position,incoming.bearingDeg,null,2);
+        local.save(local.load().storeId,local.load().state(incoming.uid),edited);
+        assertNull("not recomputed before the save is reported",ui.marker(incoming.uid));
+        int changes=statusChanges.get();ui.localChanged();drain();
+        assertEquals("Ej publicerad",ui.marker(incoming.uid));assertTrue(statusChanges.get()>changes);
+        assertEquals("no fetch was needed",1,lists.get());
+    }
     @Test public void conflictIsMarkedShownSideBySideAndKeepMineLeavesItUnpublished()throws Exception {
         following(Collections.emptyList());
         TmmDraft base=new TmmDraft(incoming.uid,incoming.displayId,incoming.type,incoming.status,incoming.owner,incoming.createdAt,Instant.ofEpochSecond(5),null,"base text",incoming.position,incoming.bearingDeg,null,1);
