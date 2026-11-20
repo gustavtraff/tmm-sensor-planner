@@ -73,7 +73,7 @@ as the UI sequence. Record each check as pass, fail or not run, with the exact b
   fetch/photo work loses no committed data. In the loopback lab, remove the owned
   ADB reverse tunnel to simulate loss of transport: airplane mode alone leaves it live.
 - For published and received/adopted TMM items of all four types, open the native
-  radial menu and choose **Öppna TMM**. Check the correct TMM review opens, unrelated
+  radial menu and choose **Öppna enhet**. Check the correct TMM review opens, unrelated
   items retain their native menus, stale/deleted selections do nothing, and restart,
   rotation and unload leave no extra actions. Check local/native overlap and confirm
   native exports remain unchanged by viewing.

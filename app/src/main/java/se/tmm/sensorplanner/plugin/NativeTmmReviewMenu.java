@@ -50,8 +50,8 @@ final class NativeTmmReviewMenu implements AutoCloseable {
         String uid = item.getUID();
         if (review.match(uid) == null) return;
         MapMenuButtonWidget button = new MapMenuButtonWidget(map.getContext());
-        button.setName("Öppna i TMM");
-        button.setText("Öppna i TMM");
+        button.setName("Öppna enhet");
+        button.setText("Öppna enhet");
         button.setIcon(icon);
         button.setBackground(new WidgetBackground.Builder().setColor(0, Color.argb(230, 23, 49, 59))
                 .setColor(AbstractButtonWidget.STATE_PRESSED, Color.rgb(8, 126, 139)).build());
