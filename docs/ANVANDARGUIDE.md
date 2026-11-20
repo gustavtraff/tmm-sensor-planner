@@ -2,8 +2,8 @@
 
 <!-- Maintainers: full reference for candidate 32 source. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The concise PDF is generated from SNABBGUIDE.md with scripts/render-quick-guide.py. -->
 
-**Om versionen:** Guiden beskriver kandidat 32. Motsvarande signerad APK och
-telefonprov återstår. Kontrollera vilken version du har.
+**Om versionen:** Guiden beskriver signerad kandidat 32 (`0.1.0-feed-sync-trial.2`).
+Signatur och paketering är kontrollerade; telefonprovet återstår. Kontrollera vilken version du har.
 Använd bara övningsdata tills ansvarig person har godkänt användningen.
 
 ## 1. Kom igång

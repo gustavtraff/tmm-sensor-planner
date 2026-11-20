@@ -44,10 +44,11 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   diagnostics; requests, validation and formats remain unchanged. Static retry
   text states an interval, not a countdown. Phone root cause and the next signed
   diagnostic candidate remain pending.
-- **#278:** a transient native TMM menu now routes accepted local/adopted UUIDs to
-  TMM review, replacing irrelevant sensor editing controls. It leaves item metadata
-  and exports unchanged. SDK/resource compilation and UUID-gate tests passed;
-  signed-phone rendering, Data Sync selection, restart and unload remain under #252.
+- **#278 (merged, PR #286):** a transient native TMM menu routes accepted local/adopted
+  UUIDs to TMM review, replacing irrelevant sensor editing controls. It leaves item
+  metadata and exports unchanged. SDK/resource compilation and UUID-gate tests passed.
+  Signed candidate 32 does not contain it; signed-phone rendering, Data Sync
+  selection, restart and unload remain under #252 for the next signed candidate.
 - **#283:** toggling native **Show non-feed content** prompts publication of the
   existing test item without an intentional TMM edit. Actual unconfirmed sends are
   not established; reproduce visibility/persist events before choosing a fix.
