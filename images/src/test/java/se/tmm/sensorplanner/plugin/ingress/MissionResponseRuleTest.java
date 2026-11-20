@@ -43,13 +43,17 @@ public class MissionResponseRuleTest {
         String xml="<events>"+drawing("shape-1",4,false)+drawing("shape-2",5,false)+drawing("shape-3",4,false)+drawing("fence-1",6,true)+tmm()+"</events>";
         Set<String> members=new HashSet<>(Arrays.asList("shape-1","shape-2","shape-3","fence-1",TMM_UID));
         assertEquals(1,MissionSnapshotInput.metadata(input(xml),members,()->true).size());
+        // #280 phone failure: a native drawing with many vertices is counted, not rejected.
+        String many="<events>"+drawing("freehand",400,true)+tmm()+"</events>";
+        assertEquals(1,MissionSnapshotInput.metadata(input(many),new HashSet<>(Arrays.asList("freehand",TMM_UID)),()->true).size());
     }
 
     @Test public void cotRulesNameTheFailedCheck()throws Exception{
         String event=tmm();Set<String> one=Collections.singleton(TMM_UID);
         assertRule(COT_MISSING,()->MissionSnapshotInput.metadata(input("<events>"+event+"</events>"),new HashSet<>(Arrays.asList(TMM_UID,"absent")),()->true));
         assertRule(COT_EXTRA,()->MissionSnapshotInput.metadata(input("<events>"+event+"</events>"),Collections.emptySet(),()->true));
-        assertRule(DETAIL_CHILDREN,()->MissionSnapshotInput.metadata(input("<events>"+drawing("freehand",65,false)+"</events>"),Collections.singleton("freehand"),()->true));
+        StringBuilder extra=new StringBuilder();for(int n=0;n<64;n++)extra.append("<x/>");
+        assertRule(DETAIL_CHILDREN,()->MissionSnapshotInput.metadata(input("<events>"+event.replace("<detail>","<detail>"+extra)+"</events>"),one,()->true));
         assertRule(XML_FORBIDDEN,()->MissionSnapshotInput.metadata(input("<events><!-- note -->"+event+"</events>"),one,()->true));
         assertRule(XML_FORBIDDEN,()->MissionSnapshotInput.metadata(input("<events xmlns:x=\"urn:x\">"+event+"</events>"),one,()->true));
         assertRule(XML_SYNTAX,()->MissionSnapshotInput.metadata(input("<events>"+event),one,()->true));
