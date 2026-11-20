@@ -81,8 +81,10 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - **#299 (in main after candidate 34):** native copies get `hideFov`, so ATAK's default
   west-pointing FOV is not published (part A). B2: TMM's icon represents a published
   device; the native icon is invisible on this phone but stays selectable (#305).
-- **Next: candidate 35** with #277, #279 and #297 (label the marker action **Öppna enhet**).
-  The guides must describe the menu, layout and #279 states before it reaches users.
+- **Next: candidate 35** from current main: #277, #279/#300/#301 statuses, #297
+  **Öppna enhet**, #299 (hidden FOV, single icon) and #302 photo names. The guides
+  describe candidate 35. Signing needs an owner-approved proposal; then one-phone
+  checks, then the two-phone acceptance in #252.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync
   log entries and visible map items alone do not pass the integrated acceptance.
 

@@ -75,7 +75,7 @@ def render(source, output, font_dir):
         canvas.line(43, 44, width - 43, 44)
         canvas.setFillColor(muted)
         canvas.setFont("Guide", 8)
-        canvas.drawString(43, 29, "Kandidat 32 - testversion  |  19 november 2026")
+        canvas.drawString(43, 29, "Kandidat 35 - förhandsversion  |  20 november 2026")
         canvas.drawRightString(width - 43, 29, f"{doc.page} / {len(sections)}")
         canvas.restoreState()
 
