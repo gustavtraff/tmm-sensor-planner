@@ -69,11 +69,11 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   owner did not see where **Publicerad** appears; clarify in the guides.
 - **#283 closed, not reproduced:** on candidates 33 and 34 no publication prompt
   appeared, including when **Show non-feed content** was toggled off and on.
-- **#279 (in main after candidate 34):** list and review show session-only metadata
-  evidence from the latest read of the followed feed: confirmed with time, absent,
-  different, failed check (keeps only the last success time) or not checked. Review
-  has **Kontrollera i feeden nu**; photo state is stated as unchecked. Restart resets
-  to not checked; durable evidence would need a format proposal.
+- **#279 (in main after candidate 34):** list and review use the owner-chosen labels
+  **Endast lokalt**, **Publicerad · kontrollerad HH:MM**, **Ändringar att publicera**,
+  **Konflikt** and **Feedstatus okänd** (no or failed check), based on session-only
+  metadata from the latest read of the followed feed. Review has **Kontrollera i
+  feeden nu**; photo state is stated as unchecked. Restart resets to unknown.
 - **#277 (fixed in main after candidate 34):** device rows and feed controls now share
   one scroll view; the actions stay in the dialog button bar. Other planner dialogs
   already scroll. Phone check in both orientations is pending a later signed candidate.

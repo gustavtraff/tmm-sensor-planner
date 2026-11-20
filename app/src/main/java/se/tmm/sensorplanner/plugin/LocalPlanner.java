@@ -370,16 +370,16 @@ final class LocalPlanner {
         if ("Ej publicerad".equals(marker)) return "Ändringar att publicera";
         // #279: only this session's latest metadata read of the followed feed is evidence; no marker proves nothing.
         se.tmm.sensorplanner.plugin.local.FeedFollowUi.Verification checked = feedFollow.verification();
-        if (checked == null) return "Sparad lokalt · ej kontrollerad i feeden";
-        if (checked.lastFailed) return "Sparad lokalt · feedkontrollen misslyckades"
-                + (checked.checkedAt == null ? "" : " (senast lyckad " + clock(checked.checkedAt) + ")");
+        // Owner-chosen labels (20 Nov): Endast lokalt, Publicerad, Ändringar att publicera, Konflikt, Feedstatus okänd.
+        if (checked == null || checked.lastFailed) return "Feedstatus okänd";
         TmmDraft mine = null;
         for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) mine = draft;
         TmmDraft inFeed = checked.feed.get(uid);
-        if (inFeed == null) return "Sparad lokalt · finns inte i feeden (" + clock(checked.checkedAt) + ")";
+        if (inFeed == null) return "Endast lokalt";
         if (mine != null && se.tmm.sensorplanner.core.ImportReview.sameMetadata(mine, inFeed))
-            return "Bekräftad i feeden " + clock(checked.checkedAt);
-        return "Skiljer sig från feeden (" + clock(checked.checkedAt) + ")";
+            return "Publicerad · kontrollerad " + clock(checked.checkedAt);
+        // Rare after an apply round: the feed has another version that is neither applied nor a conflict yet.
+        return "Skiljer sig från feeden · kontrollerad " + clock(checked.checkedAt);
     }
 
     private static String clock(java.time.Instant at) {
