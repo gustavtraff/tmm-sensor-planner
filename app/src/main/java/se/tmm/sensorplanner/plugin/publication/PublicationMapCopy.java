@@ -53,7 +53,9 @@ public final class PublicationMapCopy {
                 CotImporterManager manager = CotImporterManager.getInstance();
                 if (manager == null) throw new IllegalStateException();
                 Bundle options = new Bundle(); options.putString("from", "se.tmm.sensorplanner.plugin.publicationlab");
-                return manager.importData(event, options).toString();
+                String result = manager.importData(event, options).toString();
+                hideDefaultFov(map, map.getMapItem(event.getUID()));
+                return result;
             }
             @Override public String update(String uid, Object expectedIdentity, CotEvent event, boolean movePoint) {
                 MapItem item = map.getMapItem(uid);
@@ -68,6 +70,7 @@ public final class PublicationMapCopy {
                 com.atakmap.android.cot.OpaqueHandler.getInstance().toMarkerMetadata(item, event,
                         event.getDetail().getFirstChildByName(0, PublicationCot.TAG));
                 item.setMetaString("callsign", event.getDetail().getFirstChildByName(0, "contact").getAttribute("callsign"));
+                item.setMetaBoolean(com.atakmap.android.cot.detail.SensorDetailHandler.HIDE_FOV, true);
                 com.atakmap.android.user.PlacePointTool.updateCallsign((com.atakmap.android.maps.Marker)item);
                 item.refresh(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
                 item.persist(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
@@ -76,6 +79,16 @@ public final class PublicationMapCopy {
         });
     }
     PublicationMapCopy(Port port) { this.port = port; }
+
+    /**
+     * #299 (owner-approved 2026-11-20): ATAK exports every b-m-p-s-p-loc item with a default sensor FOV
+     * (azimuth 270, fov 45, range 100) that TMM never set. hideFov makes ATAK's own export hide it on every client.
+     */
+    private static void hideDefaultFov(MapView map, MapItem item) {
+        if (item == null || !PublicationCot.TYPE.equals(item.getType())) return;
+        item.setMetaBoolean(com.atakmap.android.cot.detail.SensorDetailHandler.HIDE_FOV, true);
+        item.persist(map.getMapEventDispatcher(), null, PublicationMapCopy.class);
+    }
 
     public PublicationMapCopy forServerTrial() { serverTrial = true; return this; }
     /** G1-G5 position/bearing updates; the configured server trial contract keeps refusing them. */

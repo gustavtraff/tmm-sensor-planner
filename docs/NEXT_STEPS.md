@@ -78,7 +78,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   one scroll view; the actions stay in the dialog button bar. Other planner dialogs
   already scroll. Phone check in both orientations is pending a later signed candidate.
 - **#302 (in main after candidate 34):** photos upload as `TMM-bild-<ID>-r<rev>-<hash8>.tmmi`.
-  **#299:** owner approved hiding ATAK's default FOV (`hideFov`) and chose icon option B2.
+- **#299 (in main after candidate 34):** native copies get `hideFov`, so ATAK's default
+  west-pointing FOV is not published (part A). B2: TMM's icon represents a published
+  device; the native icon is invisible on this phone but stays selectable (#305).
 - **Next: candidate 35** with #277, #279 and #297 (label the marker action **Öppna enhet**).
   The guides must describe the menu, layout and #279 states before it reaches users.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync

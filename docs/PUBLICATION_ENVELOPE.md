@@ -25,6 +25,13 @@ the production detail. The bounded, separately supplied host callsign is a displ
 label, never the device identity, source authority or a rewritten display ID.
 Unrepresentable labels fail rather than being truncated or silently renamed.
 
+**Hidden default FOV, approved by the owner on 2026-11-20 (#299):** ATAK 5.6's
+`SensorDetailHandler` exports every `b-m-p-s-p-loc` item with a `<sensor>` detail and
+defaults TMM never sets (azimuth 270, fov 45, range 100). TMM sets the native copy's
+`hideFov` metadata at creation and at every **Publicera** update, so ATAK's own export
+carries `hideFov="true"` and receivers hide the wedge. TMM's envelope is unchanged.
+Items published earlier keep the default until their next update.
+
 SDK outer point serialization uses seven fractional decimal places. The adapter
 sets that rounded point explicitly and requires it to agree with the exact
 latitude/longitude in the metadata. It never rounds the metadata. CoT time/start
