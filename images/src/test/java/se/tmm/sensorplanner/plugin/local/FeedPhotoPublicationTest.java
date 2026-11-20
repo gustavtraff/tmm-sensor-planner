@@ -64,7 +64,8 @@ public class FeedPhotoPublicationTest {
         Result result=service.publish(request,()->true);
         assertEquals(result.message,Outcome.SUCCEEDED,result.outcome);
         assertEquals(Arrays.asList("upload","associate"),fake.calls);
-        assertTrue(fake.name.matches("[0-9a-f-]{36}\\.tmmi"));assertEquals("ANDROID-synthetic",fake.creator);
+        assertTrue(fake.name,fake.name.matches("TMM-bild-[A-Za-z0-9-]{1,40}-r[0-9]+-[0-9a-f]{8}\\.tmmi"));
+        assertTrue(fake.name.endsWith("-"+sha256(fake.body).substring(0,8)+".tmmi"));assertEquals("ANDROID-synthetic",fake.creator);
         ReceivedImagePayload sent=ImageContainerCodec.read(new ByteArrayInputStream(fake.body));
         assertArrayEquals("Exactly the previewed export of photo 2",previewed,sent.image.bytes());assertNotEquals(h1.pngLength,previewed.length);
         assertEquals(device,sent.offer.metadata.uid);
@@ -202,6 +203,16 @@ public class FeedPhotoPublicationTest {
         StringBuilder out=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(bytes))out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();
     }
 
+    @Test public void uploadNamesAreReadableAndSafeForTheUploadPath(){
+        String hash="1a2b3c4d"+"0".repeat(56);
+        assertEquals("TMM-bild-150-R1-r3-1a2b3c4d.tmmi",FeedPhotoPublication.uploadName("150 R1",3,hash));
+        assertEquals("TMM-bild-Ango-vag-r1-1a2b3c4d.tmmi",FeedPhotoPublication.uploadName("Ängö väg",1,hash));
+        assertEquals("TMM-bild-enhet-r2-1a2b3c4d.tmmi",FeedPhotoPublication.uploadName("§§ !!",2,hash));
+        String longName=FeedPhotoPublication.uploadName("A".repeat(39)+" B",9,hash);
+        assertEquals("TMM-bild-"+"A".repeat(39)+"-r9-1a2b3c4d.tmmi",longName);
+        for(String n:new String[]{longName,FeedPhotoPublication.uploadName("x/../?&=y",1,hash)})
+            assertTrue(n,("/sync/upload?name="+n+"&creatorUid=ANDROID-x").matches("[A-Za-z0-9/._:?&=-]{1,512}"));
+    }
     private static final class Fake implements Transport {
         final List<String> calls=new ArrayList<>();String name,creator,guid,associated,removed,reply;byte[] body;
         WriteFailure.Kind uploadFailure,associateFailure,removeFailure;

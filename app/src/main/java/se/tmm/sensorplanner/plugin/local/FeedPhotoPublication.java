@@ -99,12 +99,13 @@ public final class FeedPhotoPublication implements AutoCloseable {
             String changed=destinationChanged(shown);
             if(changed!=null){request.close();return failed(uid,changed);}
             String oldHash=replacedBase(shown,uid);
-            byte[] bytes;String hash,name;
+            byte[] bytes;String hash,name,uploadName;
             try{
                 ImagePublicationReview.Prepared prepared=request.review.confirm(local.load(),shown.contextId,shown.feedName,images);
                 clearOutbox();require(active);
                 name=frozen.export(prepared,()->!closed&&active.getAsBoolean());file=outbox.resolve(name);
                 bytes=readBack(file,prepared);hash=hex(MessageDigest.getInstance("SHA-256").digest(bytes));
+                uploadName=uploadName(prepared.offer.metadata.displayId,local.load().state(uid).draft.revision,hash);
             }catch(Exception|OutOfMemoryError notReady){
                 return failed(uid,"Bilden kunde inte förberedas för publicering. Granska på nytt.");
             }finally{request.close();}
@@ -117,7 +118,7 @@ public final class FeedPhotoPublication implements AutoCloseable {
             try{transport=host.connect(endpoint(shown));}catch(RuntimeException unavailable){return failed(uid,"Den sparade källan kunde inte öppnas.");}
             if(!canContinue(active))return failed(uid,"Publiceringen avbröts.");
             String returned;
-            try{returned=transport.upload(name,creator,bytes,attempt(UPLOAD_SECONDS));}
+            try{returned=transport.upload(uploadName,creator,bytes,attempt(UPLOAD_SECONDS));}
             catch(WriteFailure f){return outcome(uid,f.kind,"");}
             catch(RuntimeException unexpected){return new Result(uid,Outcome.UNKNOWN,UNKNOWN_TEXT);}
             if(!hash.equals(returned))return failed(uid,"Servern bekräftade inte samma bildinnehåll. Bilden kopplades inte till feeden.");
@@ -272,6 +273,13 @@ public final class FeedPhotoPublication implements AutoCloseable {
     private static String guid(FeedSyncState.Snapshot s){
         String guid=s.contextId.substring(s.contextId.lastIndexOf('|')+1);UUID id=UUID.fromString(guid);
         if(!id.toString().equals(guid))throw new IllegalArgumentException("Invalid mission GUID");return guid;
+    }
+    /** #302: server-side name only, never identity: {@code TMM-bild-<ID>-r<revision>-<hash8>.tmmi}. */
+    static String uploadName(String displayId,long revision,String sha256){
+        String id=displayId.replace('å','a').replace('ä','a').replace('ö','o').replace('Å','A').replace('Ä','A').replace('Ö','O')
+                .replaceAll("[^A-Za-z0-9]+","-").replaceAll("^-+|-+$","");
+        if(id.length()>40)id=id.substring(0,40).replaceAll("-+$","");
+        return "TMM-bild-"+(id.isEmpty()?"enhet":id)+"-r"+revision+"-"+sha256.substring(0,8)+".tmmi";
     }
     private static String hex(byte[] bytes){StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();}
 }
