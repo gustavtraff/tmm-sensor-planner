@@ -17,7 +17,12 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   main `64a016d` under owner approval: everything listed under "Next: candidate 35" plus #308
   (no off-screen ring for TMM devices), version metadata only. Signed: signature,
   package/version, APK packaging and feature-marker checks passed; signer matches
-  candidate 34. Private record `private-data/releases/v35/verification.json`. Not yet installed.
+  candidate 34. Private record `private-data/releases/v35/verification.json`. Owner phone
+  test (21 Nov) passed: update install, Endast lokalt/Publicerad statuses, marker on save,
+  single TMM symbol, **Öppna enhet**, Map Select on the invisible native icon, no
+  off-screen ring for TMM devices, `TMM-bild-…` names, landscape list, icons restored
+  after unload. Failed: a FOV wedge remained (an existing `<uid>-fov` item from before
+  `hideFov`), and one device showed both labels. Both fixed on main after candidate 35.
 - **Candidate 34** (`versionCode 34`, `0.1.0-feed-sync-diagnostics.2`, #252) was prepared
   from main `df9dc5c` under owner approval: candidate 33 plus the #291 fix, version
   metadata only. Signed: signature, package/version and APK packaging checks passed;
