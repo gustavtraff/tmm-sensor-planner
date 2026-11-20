@@ -1,4 +1,4 @@
-# Current implementation and next steps — 2026-11-19
+# Current implementation and next steps — 2026-11-20
 
 ## Target workflow (owner-confirmed 2026-11-18)
 
@@ -13,11 +13,13 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - Automatic receiving (#236/#242), **Publicera** with photo (#243/#264), and geometry
   updates (#189/#259) are merged. The approved decisions are U1–U8, S1–S4, W1–W5,
   M1–M7 and G1–G5; their contracts remain authoritative.
-- **Candidate 32** (`versionCode 32`, `0.1.0-feed-sync-trial.2`, #252) is prepared
-  for owner review and signing. It contains the usability/API-port updates and
-  the approved #268 cancellation fix. It is not signed or device-tested. The owner
-  must approve the exact PR/source before merge and signing; the archive procedure
-  is [here](SIGNING_SOURCE.md#prepare-the-exact-reviewed-source).
+- **Candidate 32** (`versionCode 32`, `0.1.0-feed-sync-trial.2`, #252) is signed from
+  owner-approved main `f89f1f4` (PR #276). Signature, package/version and APK packaging
+  checks passed; its signer matches candidate 31. Build output contains the #268
+  cancellation helper and usability/API-port markers. The private record is
+  `private-data/releases/v32/verification.json`. Owner phone testing began on
+  20 November: local creation/list access and native Data Sync add/update were
+  observed. Integrated native two-client acceptance and owner go/no-go remain open.
 - **Candidate 31** (`versionCode 31`, `0.1.0-feed-sync-trial.1`, #252) remains signed from
   main `7df6347`. Its hash, signature and APK packaging checks passed; its signer
   matches candidates 29/30. The private record is
@@ -39,6 +41,23 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   unchanged. The guides now describe candidate 32; signed candidate 31 does not
   contain these changes.
 
+## Immediate follow-up from owner phone testing (#252)
+
+- **First: #280**, diagnose repeated TMM fetch failures despite native Data Sync
+  add/update log entries. The failing stage is unknown; successful native actions
+  do not establish matching metadata readback or second-client receipt.
+- **#278:** published markers open ATAK sensor controls, including unsupported
+  Gateway FOV/video controls, instead of TMM review. Private draft features and
+  imported native MapItems have separate selection paths; verify SDK behavior.
+- **#279:** make per-device feed verification visible in TMM, including an explicit
+  check, matching UUID/current metadata, last successful check and unknown/stale
+  state on failure. The list currently falls back to **Sparad lokalt** and cannot
+  display confirmed publication. Keep metadata and photo confirmation distinct.
+- **#277:** restore list/create-action access in landscape. The owner confirmed
+  portrait as a temporary workaround. Retest affected dialogs in both orientations.
+- Resolve these gaps before repeating the complete two-phone protocol. Data Sync
+  log entries and visible map items alone do not pass the integrated acceptance.
+
 ## Remaining acceptance (#252)
 
 1. Prepare a host memory budget and supervised, staged lab startup. Validate one
@@ -54,9 +73,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 4. Check the Swedish guide's native steps against the signed candidate before
    handing it to users. Physical/coexistence and release gates remain in
    [Testing](TESTING.md#manual-acceptance-and-release-gates).
-5. The #268 fix rechecks cancellation before each new photo request. Its proposal
-   was owner-approved before code; merge approval remains required. Native
-   cancellation/interruption acceptance stays open under #252 after merge.
+5. The #268 fix is merged after owner approval and rechecks cancellation before
+   each new photo request. Native cancellation/interruption acceptance stays open
+   under #252; automated regression checks do not close that gate.
 
 ## Maintenance and acceptance
 
