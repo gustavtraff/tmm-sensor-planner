@@ -357,8 +357,22 @@ final class LocalPlanner {
         String marker = feedFollow.marker(uid);
         if ("Konflikt".equals(marker)) return "Konflikt";
         if ("Ej publicerad".equals(marker)) return "Ändringar att publicera";
-        // No marker is not evidence that the current local version has reached the feed.
-        return "Sparad lokalt";
+        // #279: only this session's latest metadata read of the followed feed is evidence; no marker proves nothing.
+        se.tmm.sensorplanner.plugin.local.FeedFollowUi.Verification checked = feedFollow.verification();
+        if (checked == null) return "Sparad lokalt · ej kontrollerad i feeden";
+        if (checked.lastFailed) return "Sparad lokalt · feedkontrollen misslyckades"
+                + (checked.checkedAt == null ? "" : " (senast lyckad " + clock(checked.checkedAt) + ")");
+        TmmDraft mine = null;
+        for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) mine = draft;
+        TmmDraft inFeed = checked.feed.get(uid);
+        if (inFeed == null) return "Sparad lokalt · finns inte i feeden (" + clock(checked.checkedAt) + ")";
+        if (mine != null && se.tmm.sensorplanner.core.ImportReview.sameMetadata(mine, inFeed))
+            return "Bekräftad i feeden " + clock(checked.checkedAt);
+        return "Skiljer sig från feeden (" + clock(checked.checkedAt) + ")";
+    }
+
+    private static String clock(java.time.Instant at) {
+        return java.time.format.DateTimeFormatter.ofPattern("HH:mm").format(at.atZone(java.time.ZoneId.systemDefault()));
     }
 
     private void advanced(Selection selected) {
@@ -405,7 +419,11 @@ final class LocalPlanner {
         content.addView(status);
         String warning = LocalStorageUi.warning(storage);
         if (!warning.isEmpty()) content.addView(label(warning));
-        content.addView(label(deviceState(draft.uid) + " · ändringar delas med Publicera"));
+        content.addView(label("Metadata: " + deviceState(draft.uid) + "\nBild: kontrolleras inte mot feeden här.\nÄndringar delas med Publicera."));
+        if (feedFollow.isFollowing()) content.addView(button("Kontrollera i feeden nu", () -> {
+            dismiss(); feedFollow.refresh();
+            ui.showToast("Kontroll startad. Öppna enheten igen när hämtningen är klar.");
+        }));
         content.addView(button("Publicera", () -> { dismiss(); publishUi.show(draft.uid); }));
         String marker = feedFollow.marker(draft.uid);
         if (marker != null) {

@@ -63,16 +63,21 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   Signed candidate 32 does not contain it; signed-phone rendering, Data Sync
   selection, restart and unload remain under #252 for the next signed candidate.
 - **#283:** toggling native **Show non-feed content** prompts publication of the
-  existing test item without an intentional TMM edit. Actual unconfirmed sends are
-  not established; reproduce visibility/persist events before choosing a fix.
-- **#279:** make per-device feed verification visible in TMM, including an explicit
-  check, matching UUID/current metadata, last successful check and unknown/stale
-  state on failure. The list currently falls back to **Sparad lokalt** and cannot
-  display confirmed publication. Keep metadata and photo confirmation distinct.
+  existing test item without an intentional TMM edit. Code review: TMM drafts are not
+  ATAK MapItems, TMM touches the native copy only on explicit **Publicera**, and it
+  listens to map clicks only, so the prompt is most likely native Data Sync behavior.
+  Unconfirmed sends are not established; a phone reproduction with the native event
+  sequence is still needed before any fix.
+- **#279 (in main after candidate 34):** list and review show session-only metadata
+  evidence from the latest read of the followed feed: confirmed with time, absent,
+  different, failed check (keeps only the last success time) or not checked. Review
+  has **Kontrollera i feeden nu**; photo state is stated as unchecked. Restart resets
+  to not checked; durable evidence would need a format proposal.
 - **#277 (fixed in main after candidate 34):** device rows and feed controls now share
   one scroll view; the actions stay in the dialog button bar. Other planner dialogs
   already scroll. Phone check in both orientations is pending a later signed candidate.
-- #279 and #283 follow candidate 34.
+- The guides must describe the #278 menu, #277 layout and #279 states before the
+  next candidate is handed to users.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync
   log entries and visible map items alone do not pass the integrated acceptance.
 

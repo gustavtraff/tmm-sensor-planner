@@ -71,6 +71,14 @@ public final class FeedFollowUi {
     private final Runnable tick=this::trigger;
     private volatile boolean closed,loaded,running,busy;private volatile MissionReadAttempt pending;
     private volatile FeedSyncState.Snapshot state;private volatile String broken;
+    /** #279: what the last metadata read of the followed feed showed; session-only, never persisted. */
+    public static final class Verification {
+        public final String contextId,feedName;public final Instant checkedAt;public final Map<UUID,TmmDraft> feed;public final boolean lastFailed;
+        Verification(String contextId,String feedName,Instant checkedAt,Map<UUID,TmmDraft> feed,boolean lastFailed){
+            this.contextId=contextId;this.feedName=feedName;this.checkedAt=checkedAt;this.feed=Collections.unmodifiableMap(new HashMap<>(feed));this.lastFailed=lastFailed;
+        }
+    }
+    private volatile Verification verification;
     private long delay=INTERVAL;private String paused,status="Ingen hämtning ännu.";private AlertDialog dialog;
 
     public FeedFollowUi(Context context,LocalV2Store local,LocalImages images,Path privateRoot,Executor worker,Host host){
@@ -102,6 +110,9 @@ public final class FeedFollowUi {
     }
     public boolean isBusy(){return busy||conflictUi.isBusy()||dialog!=null&&dialog.isShowing()||sourceChoice.isBusy();}
     public boolean isFetching(){return running;}
+    public boolean isFollowing(){return following();}
+    /** The last check of the currently followed feed, or null when this session has none for it. */
+    public Verification verification(){Verification v=verification;FeedSyncState.Snapshot s=state;return v!=null&&s!=null&&v.contextId.equals(s.contextId)?v:null;}
     /** Read-only for the list: devices in conflict, and followed devices with unpublished local changes (L ≠ B). */
     public Set<UUID> conflicts(){return apply.conflicts();}
     public Set<UUID> unpublished(){return apply.unpublished();}
@@ -185,6 +196,9 @@ public final class FeedFollowUi {
             step=MissionReadFailure.Stage.SNAPSHOT;
             MissionSnapshotInput.Snapshot snapshot=read(false,ok,a->transport.fetch(target,a));
             if(!snapshot.feed.context().equals(s.contextId)||!snapshot.feed.name.equals(target.name))throw new IOException("Snapshot target changed");
+            Map<UUID,TmmDraft> seen=new HashMap<>();for(TmmDraft d:snapshot.metadata)seen.put(d.uid,d);
+            Verification checked=new Verification(s.contextId,s.feedName,Instant.now(),seen,false);
+            host.post(()->{if(!closed&&generation.get()==token)verification=checked;});
             step=MissionReadFailure.Stage.METADATA_INTAKE;
             List<UUID> receipts=onWorker(ok,()->{
                 if(!inbox.load().inboxId.equals(s.inboxId))throw new IOException("Inbox does not belong to this sync state");
@@ -253,6 +267,12 @@ public final class FeedFollowUi {
                     :apply.applied()+" enheter uppdaterade lokalt, "+apply.conflicts().size()+" konflikter (din version behålls).");
             host.onFetchCompleted(Collections.unmodifiableList(receipts),Collections.unmodifiableList(records));
         }else{
+            if(METADATA_STAGES.contains(failure.stage)){
+                // A failed check never implies absence and never silently keeps an older confirmation.
+                Verification v=verification;FeedSyncState.Snapshot s=state;
+                if(s!=null)verification=v!=null&&v.contextId.equals(s.contextId)?new Verification(v.contextId,v.feedName,v.checkedAt,v.feed,true)
+                        :new Verification(s.contextId,s.feedName,null,Collections.emptyMap(),true);
+            }
             String reason=following()?pauseReason():null;
             if(reason!=null)pause(reason);
             else{delay=Math.min(delay*2,MAX_INTERVAL);status="Hämtningen misslyckades. "+failure.summary()+" Återförsöksintervall: "+delay/1000+" s. Mottagen historik behålls.";}
@@ -260,6 +280,8 @@ public final class FeedFollowUi {
         host.statusChanged();
         reschedule();
     }
+    private static final Set<MissionReadFailure.Stage> METADATA_STAGES=EnumSet.of(MissionReadFailure.Stage.FEED_LIST,MissionReadFailure.Stage.MEMBERSHIP_BEFORE,
+            MissionReadFailure.Stage.COT,MissionReadFailure.Stage.MEMBERSHIP_AFTER,MissionReadFailure.Stage.SNAPSHOT);
     private void stopAttempt(){generation.incrementAndGet();running=false;MissionReadAttempt a=pending;pending=null;if(a!=null)a.cancel();}
 
     public void show(){

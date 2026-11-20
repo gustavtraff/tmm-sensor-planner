@@ -245,6 +245,23 @@ public class FeedFollowUiTest {
         return out.toString();
     }
 
+    @Test public void verificationRecordsOnlyTheLatestMetadataReadOfTheFollowedFeed()throws Exception {
+        following(Collections.emptyList());assertNull(ui.verification());
+        ui.start();settle();
+        FeedFollowUi.Verification first=ui.verification();assertNotNull(first);assertFalse(first.lastFailed);
+        assertEquals(feed.context(),first.contextId);assertEquals(Collections.singleton(incoming.uid),first.feed.keySet());assertNotNull(first.checkedAt);
+        pipelineFailure=new IOException("synthetic");failurePoint="resources";ui.refresh();settle();
+        assertFalse("an image-stage failure still read current metadata",ui.verification().lastFailed);
+        failurePoint="fetch";ui.refresh();settle();
+        FeedFollowUi.Verification failed=ui.verification();assertTrue(failed.lastFailed);
+        assertNotNull("a failed check keeps the time of the last success",failed.checkedAt);
+        assertEquals(incoming.uid,failed.feed.keySet().iterator().next());
+        failurePoint=null;ui.refresh();settle();assertFalse(ui.verification().lastFailed);
+    }
+    @Test public void failedFirstCheckIsUnavailableNotAbsence()throws Exception {
+        following(Collections.emptyList());failing=true;ui.start();settle();
+        FeedFollowUi.Verification v=ui.verification();assertTrue(v.lastFailed);assertNull(v.checkedAt);assertTrue(v.feed.isEmpty());
+    }
     private void following(List<FeedSyncState.Record> records)throws Exception {
         InboxStore inbox=new InboxStore(privateRoot.resolve("metadata-inbox-v1"));UUID inboxId=inbox.initializeNew().inboxId;
         new ImageAssociationRegistry(privateRoot.resolve("received-image-association-v1")).initializeNew(inboxId);new ImageStageStore(privateRoot.resolve("received-image-stage-v1")).initializeNew();
