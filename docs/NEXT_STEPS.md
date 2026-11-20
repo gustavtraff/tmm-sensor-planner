@@ -13,6 +13,12 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - Automatic receiving (#236/#242), **Publicera** with photo (#243/#264), and geometry
   updates (#189/#259) are merged. The approved decisions are U1–U8, S1–S4, W1–W5,
   M1–M7 and G1–G5; their contracts remain authoritative.
+- **Candidate 33** (`versionCode 33`, `0.1.0-feed-sync-diagnostics.1`, #252) is prepared
+  from main `ab3af39` under the owner-approved amended proposal: #285 stage diagnostics,
+  #286 native TMM review menu and #288 rule labels, plus version metadata only. Not yet
+  signed. Owner check after signing: menu opens the right TMM review, Data Sync Map
+  Select still works, then one **Uppdatera nu** and the displayed failure line. The
+  guides still describe candidate 32 and do not cover the new menu.
 - **Candidate 32** (`versionCode 32`, `0.1.0-feed-sync-trial.2`, #252) is signed from
   owner-approved main `f89f1f4` (PR #276). Signature, package/version and APK packaging
   checks passed; its signer matches candidate 31. Build output contains the #268
@@ -60,6 +66,7 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   display confirmed publication. Keep metadata and photo confirmation distinct.
 - **#277:** restore list/create-action access in landscape. The owner confirmed
   portrait as a temporary workaround. Retest affected dialogs in both orientations.
+- #277, #279 and #283 target candidate 34 together with the #280 fix.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync
   log entries and visible map items alone do not pass the integrated acceptance.
 
