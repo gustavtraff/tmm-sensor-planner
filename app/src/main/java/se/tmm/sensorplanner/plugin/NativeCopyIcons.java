@@ -14,11 +14,16 @@ import se.tmm.sensorplanner.plugin.publication.PublicationCot;
  * The native icon is made invisible on this phone only: ICON_INVISIBLE keeps the marker's hit area
  * (GLMarker2 sizes it from the icon unless ICON_GONE), so Data Sync Map Select and the TMM menu still work.
  * Icon visibility is not part of ATAK's CoT export, so nothing published changes. Unload restores the icons.
+ *
+ * <p>Owner choice 2026-11-20: no off-screen halo ring for TMM devices, other items keep theirs.
+ * GLOffscreenIndicators.shouldDraw skips markers whose local "disable_offscreen_indicator" metadata is true;
+ * no CoT handler reads that key, so it stays on this phone too.
  */
 @TargetApi(26)
 final class NativeCopyIcons implements AutoCloseable {
     private final MapView map;
     private final MapEventDispatcher.MapEventDispatchListener added = event -> apply(event.getItem());
+    private static final String NO_HALO = "disable_offscreen_indicator";
     private final Set<Marker> hidden = new HashSet<>();
     private Set<String> uids = Collections.emptySet();
     private boolean closed;
@@ -46,11 +51,13 @@ final class NativeCopyIcons implements AutoCloseable {
         if (closed || !(item instanceof Marker) || !PublicationCot.TYPE.equals(item.getType()) || !uids.contains(item.getUID())) return false;
         Marker marker = (Marker) item;
         if (marker.getIconVisibility() == Marker.ICON_VISIBLE) { marker.setIconVisibility(Marker.ICON_INVISIBLE); hidden.add(marker); }
+        if (!marker.hasMetaValue(NO_HALO)) { marker.setMetaBoolean(NO_HALO, true); hidden.add(marker); }
         return marker.getIconVisibility() == Marker.ICON_INVISIBLE;
     }
 
     private static void restore(Marker marker) {
         if (marker.getIconVisibility() == Marker.ICON_INVISIBLE) marker.setIconVisibility(Marker.ICON_VISIBLE);
+        if (marker.getMetaBoolean(NO_HALO, false)) marker.removeMetaData(NO_HALO);
     }
 
     @Override public void close() {

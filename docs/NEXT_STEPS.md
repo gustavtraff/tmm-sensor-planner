@@ -81,6 +81,7 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - **#299 (in main after candidate 34):** native copies get `hideFov`, so ATAK's default
   west-pointing FOV is not published (part A). B2: TMM's icon represents a published
   device; the native icon is invisible on this phone but stays selectable (#305).
+  Owner choice: ATAK's off-screen halo ring is off for TMM devices only (local flag).
 - **Next: candidate 35** from current main: #277, #279/#300/#301 statuses, #297
   **Öppna enhet**, #299 (hidden FOV, single icon) and #302 photo names. The guides
   describe candidate 35. Signing needs an owner-approved proposal; then one-phone
