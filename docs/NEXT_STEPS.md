@@ -44,15 +44,18 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 ## Immediate follow-up from owner phone testing (#252)
 
 - **First: #280**, diagnose repeated TMM fetch failures despite native Data Sync
-  add/update log entries. The failing stage is unknown; successful native actions
-  do not establish matching metadata readback or second-client receipt.
+  add/update log entries. The generic retry occurs before local apply; apply
+  failures have a separate status. Add safe stage diagnostics before selecting a fix.
 - **#278:** published markers open ATAK sensor controls, including unsupported
   Gateway FOV/video controls, instead of TMM review. Private draft features and
-  imported native MapItems have separate selection paths; verify SDK behavior.
+  imported native MapItems have separate selection paths with no native TMM review
+  binding; verify the SDK menu mechanism and preserve native Data Sync selection.
 - **#279:** make per-device feed verification visible in TMM, including an explicit
   check, matching UUID/current metadata, last successful check and unknown/stale
   state on failure. The list currently falls back to **Sparad lokalt** and cannot
   display confirmed publication. Keep metadata and photo confirmation distinct.
+  Existing receipt times are not last-check times; session-only verification can
+  reset to unknown on restart, while durable evidence needs a format proposal.
 - **#277:** restore list/create-action access in landscape. The owner confirmed
   portrait as a temporary workaround. Retest affected dialogs in both orientations.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync
