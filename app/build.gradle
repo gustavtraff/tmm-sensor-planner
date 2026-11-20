@@ -72,8 +72,8 @@ android {
         applicationId 'se.tmm.sensorplanner.plugin'
         minSdk 21
         targetSdk 34
-        versionCode 34
-        versionName '0.1.0-feed-sync-diagnostics.2'
+        versionCode 35
+        versionName '0.1.0-feed-sync-trial.3'
     }
 
     compileOptions {
