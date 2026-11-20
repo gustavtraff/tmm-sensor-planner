@@ -1,9 +1,9 @@
 # TMM Sensor Planner - användarguide
 
-<!-- Maintainers: full reference for candidate 32 source. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The concise PDF is generated from SNABBGUIDE.md with scripts/render-quick-guide.py. -->
+<!-- Maintainers: full reference for candidate 35 source. Native ATAK/Data Sync steps still require signed-device acceptance under #252. The concise PDF is generated from SNABBGUIDE.md with scripts/render-quick-guide.py. -->
 
-**Om versionen:** Guiden beskriver signerad kandidat 32 (`0.1.0-feed-sync-trial.2`).
-Signatur och paketering är kontrollerade; telefonprovet återstår. Kontrollera vilken version du har.
+**Om versionen:** Guiden beskriver kandidat 35. Signerad APK och telefonprov
+återstår. Kontrollera vilken version du har.
 Använd bara övningsdata tills ansvarig person har godkänt användningen.
 
 ## 1. Kom igång
@@ -79,7 +79,9 @@ publicerar ingenting. Anslutningen till en server delar inte dina privata utkast
 
 ### När enheten placeras ut
 
-Öppna samma enhet i listan eller via dess TMM-symbol på kartan. Skapa inte en ny
+Öppna samma enhet i listan eller via dess TMM-symbol på kartan. En publicerad
+enhet öppnar du genom att trycka på symbolen och välja **Öppna enhet** i ATAK:s
+meny. Skapa inte en ny
 kopia för utplaceringen. Använd **Redigera** för status, bäring, ägare, kommentar
 eller utplaceringstid. **Flytta på kartan** öppnar kartvalet; avsluta med
 **Spara lokalt**. Lägg till eller ersätt bilden och publicera därefter ändringarna.
@@ -98,6 +100,8 @@ Du väljer själv mellan **Planerad**, **Utplacerad**, **Aktiv**, **Intagen** oc
 Enheten har en lokal bild åt gången. Originalfilen ändras inte. TMM sparar en
 separat PNG utan inbäddad metadata, högst 1920 pixlar på längsta sidan. En vald
 JPEG/PNG får vara högst 10 MiB. Kartpilen visar bäring, inte sensorns räckvidd.
+TMM visar inget synfält (FOV). En publicerad enhet har en symbol och en etikett på
+kartan. Listan går att rulla i både stående och liggande läge.
 
 <!-- page -->
 
@@ -127,7 +131,10 @@ Välj bara den avsedda feeden och besvara frågan. **Nej** återställer inte en
 kartändring som redan gjorts i ATAK.
 
 TMM väntar upp till cirka 30 sekunder på att exakt de publicerade uppgifterna
-syns i feeden och laddar därefter upp en ny bild. En oförändrad bild laddas inte
+syns i feeden och laddar därefter upp en ny bild. Resultatet visas i en egen
+TMM-ruta, till exempel **Publicerad** eller **Metadata ännu inte i feeden**. Gör
+Data Sync-steget inom de 30 sekunderna. Bilden syns under feedens **Files** som
+`TMM-bild-<ID>-r<revision>-….tmmi`. En oförändrad bild laddas inte
 upp igen. Utan bild publiceras bara uppgifterna. Du får ett resultat när försöket
 är klart. Om dialogen är kvar visas **Väntar på feeden** och vid en ny bild
 **Publicerar bilden**; efter **Fortsätt i ATAK** är dialogen stängd under väntan.
@@ -167,10 +174,18 @@ en ny enhet. En mottagen bild kan bli enhetens aktuella lokala bild.
 
 ### Läs enhetens delningsstatus
 
-- **Sparad lokalt:** enheten finns på telefonen. Texten är inte en bekräftelse
-  på att enheten är publicerad.
-- **Ändringar att publicera:** du har lokala ändringar som inte matchar feeden.
+Listan och enheten visar TMM:s senaste kontroll av den följda feeden:
+
+- **Endast lokalt:** enheten finns inte i feeden.
+- **Publicerad · kontrollerad 21:14:** feeden har exakt din sparade version vid
+  den tiden. Bilden kontrolleras inte här.
+- **Ändringar att publicera:** du har sparat ändringar som inte är publicerade.
+  Markeringen syns direkt när du sparar.
 - **Konflikt:** din version och den inkommande skiljer sig; jämför innan du väljer.
+- **Feedstatus okänd:** ingen lyckad kontroll ännu, till exempel efter omstart
+  eller när hämtningen misslyckas. Det betyder inte att enheten saknas.
+
+Tryck **Kontrollera i feeden nu** i enheten för en direkt kontroll.
 - En feedstatus visar anslutning och hämtning. Den är inte i sig ett besked om att
   en viss enhet eller bild har levererats till alla.
 
