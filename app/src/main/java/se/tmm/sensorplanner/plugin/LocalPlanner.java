@@ -85,6 +85,7 @@ final class LocalPlanner {
     private AlertDialog dialog;
     private AlertDialog confirmation;
     private AlertDialog listDialog;
+    private String[] listedRows;
     private Button feedButton;
     private TextView feedStatus;
     private MapPositionPicker positionPicker;
@@ -231,7 +232,7 @@ final class LocalPlanner {
             }
             public String summary(TmmDraft draft){return draftSummary(draft);}
             public void resolved(){if(!closed){marks=currentMarks();storageUi.load(false);}}
-            public void statusChanged(){updateFeedStatus();}
+            public void statusChanged(){updateFeedStatus();relist();}
         });
         feedFollow.start();
     }
@@ -316,10 +317,8 @@ final class LocalPlanner {
     private void list() {
         if (!localAccess() || closed || isBusy()) return;
         LocalV2.Snapshot listed = storage.snapshot;
-        String[] rows = new String[drafts.size()];
-        for (int i = 0; i < rows.length; i++) {
-            rows[i] = title(drafts.get(i)) + "\n" + deviceState(drafts.get(i).uid);
-        }
+        String[] rows = rows();
+        listedRows = rows;
         dismiss();
         // #277: rows and feed controls share one scroll view, so short landscape screens can reach every row.
         LinearLayout inboxActions = column();
@@ -344,6 +343,18 @@ final class LocalPlanner {
                 .setNegativeButton("Stäng", null).create();
         listDialog=dialog;
         dialog.show();
+    }
+
+    /** Rebuilds an open device list so row markers follow the latest state. */
+    private void relist() {
+        if (closed || dialog == null || dialog != listDialog || !dialog.isShowing() || storage == null) return;
+        if (!java.util.Arrays.equals(listedRows, rows())) list();
+    }
+
+    private String[] rows() {
+        String[] rows = new String[drafts.size()];
+        for (int i = 0; i < rows.length; i++) rows[i] = title(drafts.get(i)) + "\n" + deviceState(drafts.get(i).uid);
+        return rows;
     }
 
     private void updateFeedStatus() {
@@ -715,6 +726,7 @@ final class LocalPlanner {
     private void refresh(LocalV2Store.Inspection loaded) {
         storage = loaded;
         drafts = loaded.snapshot.activeDrafts();
+        if (feedFollow != null) feedFollow.localChanged();
         if (nativeMenu == null) {
             try { nativeMenu = new NativeTmmReviewMenu(map, this::acceptsNativeReview, this::selected); }
             catch (RuntimeException unavailable) {

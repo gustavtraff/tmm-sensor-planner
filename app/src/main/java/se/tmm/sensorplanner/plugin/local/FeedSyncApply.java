@@ -55,6 +55,11 @@ final class FeedSyncApply {
     Set<UUID> conflicts() { return conflicts; }
     /** Followed devices whose local version differs from their base (L ≠ B): Ej publicerad. */
     Set<UUID> unpublished() { return unpublished; }
+    /** Recomputes {@link #unpublished()} after a local save, without a fetch; conflicts are unchanged. */
+    void localChanged() throws IOException {
+        FeedSyncState.Snapshot s = sync.read();
+        if (s != null) refresh(s, inbox.load(), null);
+    }
     /** Devices changed locally in the latest round. */
     int applied() { return applied; }
 

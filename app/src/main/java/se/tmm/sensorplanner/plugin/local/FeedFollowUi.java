@@ -111,6 +111,11 @@ public final class FeedFollowUi {
     public boolean isBusy(){return busy||conflictUi.isBusy()||dialog!=null&&dialog.isShowing()||sourceChoice.isBusy();}
     public boolean isFetching(){return running;}
     public boolean isFollowing(){return following();}
+    /** A local save may have changed which devices differ from the feed; recompute that marker now, not at the next fetch. */
+    public void localChanged(){
+        if(closed||!loaded)return;
+        worker.execute(()->{try{apply.localChanged();}catch(Exception|OutOfMemoryError unreadable){return;}host.post(()->{if(!closed)host.statusChanged();});});
+    }
     /** The last check of the currently followed feed, or null when this session has none for it. */
     public Verification verification(){Verification v=verification;FeedSyncState.Snapshot s=state;return v!=null&&s!=null&&v.contextId.equals(s.contextId)?v:null;}
     /** Read-only for the list: devices in conflict, and followed devices with unpublished local changes (L ≠ B). */

@@ -60,6 +60,13 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   UUIDs to TMM review, replacing irrelevant sensor editing controls. It leaves item
   metadata and exports unchanged. Passed on candidates 33/34: rendering, correct review,
   drawings keep native menus, Map Select and rotation. Restart/unload remain under #252.
+- **One-phone publication on candidate 34 passed** (owner, 20 Nov): new device via
+  Data Sync **Add Items**, edit, move with position confirmation, photo upload
+  (`.tmmi` under feed Files; unchanged photo not re-sent), cancel, restart and
+  offline/reconnect; readback showed the new records. Found: the **Ändringar att
+  publicera** marker waited for the next fetch (fixed on main after candidate 34),
+  and published devices also show ATAK's sensor icon and an unset FOV (#299). The
+  owner did not see where **Publicerad** appears; clarify in the guides.
 - **#283 closed, not reproduced:** on candidates 33 and 34 no publication prompt
   appeared, including when **Show non-feed content** was toggled off and on.
 - **#279 (in main after candidate 34):** list and review show session-only metadata
