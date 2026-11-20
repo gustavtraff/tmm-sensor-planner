@@ -106,7 +106,7 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
             Set<String> before=get(MissionReadFailure.Stage.MEMBERSHIP_BEFORE,route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
             List<TmmDraft> values=get(MissionReadFailure.Stage.COT,route+"/cot","application/xml",in->MissionSnapshotInput.metadata(in,before,this::active));
             Set<String> after=get(MissionReadFailure.Stage.MEMBERSHIP_AFTER,route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
-            if(!before.equals(after))throw new IOException("Mission membership changed; fetch again");require();return new MissionSnapshotInput.Snapshot(feed,after,values);
+            if(!before.equals(after))throw new MissionReadFailure.Violation(MissionReadFailure.Rule.MEMBERS_CHANGED);require();return new MissionSnapshotInput.Snapshot(feed,after,values);
         }
         private <T>T get(MissionReadFailure.Stage stage,String path,String accept,MissionImageFetch.Decoder<T> decoder)throws IOException {
             return get(stage,path,accept,MissionReadInput.MAX_BYTES,decoder);

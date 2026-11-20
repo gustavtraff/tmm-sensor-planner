@@ -62,7 +62,7 @@ public final class MissionReadInput {
             int n=input.read(buffer,0,Math.min(buffer.length,limit+1-total));
             if(n<0)break;
             if(n==0){int value=input.read();if(value<0)break;buffer[0]=(byte)value;n=1;}
-            total+=n;if(total>limit)throw new IOException();out.write(buffer,0,n);
+            total+=n;if(total>limit)throw violation(MissionReadFailure.Rule.TOO_LARGE);out.write(buffer,0,n);
         }
         requireActive(active);
         return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
@@ -75,20 +75,22 @@ public final class MissionReadInput {
         try(JsonReader reader=new JsonReader(new StringReader(text))){
             reader.setLenient(false);jsonValue(reader,0);
             if(reader.peek()!=JsonToken.END_DOCUMENT)throw new IOException();
-        }
+        }catch(MissionReadFailure.Violation rule){throw rule;}
+        catch(IOException|RuntimeException malformed){throw violation(MissionReadFailure.Rule.JSON_SYNTAX);}
     }
+    static MissionReadFailure.Violation violation(MissionReadFailure.Rule rule){return new MissionReadFailure.Violation(rule);}
     private static void jsonValue(JsonReader reader,int depth)throws IOException {
-        if(depth>16)throw new IOException();
+        if(depth>16)throw violation(MissionReadFailure.Rule.JSON_DEPTH);
         switch(reader.peek()){
             case BEGIN_OBJECT:
-                if(depth==16)throw new IOException();reader.beginObject();Set<String> names=new HashSet<>();
+                if(depth==16)throw violation(MissionReadFailure.Rule.JSON_DEPTH);reader.beginObject();Set<String> names=new HashSet<>();
                 while(reader.hasNext()){
-                    String name=reader.nextName();if(name.length()>128||!names.add(name))throw new IOException();jsonValue(reader,depth+1);
+                    String name=reader.nextName();if(name.length()>128||!names.add(name))throw violation(MissionReadFailure.Rule.JSON_KEY);jsonValue(reader,depth+1);
                 }
                 reader.endObject();break;
             case BEGIN_ARRAY:
-                if(depth==16)throw new IOException();reader.beginArray();while(reader.hasNext())jsonValue(reader,depth+1);reader.endArray();break;
-            case STRING: case NUMBER: if(reader.nextString().length()>4096)throw new IOException();break;
+                if(depth==16)throw violation(MissionReadFailure.Rule.JSON_DEPTH);reader.beginArray();while(reader.hasNext())jsonValue(reader,depth+1);reader.endArray();break;
+            case STRING: case NUMBER: if(reader.nextString().length()>4096)throw violation(MissionReadFailure.Rule.JSON_LONG_VALUE);break;
             case BOOLEAN: reader.nextBoolean();break;
             case NULL: reader.nextNull();break;
             default: throw new IOException();
