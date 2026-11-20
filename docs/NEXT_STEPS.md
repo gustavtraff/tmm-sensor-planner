@@ -32,11 +32,10 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   [resource preflight and guard procedure](TESTING.md#resource-bounded-lab-runs).
 - Candidate 30 remains the bounded viewing-trial fallback
   ([contract](SHARED_IMAGE_VIEW_TRIAL_CONTRACT.md)). The owner decides its use.
-- **Usability updates (#270/#272)** separate ordinary work from **Avancerat / test**,
-  clarify connection settings and the native publication handoff, and update the
-  guides. New feed setup suggests ATAK's saved API port; existing following stays
-  unchanged. The guides now describe candidate 32; signed candidate 31 does not
-  contain these changes.
+- Candidate 32 includes usability/API-port updates (#270/#272), separating ordinary
+  work from **Avancerat / test** and clarifying connection/publication handoff.
+  New feed setup suggests ATAK's saved API port; existing following is unchanged.
+  The guides describe candidate 32; candidate 31 lacks these changes.
 
 ## Immediate follow-up from owner phone testing (#252)
 
@@ -45,9 +44,10 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   diagnostics; requests, validation and formats remain unchanged. Static retry
   text states an interval, not a countdown. Phone root cause and the next signed
   diagnostic candidate remain pending.
-- **#278:** published markers open native sensor controls instead of TMM review.
-  There is no native TMM review binding; verify the SDK menu mechanism while
-  preserving native Data Sync selection.
+- **#278:** a transient native TMM menu now routes accepted local/adopted UUIDs to
+  TMM review, replacing irrelevant sensor editing controls. It leaves item metadata
+  and exports unchanged. SDK/resource compilation and UUID-gate tests passed;
+  signed-phone rendering, Data Sync selection, restart and unload remain under #252.
 - **#283:** toggling native **Show non-feed content** prompts publication of the
   existing test item without an intentional TMM edit. Actual unconfirmed sends are
   not established; reproduce visibility/persist events before choosing a fix.
