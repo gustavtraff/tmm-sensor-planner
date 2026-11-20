@@ -72,6 +72,8 @@ final class PublicationHostUpdate implements SavedDraftCopyUi.PendingUpdate {
         for (Map.Entry<String, String> field : PublicationCodec.fields(prepared).entrySet()) payload.setAttribute(field.getKey(), field.getValue());
         for (int i = 0; i < root.childCount(); i++) if (PublicationCot.TAG.equals(root.getChild(i).getElementName())) root.setChild(i, payload);
         contact(root).setAttribute("callsign", label);
+        // #299: the host also sets hideFov on the item, so the expected export carries it on ATAK's own sensor detail.
+        for (int i = 0; i < root.childCount(); i++) if ("sensor".equals(root.getChild(i).getElementName())) root.getChild(i).setAttribute("hideFov", "true");
         CoordinatedTime now = new CoordinatedTime();
         // Use the outgoing seven-decimal projection, never raw private precision; keep the host's other point fields.
         CotPoint projected = PublicationCot.create(prepared, label, now).getCotPoint(), point = current.getCotPoint();
