@@ -35,6 +35,7 @@ public class FeedFollowUiTest {
     private final AtomicInteger lists=new AtomicInteger(),fetches=new AtomicInteger(),imageLists=new AtomicInteger(),downloads=new AtomicInteger(),notices=new AtomicInteger(),resolved=new AtomicInteger();
     private final AtomicInteger statusChanges=new AtomicInteger();
     private final List<List<UUID>> completedReceipts=new CopyOnWriteArrayList<>();private final List<List<ImageAssociationRegistry.Record>> completedRecords=new CopyOnWriteArrayList<>();
+    private volatile String failurePoint;private volatile Exception pipelineFailure;private volatile boolean invalidImage;
     private volatile boolean connected=true,configured=true,failing;private volatile CountDownLatch entered,release;
     private Activity activity;private FeedFollowUi ui;private LocalV2Store local;private Path privateRoot,syncDir;private byte[] container,localBefore;private TmmDraft incoming;
 
@@ -58,16 +59,16 @@ public class FeedFollowUiTest {
                 public String description(){return feed.service;}
                 public List<MissionSnapshotInput.Feed> list(MissionReadAttempt a)throws Exception{
                     lists.incrementAndGet();CountDownLatch e=entered;if(e!=null){e.countDown();release.await(5,TimeUnit.SECONDS);}
-                    if(failing)throw new IOException("synthetic failure");return Collections.singletonList(feed);
+                    if(failing)throw new IOException("synthetic failure");failAt("list");return Collections.singletonList(feed);
                 }
-                public MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed f,MissionReadAttempt a){fetches.incrementAndGet();return new MissionSnapshotInput.Snapshot(f,Collections.singleton(incoming.uid.toString()),Collections.singletonList(incoming));}
+                public MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed f,MissionReadAttempt a)throws Exception{fetches.incrementAndGet();failAt("fetch");return new MissionSnapshotInput.Snapshot(f,Collections.singleton(incoming.uid.toString()),Collections.singletonList(incoming));}
                 public List<MissionImageInput.Resource> images(MissionSnapshotInput.Feed f,MissionReadAttempt a)throws Exception{
-                    imageLists.incrementAndGet();StringBuilder hash=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(container))hash.append(String.format("%02x",b&255));
+                    imageLists.incrementAndGet();failAt("resources");StringBuilder hash=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(container))hash.append(String.format("%02x",b&255));
                     JSONObject resource=new JSONObject().put("data",new JSONObject().put("name","synthetic.tmmi").put("hash",hash.toString()).put("mimeType","application/octet-stream").put("size",container.length));
                     JSONObject mission=new JSONObject().put("name",f.name).put("guid",f.guid).put("contents",new JSONArray().put(resource));
                     return MissionImageInput.read(f,new ByteArrayInputStream(new JSONObject().put("type","Mission").put("data",new JSONArray().put(mission)).toString().getBytes(StandardCharsets.UTF_8)),()->a.active(System.nanoTime()));
                 }
-                public ReceivedImagePayload image(MissionSnapshotInput.Feed f,MissionImageInput.Resource r,MissionReadAttempt a)throws Exception{downloads.incrementAndGet();return ImageContainerCodec.read(new ByteArrayInputStream(container));}
+                public ReceivedImagePayload image(MissionSnapshotInput.Feed f,MissionImageInput.Resource r,MissionReadAttempt a)throws Exception{downloads.incrementAndGet();failAt("image");if(invalidImage)return null;return ImageContainerCodec.read(new ByteArrayInputStream(container));}
             };}
         });
     }
@@ -118,10 +119,68 @@ public class FeedFollowUiTest {
     @Test public void failureDoublesIntervalUpToFiveMinutesAndSuccessResets()throws Exception {
         following(Collections.emptyList());failing=true;ui.start();settle();assertEquals(1,lists.get());
         long[] waits={120,240,300,300};int calls=1;
-        for(long wait:waits){idleFor(wait-1);assertEquals(calls,lists.get());idleFor(1);settle();assertEquals(++calls,lists.get());}
+        for(long wait:waits){assertTrue(ui.connectionStatus(),ui.connectionStatus().contains("Återförsöksintervall: "+wait+" s"));idleFor(wait-1);assertEquals(calls,lists.get());idleFor(1);settle();assertEquals(++calls,lists.get());}
         failing=false;ui.refresh();settle();assertEquals(++calls,lists.get());
         idleFor(59);assertEquals(calls,lists.get());idleFor(1);settle();assertEquals(++calls,lists.get());
     }
+    @Test public void pipelineFailureShowsSafeStageInSummaryAndFeedDialogAndSuccessClearsIt()throws Exception {
+        following(Collections.emptyList());
+        pipelineFailure=new IOException("https://secret.example.invalid token=SECRET-PAYLOAD coordinates=PRIVATE");
+        String[] points={"list","fetch","resources","image"};
+        MissionReadFailure.Stage[] stages={MissionReadFailure.Stage.FEED_LIST,MissionReadFailure.Stage.SNAPSHOT,
+                MissionReadFailure.Stage.RESOURCE_LIST,MissionReadFailure.Stage.IMAGE};
+        failurePoint=points[0];ui.start();settle();
+        for(int n=0;n<points.length;n++){
+            if(n>0){failurePoint=points[n];ui.refresh();settle();}
+            String expected=MissionReadFailure.at(stages[n],pipelineFailure).summary();
+            assertSafeFailure(expected);
+            ui.show();await("Följer feed");assertTrue(message(),message().contains(expected));
+            assertFalse(message().contains("SECRET-PAYLOAD"));assertFalse(message().contains("secret.example.invalid"));
+            click(AlertDialog.BUTTON_NEGATIVE);
+        }
+        failurePoint=null;ui.refresh();settle();
+        assertTrue(ui.connectionStatus(),ui.connectionStatus().startsWith("Senaste hämtning lyckades"));
+        assertFalse(ui.connectionStatus().contains("Återförsöksintervall"));
+    }
+    @Test public void transportFailureKeepsItsSpecificStageAndHttpStatus()throws Exception {
+        following(Collections.emptyList());failurePoint="fetch";
+        pipelineFailure=new MissionReadFailure(MissionReadFailure.Stage.COT,MissionReadFailure.Kind.HTTP,403);
+        ui.start();settle();assertSafeFailure(((MissionReadFailure)pipelineFailure).summary());
+        assertTrue(ui.connectionStatus(),ui.connectionStatus().contains("403"));
+    }
+    @Test public void corruptMetadataHistoryIdentifiesLocalIntakeWithoutLeakingStoreDetails()throws Exception {
+        following(Collections.emptyList());
+        Files.write(privateRoot.resolve("metadata-inbox-v1/inbox.bin"),new byte[]{1});
+        ui.start();settle();
+        assertSafeFailure(new MissionReadFailure(MissionReadFailure.Stage.METADATA_INTAKE,MissionReadFailure.Kind.LOCAL,0).summary());
+    }
+    @Test public void corruptImageHistoryIdentifiesLocalStageLookup()throws Exception {
+        following(Collections.emptyList());
+        Files.write(privateRoot.resolve("received-image-association-v1/associations.bin"),new byte[]{1});
+        ui.start();settle();
+        assertSafeFailure(new MissionReadFailure(MissionReadFailure.Stage.STAGE_LOOKUP,MissionReadFailure.Kind.LOCAL,0).summary());
+    }
+    @Test public void imageIntakeFailureIsSeparateFromDownloadFailure()throws Exception {
+        following(Collections.emptyList());invalidImage=true;ui.start();settle();
+        assertEquals(1,downloads.get());
+        assertSafeFailure(new MissionReadFailure(MissionReadFailure.Stage.IMAGE_INTAKE,MissionReadFailure.Kind.LOCAL,0).summary());
+    }
+    @Test public void failedLocalApplyKeepsItsSeparateFetchedButNotAppliedStatus()throws Exception {
+        FeedSyncState.Record record=new FeedSyncState.Record(incoming.uid,new UUID(1,1),new UUID(1,2),
+                FeedSyncState.IMAGE_NONE,null,null,null);
+        following(Collections.singletonList(record));ui.start();settle();
+        String shown=ui.connectionStatus();
+        assertTrue(shown,shown.startsWith("Senaste hämtning lyckades"));
+        assertTrue(shown,shown.contains("Lokala uppdateringar kunde inte tillämpas"));
+        assertFalse(shown.contains("Hämtningen misslyckades"));assertEquals(1,completedReceipts.size());
+    }
+    private void assertSafeFailure(String expected){
+        String shown=ui.connectionStatus();assertTrue(shown,shown.contains(expected));
+        assertTrue(shown,shown.contains("Återförsöksintervall:"));assertFalse(shown.contains("Nytt försök om"));
+        assertFalse(shown.contains("SECRET-PAYLOAD"));assertFalse(shown.contains("secret.example.invalid"));
+        assertFalse(shown.contains("PRIVATE"));assertFalse(shown.contains(privateRoot.toString()));
+    }
+    private void failAt(String point)throws Exception {if(point.equals(failurePoint))throw pipelineFailure;}
     @Test public void onlyOneAttemptAtATime()throws Exception {
         following(Collections.emptyList());entered=new CountDownLatch(1);release=new CountDownLatch(1);ui.start();drain();idle();
         assertTrue(entered.await(3,TimeUnit.SECONDS));assertTrue(ui.isFetching());

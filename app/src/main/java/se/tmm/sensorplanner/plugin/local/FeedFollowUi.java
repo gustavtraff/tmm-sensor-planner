@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.*;
 import java.io.*;
 import java.net.URI;
+import java.net.SocketTimeoutException;
 import java.nio.file.*;
 import java.security.*;
 import java.time.Instant;
@@ -176,12 +177,15 @@ public final class FeedFollowUi {
 
     private void fetch(long token,FeedSyncState.Snapshot s,Transport transport){
         BooleanSupplier ok=()->!closed&&generation.get()==token&&connected(s.streamConnect);
+        MissionReadFailure.Stage step=MissionReadFailure.Stage.FEED_LIST;
         try{
             Feed feed=null;
             for(Feed f:read(false,ok,transport::list))if(f.context().equals(s.contextId)){if(feed!=null)throw new IOException("Ambiguous feed");feed=f;}
             if(feed==null)throw new IOException("Followed feed not listed");Feed target=feed;
+            step=MissionReadFailure.Stage.SNAPSHOT;
             MissionSnapshotInput.Snapshot snapshot=read(false,ok,a->transport.fetch(target,a));
             if(!snapshot.feed.context().equals(s.contextId)||!snapshot.feed.name.equals(target.name))throw new IOException("Snapshot target changed");
+            step=MissionReadFailure.Stage.METADATA_INTAKE;
             List<UUID> receipts=onWorker(ok,()->{
                 if(!inbox.load().inboxId.equals(s.inboxId))throw new IOException("Inbox does not belong to this sync state");
                 Map<UUID,TmmDraft> observations=new HashMap<>();for(TmmDraft draft:local.load().activeDrafts())observations.put(draft.uid,draft);
@@ -189,20 +193,27 @@ public final class FeedFollowUi {
                 for(InboxStore.Receipt r:inbox.receiveBatch(s.contextId,snapshot.metadata,observations,Instant.now()))ids.add(r.id);
                 return ids;
             });
+            step=MissionReadFailure.Stage.RESOURCE_LIST;
             List<Resource> resources=read(false,ok,a->transport.images(target,a));
+            step=MissionReadFailure.Stage.STAGE_LOOKUP;
             Map<String,List<ImageAssociationRegistry.Record>> staged=onWorker(ok,()->staged(s.inboxId));
             List<ImageAssociationRegistry.Record> records=new ArrayList<>();
             for(Resource resource:resources){
                 List<ImageAssociationRegistry.Record> known=staged.get(resource.hash);
                 if(known!=null){records.addAll(known);continue;}
+                step=MissionReadFailure.Stage.IMAGE;
                 ReceivedImagePayload payload=read(true,ok,a->transport.image(target,resource,a));
+                step=MissionReadFailure.Stage.IMAGE_INTAKE;
                 records.add(onWorker(ok,()->new ReceivedImageIntake(inbox,registry,stage,local).receive(s.contextId,payload,Instant.now(),ok)));
             }
             FeedSyncState.Snapshot applied;
             try{applied=onWorker(ok,()->apply.apply(s,receipts,records,ok));}catch(Exception|OutOfMemoryError notApplied){applied=null;}
             FeedSyncState.Snapshot written=applied;
-            host.post(()->finished(token,receipts,records,written,false));
-        }catch(Exception|OutOfMemoryError failed){host.post(()->finished(token,null,null,null,true));}
+            host.post(()->finished(token,receipts,records,written,null));
+        }catch(Exception|OutOfMemoryError failed){
+            MissionReadFailure failure=MissionReadFailure.at(step,failed);
+            host.post(()->finished(token,null,null,null,failure));
+        }
     }
     /** Registry-referenced stage entries by the SHA-256 of their container v1 bytes, which is the feed resource hash. */
     private Map<String,List<ImageAssociationRegistry.Record>> staged(UUID inboxId)throws IOException {
@@ -223,7 +234,7 @@ public final class FeedFollowUi {
     private <T>T read(boolean image,BooleanSupplier ok,Network<T> operation)throws Exception {
         require(ok);MissionReadAttempt attempt=image?MissionReadAttempt.forImage(System.nanoTime()):new MissionReadAttempt(System.nanoTime());
         pending=attempt;Runnable deadline=attempt::cancel;handler.postDelayed(deadline,image?60_000:12_000);
-        try{T result=operation.run(attempt);if(!attempt.active(System.nanoTime()))throw new IOException("Read deadline");require(ok);return result;}
+        try{T result=operation.run(attempt);if(!attempt.active(System.nanoTime()))throw new SocketTimeoutException("Read deadline");require(ok);return result;}
         finally{handler.removeCallbacks(deadline);if(pending==attempt)pending=null;}
     }
     /** Store work stays on the planner's serialized worker; the fetch thread waits for it. */
@@ -232,10 +243,10 @@ public final class FeedFollowUi {
         try{return task.get();}catch(ExecutionException failed){throw failed.getCause() instanceof Exception?(Exception)failed.getCause():failed;}
     }
     private static void require(BooleanSupplier ok)throws IOException {if(Thread.currentThread().isInterrupted()||!ok.getAsBoolean())throw new IOException("Feed fetch canceled");}
-    private void finished(long token,List<UUID> receipts,List<ImageAssociationRegistry.Record> records,FeedSyncState.Snapshot written,boolean failed){
+    private void finished(long token,List<UUID> receipts,List<ImageAssociationRegistry.Record> records,FeedSyncState.Snapshot written,MissionReadFailure failure){
         if(closed||generation.get()!=token)return;
         running=false;pending=null;
-        if(!failed){
+        if(failure==null){
             delay=INTERVAL;paused=null;if(written!=null)state=written;
             status="Senaste hämtning lyckades: "+receipts.size()+" metadataposter, "+records.size()+" bilder. "
                     +(written==null?"Lokala uppdateringar kunde inte tillämpas; nytt försök vid nästa hämtning."
@@ -244,7 +255,7 @@ public final class FeedFollowUi {
         }else{
             String reason=following()?pauseReason():null;
             if(reason!=null)pause(reason);
-            else{delay=Math.min(delay*2,MAX_INTERVAL);status="Hämtningen misslyckades. Nytt försök om "+delay/1000+" s. Mottagen historik behålls.";}
+            else{delay=Math.min(delay*2,MAX_INTERVAL);status="Hämtningen misslyckades. "+failure.summary()+" Återförsöksintervall: "+delay/1000+" s. Mottagen historik behålls.";}
         }
         host.statusChanged();
         reschedule();

@@ -31,7 +31,8 @@ public final class MissionImageFetch {
             List<MissionImageInput.Resource> after=http.get(path,"application/json",MissionImageInput.MAX_BYTES,
                     input->MissionImageInput.read(feed,input,active));
             member(after,selected);require(active);return result;
-        }catch(se.tmm.sensorplanner.images.ImagePreparationException safe){throw safe;}
+        }catch(MissionReadFailure safe){throw safe;}
+        catch(se.tmm.sensorplanner.images.ImagePreparationException safe){throw safe;}
         catch(Exception unavailable){throw new IOException("Selected feed image download could not be verified");}
         catch(OutOfMemoryError exhausted){throw new se.tmm.sensorplanner.images.ImagePreparationException(se.tmm.sensorplanner.images.ImagePreparationException.Reason.LOW_MEMORY);}
     }

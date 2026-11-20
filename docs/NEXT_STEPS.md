@@ -26,8 +26,7 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   and removal on TAK Server 5.8. Its native Data Sync step was a stand-in.
 - Signed candidate 31 installed on both isolated standard lab clients. Native
   two-client acceptance remains **unverified**: the run was interrupted by host
-  memory pressure before any acceptance point passed. Installation is not loading
-  or workflow acceptance; the signing record predates this installation attempt.
+  memory pressure before any acceptance point passed.
 - The two-emulator plus Docker lab is stopped. Do not restart that combination on
   the 8 GiB development laptop. The private launchers are disabled; use the
   [resource preflight and guard procedure](TESTING.md#resource-bounded-lab-runs).
@@ -41,10 +40,11 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 
 ## Immediate follow-up from owner phone testing (#252)
 
-- **First: #280**, diagnose TMM fetch failure: the owner sees the test item in
-  native **Map Items**, but TMM has no received metadata or review decisions after
-  manual refresh. Add safe stage diagnostics; distinguish an early failure from a
-  snapshot without accepted TMM metadata. Generic retries occur before local apply.
+- **First: #280**, the owner sees the test item in native **Map Items**, but TMM
+  receives no metadata after manual refresh. PR #285 adds read-only stage/category
+  diagnostics; requests, validation and formats remain unchanged. Static retry
+  text states an interval, not a countdown. Phone root cause and the next signed
+  diagnostic candidate remain pending.
 - **#278:** published markers open native sensor controls instead of TMM review.
   There is no native TMM review binding; verify the SDK menu mechanism while
   preserving native Data Sync selection.

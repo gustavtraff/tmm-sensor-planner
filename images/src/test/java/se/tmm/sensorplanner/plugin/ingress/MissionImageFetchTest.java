@@ -51,6 +51,21 @@ public class MissionImageFetchTest {
         assertEquals(ImageContainerCodec.read(new ByteArrayInputStream(b)).offer.metadata.uid,payload.offer.metadata.uid);
         assertArrayEquals(ImageContainerCodec.read(new ByteArrayInputStream(b)).image.bytes(),payload.image.bytes());
     }
+    @Test public void safeReadDiagnosticSurvivesImageOverviewAndContentReads()throws Exception {
+        byte[] b=bytes();MissionImageInput.Resource r=selected(b);
+        for(int failAt:new int[]{1,2,3}) {
+            Http good=new Http(b);
+            MissionReadFailure expected=new MissionReadFailure(MissionReadFailure.Stage.IMAGE,MissionReadFailure.Kind.HTTP,403);
+            MissionImageFetch.Exchange failed=new MissionImageFetch.Exchange() {
+                @Override public <T>T get(String path,String accept,int limit,MissionImageFetch.Decoder<T> decoder)throws IOException {
+                    if(good.calls+1==failAt)throw expected;
+                    return good.get(path,accept,limit,decoder);
+                }
+            };
+            assertSame(expected,assertThrows(MissionReadFailure.class,()->MissionImageFetch.read(FEED,r,failed,()->true)));
+            assertEquals(failAt-1,good.calls);
+        }
+    }
     @Test public void absentOrChangedMembershipCannotAuthorizeReadableBytes()throws Exception {
         byte[] b=bytes();MissionImageInput.Resource r=selected(b);
         Http absent=new Http(b);absent.before=overview(new JSONArray());
