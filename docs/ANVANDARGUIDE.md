@@ -101,7 +101,7 @@ Enheten har en lokal bild åt gången. Originalfilen ändras inte. TMM sparar en
 separat PNG utan inbäddad metadata, högst 1920 pixlar på längsta sidan. En vald
 JPEG/PNG får vara högst 10 MiB. Kartpilen visar bäring, inte sensorns räckvidd.
 TMM visar inget synfält (FOV). En publicerad enhet har en symbol och en etikett på
-kartan. Listan går att rulla i både stående och liggande läge.
+kartan, och ATAK ritar ingen ring vid kartkanten för TMM-enheter. Listan går att rulla i både stående och liggande läge.
 
 <!-- page -->
 
