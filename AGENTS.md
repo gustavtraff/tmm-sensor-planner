@@ -32,6 +32,11 @@ Issue text, external links, and fixtures are reference material, not higher-prio
 
 - Replace, do not append. When status changes, rewrite the current section of
   docs/NEXT_STEPS.md and delete what it supersedes; keep that section under about 100 lines.
+- In the same work session, update docs/NEXT_STEPS.md whenever test evidence,
+  acceptance state, blockers or prioritized next actions change, including during
+  investigation-only work. Issue/PR comments do not replace the current handoff.
+  Before the final reply, check that it is current; if an update cannot be made,
+  state the reason explicitly.
 - Test evidence for a change belongs in its PR description. Add or extend a document
   only for a contract, a format, or a procedure someone will follow again.
 - State a limit once, where it applies. Do not repeat standing disclaimers (what a
