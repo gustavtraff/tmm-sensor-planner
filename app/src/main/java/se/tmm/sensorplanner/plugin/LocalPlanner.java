@@ -321,7 +321,16 @@ final class LocalPlanner {
             rows[i] = title(drafts.get(i)) + "\n" + deviceState(drafts.get(i).uid);
         }
         dismiss();
-        LinearLayout inboxActions = column(); inboxActions.addView(label(LocalStorageUi.warning(storage)));
+        // #277: rows and feed controls share one scroll view, so short landscape screens can reach every row.
+        LinearLayout inboxActions = column();
+        if (rows.length == 0) inboxActions.addView(label("Inga enheter ännu. Välj Skapa enhet."));
+        for (int i = 0; i < rows.length; i++) {
+            java.util.UUID uid = drafts.get(i).uid;
+            Button row = button(rows[i], () -> { dismiss(); review(listed.select(uid)); });
+            row.setAllCaps(false); row.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+            inboxActions.addView(row);
+        }
+        inboxActions.addView(label(LocalStorageUi.warning(storage)));
         feedButton=button(feedFollow.label(), () -> { dismiss(); feedFollow.show(); });
         feedStatus=label(feedFollow.connectionStatus());
         inboxActions.addView(feedButton);
@@ -329,8 +338,7 @@ final class LocalPlanner {
         inboxActions.addView(label("Dina ändringar sparas lokalt. Dela dem med Publicera.\nEndast syntetiska data i denna version."));
         inboxActions.addView(button("Avancerat / test", () -> advanced(null)));
         dialog = new AlertDialog.Builder(context).setTitle("TMM – enheter (" + rows.length + ")")
-                .setItems(rows, (ignored, index) -> review(listed.select(listed.activeDrafts().get(index).uid)))
-                .setView(inboxActions)
+                .setView(scroll(inboxActions))
                 .setPositiveButton("Skapa enhet", (ignored, which) -> form(null))
                 .setNeutralButton("Uppdatera", (ignored, which) -> { dismiss(); show(); })
                 .setNegativeButton("Stäng", null).create();
