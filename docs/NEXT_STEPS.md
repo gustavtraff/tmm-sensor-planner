@@ -41,10 +41,10 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 ## Immediate follow-up from owner phone testing (#252)
 
 - **First: #280**, the owner sees the test item in native **Map Items**, but TMM
-  receives no metadata after manual refresh. Read-only stage/category diagnostics
-  are implemented for review; requests, validation and formats remain unchanged.
-  The static retry text now states an interval, not a countdown. Phone root cause
-  and the next signed diagnostic candidate remain pending.
+  receives no metadata after manual refresh. PR #285 adds read-only stage/category
+  diagnostics; requests, validation and formats remain unchanged. Static retry
+  text states an interval, not a countdown. Phone root cause and the next signed
+  diagnostic candidate remain pending.
 - **#278:** published markers open native sensor controls instead of TMM review.
   There is no native TMM review binding; verify the SDK menu mechanism while
   preserving native Data Sync selection.
