@@ -15,7 +15,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   M1–M7 and G1–G5; their contracts remain authoritative.
 - **Candidate 35** (`versionCode 35`, `0.1.0-feed-sync-trial.3`, #252) is prepared from
   main `64a016d` under owner approval: everything listed under "Next: candidate 35" plus #308
-  (no off-screen ring for TMM devices), version metadata only. Not yet signed.
+  (no off-screen ring for TMM devices), version metadata only. Signed: signature,
+  package/version, APK packaging and feature-marker checks passed; signer matches
+  candidate 34. Private record `private-data/releases/v35/verification.json`. Not yet installed.
 - **Candidate 34** (`versionCode 34`, `0.1.0-feed-sync-diagnostics.2`, #252) was prepared
   from main `df9dc5c` under owner approval: candidate 33 plus the #291 fix, version
   metadata only. Signed: signature, package/version and APK packaging checks passed;
