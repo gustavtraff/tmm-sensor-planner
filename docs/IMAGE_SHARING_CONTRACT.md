@@ -39,6 +39,14 @@ bytes. Without the replacement, the publisher's own next fetch would report a
 conflict. The replacement is refused when the device changed after the review. This is
 the only departure from "never rewrite the active local image" (decision B).
 
+**Upload name, approved by the owner on 2026-11-20 (#302):** **Publicera** uploads a
+photo under the server name `TMM-bild-<ID>-r<revision>-<hash8>.tmmi`. `<ID>` is the
+visible device ID at publication, with å/ä/ö written as a/a/o, every other run of
+characters outside `A–Z a–z 0–9` replaced by `-`, and at most 40 characters (`enhet` if
+nothing remains). `<hash8>` is the first 8 hex characters of the container's SHA-256.
+The name is a label only: receivers accept any `.tmmi` name and identify photos by
+content and hash. Older uploads keep their random names.
+
 **Decision update, 2026-10-29:** the owner explicitly approved recommendations
 **A–F and H**, with **Data Sync-feed as the target for G**. A contact transfer does
 not replace that target. This adopts the logical rules and format-review gates;
