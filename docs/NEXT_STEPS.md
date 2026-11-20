@@ -66,8 +66,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   existing test item without an intentional TMM edit. Code review: TMM drafts are not
   ATAK MapItems, TMM touches the native copy only on explicit **Publicera**, and it
   listens to map clicks only, so the prompt is most likely native Data Sync behavior.
-  Unconfirmed sends are not established; a phone reproduction with the native event
-  sequence is still needed before any fix.
+  On candidate 33 no prompt appeared unprompted; the toggle itself was not tried.
+  Next: on candidate 34 toggle only that setting, record prompt, Data Sync log and
+  whether **No** sends anything.
 - **#279 (in main after candidate 34):** list and review show session-only metadata
   evidence from the latest read of the followed feed: confirmed with time, absent,
   different, failed check (keeps only the last success time) or not checked. Review
