@@ -384,6 +384,18 @@ final class LocalPlanner {
         return "Skiljer sig från feeden · kontrollerad " + clock(checked.checkedAt);
     }
 
+    /** A native copy appeared after the last refresh: redraw so TMM drops its duplicate label. */
+    private void rerenderLayer() {
+        if (closed || layer == null || nativeIcons == null) return;
+        try {
+            java.util.List<UUID> uids = new java.util.ArrayList<>();
+            for (TmmDraft draft : drafts) uids.add(draft.uid);
+            layer.render(drafts, nativeIcons.show(uids));
+        } catch (Exception failure) {
+            ui.showToast("Kartvyn kunde inte uppdateras. Öppna verktyget igen.");
+        }
+    }
+
     private static String clock(java.time.Instant at) {
         return java.time.format.DateTimeFormatter.ofPattern("HH:mm").format(at.atZone(java.time.ZoneId.systemDefault()));
     }
@@ -739,7 +751,7 @@ final class LocalPlanner {
             if (layer == null) layer = new LocalDraftLayer(map, this::selected);
             java.util.Set<UUID> copies = java.util.Collections.emptySet();
             try {
-                if (nativeIcons == null) nativeIcons = new NativeCopyIcons(map);
+                if (nativeIcons == null) nativeIcons = new NativeCopyIcons(map, this::rerenderLayer);
                 java.util.List<UUID> uids = new java.util.ArrayList<>();
                 for (TmmDraft draft : drafts) uids.add(draft.uid);
                 copies = nativeIcons.show(uids);

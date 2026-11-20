@@ -6,6 +6,7 @@ import com.atakmap.android.maps.MapEventDispatcher;
 import com.atakmap.android.maps.MapItem;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.android.maps.Marker;
+import com.atakmap.android.maps.SensorFOV;
 import java.util.*;
 import se.tmm.sensorplanner.plugin.publication.PublicationCot;
 
@@ -22,14 +23,19 @@ import se.tmm.sensorplanner.plugin.publication.PublicationCot;
 @TargetApi(26)
 final class NativeCopyIcons implements AutoCloseable {
     private final MapView map;
-    private final MapEventDispatcher.MapEventDispatchListener added = event -> apply(event.getItem());
+    private final Runnable changed;
+    private final MapEventDispatcher.MapEventDispatchListener added;
     private static final String NO_HALO = "disable_offscreen_indicator";
+    private static final String FOV_SUFFIX = com.atakmap.android.cot.detail.SensorDetailHandler.UID_POSTFIX;
     private final Set<Marker> hidden = new HashSet<>();
     private Set<String> uids = Collections.emptySet();
     private boolean closed;
 
-    NativeCopyIcons(MapView map) {
+    NativeCopyIcons(MapView map, Runnable changed) {
         this.map = Objects.requireNonNull(map);
+        this.changed = Objects.requireNonNull(changed);
+        // A re-added native copy must also drop TMM's duplicate label, so the planner re-renders.
+        added = event -> { MapItem item = event.getItem(); if (!hideFov(item) && apply(item)) this.changed.run(); };
         map.getMapEventDispatcher().addMapEventListener(MapEvent.ITEM_ADDED, added);
     }
 
@@ -52,7 +58,21 @@ final class NativeCopyIcons implements AutoCloseable {
         Marker marker = (Marker) item;
         if (marker.getIconVisibility() == Marker.ICON_VISIBLE) { marker.setIconVisibility(Marker.ICON_INVISIBLE); hidden.add(marker); }
         if (!marker.hasMetaValue(NO_HALO)) { marker.setMetaBoolean(NO_HALO, true); hidden.add(marker); }
+        hideFov(map.getMapItem(marker.getUID() + FOV_SUFFIX));
         return marker.getIconVisibility() == Marker.ICON_INVISIBLE;
+    }
+
+    /**
+     * Candidate 35 phone test: a default FOV created before hideFov stays as its own SensorFOV item
+     * ({@code <uid>-fov}, SensorDetailHandler.UID_POSTFIX). Hide it locally; it is not restored on unload
+     * because TMM never set those values.
+     */
+    private boolean hideFov(MapItem item) {
+        if (closed || !(item instanceof SensorFOV) || !item.getUID().endsWith(FOV_SUFFIX)) return false;
+        String owner = item.getUID().substring(0, item.getUID().length() - FOV_SUFFIX.length());
+        if (!uids.contains(owner)) return false;
+        if (item.getVisible()) item.setVisible(false);
+        return true;
     }
 
     private static void restore(Marker marker) {
