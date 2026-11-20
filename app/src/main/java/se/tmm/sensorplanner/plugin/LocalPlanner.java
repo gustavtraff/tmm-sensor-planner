@@ -80,6 +80,7 @@ final class LocalPlanner {
     private SnapshotInboxUi inboxUi;
     private final MissionSourceChoiceUi sourceChoice;
     private LocalDraftLayer layer;
+    private NativeTmmReviewMenu nativeMenu;
     private List<TmmDraft> drafts = Collections.emptyList();
     private AlertDialog dialog;
     private AlertDialog confirmation;
@@ -268,6 +269,12 @@ final class LocalPlanner {
                 + "\nKommentar: " + (m.comment.isEmpty() ? "Ingen" : m.comment) + "\nUUID: " + m.uid;
     }
 
+    private boolean acceptsNativeReview(UUID uid) {
+        if (closed || !localAllowed.getAsBoolean()) return false;
+        for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) return true;
+        return false;
+    }
+
     private void selected(UUID uid) {
         if (!closed && !isBusy() && (dialog == null || !dialog.isShowing()) && localAllowed.getAsBoolean()) {
             for (TmmDraft draft : drafts) if (draft.uid.equals(uid)) {
@@ -293,6 +300,7 @@ final class LocalPlanner {
     }
 
     private void clearLayer() {
+        if (nativeMenu != null) { nativeMenu.close(); nativeMenu = null; }
         drafts = Collections.emptyList();
         storage = null;
         if (layer != null) layer.close();
@@ -681,6 +689,12 @@ final class LocalPlanner {
     private void refresh(LocalV2Store.Inspection loaded) {
         storage = loaded;
         drafts = loaded.snapshot.activeDrafts();
+        if (nativeMenu == null) {
+            try { nativeMenu = new NativeTmmReviewMenu(map, this::acceptsNativeReview, this::selected); }
+            catch (RuntimeException unavailable) {
+                ui.showToast("TMM-kartmenyn kunde inte aktiveras. Öppna enheten i TMM-listan.");
+            }
+        }
         try {
             if (layer == null) layer = new LocalDraftLayer(map, this::selected);
             layer.render(drafts);
@@ -859,6 +873,7 @@ final class LocalPlanner {
 
     void close() {
         closed = true;
+        if (nativeMenu != null) { nativeMenu.close(); nativeMenu = null; }
         publishUi.close();
         photos.close();
         feedFollow.close();
