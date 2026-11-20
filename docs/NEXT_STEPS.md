@@ -13,11 +13,12 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - Automatic receiving (#236/#242), **Publicera** with photo (#243/#264), and geometry
   updates (#189/#259) are merged. The approved decisions are U1–U8, S1–S4, W1–W5,
   M1–M7 and G1–G5; their contracts remain authoritative.
-- **Candidate 34** (`versionCode 34`, `0.1.0-feed-sync-diagnostics.2`, #252) is prepared
+- **Candidate 34** (`versionCode 34`, `0.1.0-feed-sync-diagnostics.2`, #252) was prepared
   from main `df9dc5c` under owner approval: candidate 33 plus the #291 fix, version
   metadata only. Signed: signature, package/version and APK packaging checks passed;
   signer matches candidate 33. Private record `private-data/releases/v34/verification.json`.
-  Owner check: update install, one **Uppdatera nu**, then the #283 toggle-only test.
+  Owner phone checks passed: update install, fetch (#280), toggle test (#283) and the
+  #278 menu.
 - **Candidate 33** (`versionCode 33`, `0.1.0-feed-sync-diagnostics.1`, #252) is signed
   from main `4967945` (PR #289): #285 stage diagnostics, #286 native TMM review menu and
   #288 rule labels. Signature, package/version and APK packaging checks passed; its
@@ -51,26 +52,16 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 
 ## Immediate follow-up from owner phone testing (#252)
 
-- **First: #280.** Root cause found on signed candidate 33 (owner phone, 20 Nov): the
-  metadata read failed with rule "ett objekt har fler än 64 element i detail". The feed
-  holds native drawings, and ATAK writes one detail element per vertex. The 64-child cap
-  applied to every event, although non-TMM events are only counted. The fix limits it to
-  TMM events; the 64 KiB reply bound is unchanged. Owner A/B checks passed on candidate 33:
-  update install, loading, retained data, menu, correct review, drawings unaffected, Map
-  Select and rotation. Next: candidate 34 and one fetch; a later stage (for example the
-  non-TMM files in the resource list) may still fail, and its rule label will show.
+- **#280 resolved** on signed candidate 34 (owner phone, 20 Nov): manual and automatic
+  fetches succeed (1 metadata record, 0 images, nothing changed locally); **Mottagna
+  metadata** lists the test device. Cause was the detail-child cap on native drawings
+  (#291). Two-phone receipt, readback, reconnect and restart remain under #252.
 - **#278 (merged, PR #286):** a transient native TMM menu routes accepted local/adopted
   UUIDs to TMM review, replacing irrelevant sensor editing controls. It leaves item
-  metadata and exports unchanged. SDK/resource compilation and UUID-gate tests passed.
-  Signed candidate 32 does not contain it; signed-phone rendering, Data Sync
-  selection, restart and unload remain under #252 for the next signed candidate.
-- **#283:** toggling native **Show non-feed content** prompts publication of the
-  existing test item without an intentional TMM edit. Code review: TMM drafts are not
-  ATAK MapItems, TMM touches the native copy only on explicit **Publicera**, and it
-  listens to map clicks only, so the prompt is most likely native Data Sync behavior.
-  On candidate 33 no prompt appeared unprompted; the toggle itself was not tried.
-  Next: on candidate 34 toggle only that setting, record prompt, Data Sync log and
-  whether **No** sends anything.
+  metadata and exports unchanged. Passed on candidates 33/34: rendering, correct review,
+  drawings keep native menus, Map Select and rotation. Restart/unload remain under #252.
+- **#283 closed, not reproduced:** on candidates 33 and 34 no publication prompt
+  appeared, including when **Show non-feed content** was toggled off and on.
 - **#279 (in main after candidate 34):** list and review show session-only metadata
   evidence from the latest read of the followed feed: confirmed with time, absent,
   different, failed check (keeps only the last success time) or not checked. Review
@@ -79,8 +70,8 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
 - **#277 (fixed in main after candidate 34):** device rows and feed controls now share
   one scroll view; the actions stay in the dialog button bar. Other planner dialogs
   already scroll. Phone check in both orientations is pending a later signed candidate.
-- The guides must describe the #278 menu, #277 layout and #279 states before the
-  next candidate is handed to users.
+- **Next: candidate 35** with #277, #279 and #297 (label the marker action **Öppna enhet**).
+  The guides must describe the menu, layout and #279 states before it reaches users.
 - Resolve these gaps before repeating the complete two-phone protocol. Data Sync
   log entries and visible map items alone do not pass the integrated acceptance.
 
