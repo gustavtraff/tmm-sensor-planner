@@ -42,7 +42,7 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
     public List<MissionImageInput.Resource> images(MissionSnapshotInput.Feed feed,MissionReadAttempt attempt)throws IOException {
         try(Read read=begin(attempt)) {
             if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
-            return read.get("/api/missions/guid/"+feed.guid,"application/json",MissionImageInput.MAX_BYTES,
+            return read.get(MissionReadFailure.Stage.RESOURCE_LIST,"/api/missions/guid/"+feed.guid,"application/json",MissionImageInput.MAX_BYTES,
                     in->MissionImageInput.read(feed,in,read::active));
         }
     }
@@ -52,7 +52,7 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
             if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
             return MissionImageFetch.read(feed,selected,new MissionImageFetch.Exchange() {
                 public <T>T get(String path,String accept,int maxBytes,MissionImageFetch.Decoder<T> decoder)throws IOException {
-                    return read.get(path,accept,maxBytes,decoder);
+                    return read.get(MissionReadFailure.Stage.IMAGE,path,accept,maxBytes,decoder);
                 }
             },read::active);
         }
@@ -76,8 +76,8 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
     }
     /** A failed exchange: the HTTP status when one arrived (else -1) and whether the request may have left the device. */
     private static final class Failed extends IOException {
-        final int status;final boolean sent;
-        Failed(int status,boolean sent){this.status=status;this.sent=sent;}
+        final int status;final boolean sent;final MissionReadFailure diagnostic;
+        Failed(int status,boolean sent,MissionReadFailure diagnostic){this.status=status;this.sent=sent;this.diagnostic=diagnostic;}
     }
     /** Body sent at most once: not repeatable, so the client cannot replay it; records whether writing began. */
     private static final class Body extends AbstractHttpEntity {
@@ -98,33 +98,33 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
         private boolean active(){return allowed.getAsBoolean()&&attempt.active(System.nanoTime())&&!Thread.currentThread().isInterrupted();}
         private void require()throws IOException {if(!active()||!defaultProvider())throw new IOException("Snapshot access unavailable");}
         List<MissionSnapshotInput.Feed> feeds()throws IOException {
-            return get("/api/missions","application/json",in->MissionSnapshotInput.feeds(in,this::active,endpoint.base));
+            return get(MissionReadFailure.Stage.FEED_LIST,"/api/missions","application/json",in->MissionSnapshotInput.feeds(in,this::active,endpoint.base));
         }
         MissionSnapshotInput.Snapshot fetch(MissionSnapshotInput.Feed feed)throws IOException {
             if(!endpoint.base.equals(feed.service))throw new IOException("Selected source changed");
             String route="/api/missions/guid/"+feed.guid;
-            Set<String> before=get(route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
-            List<TmmDraft> values=get(route+"/cot","application/xml",in->MissionSnapshotInput.metadata(in,before,this::active));
-            Set<String> after=get(route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
+            Set<String> before=get(MissionReadFailure.Stage.MEMBERSHIP_BEFORE,route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
+            List<TmmDraft> values=get(MissionReadFailure.Stage.COT,route+"/cot","application/xml",in->MissionSnapshotInput.metadata(in,before,this::active));
+            Set<String> after=get(MissionReadFailure.Stage.MEMBERSHIP_AFTER,route,"application/json",in->MissionSnapshotInput.members(feed,in,this::active));
             if(!before.equals(after))throw new IOException("Mission membership changed; fetch again");require();return new MissionSnapshotInput.Snapshot(feed,after,values);
         }
-        private <T>T get(String path,String accept,MissionImageFetch.Decoder<T> decoder)throws IOException {
-            return get(path,accept,MissionReadInput.MAX_BYTES,decoder);
+        private <T>T get(MissionReadFailure.Stage stage,String path,String accept,MissionImageFetch.Decoder<T> decoder)throws IOException {
+            return get(stage,path,accept,MissionReadInput.MAX_BYTES,decoder);
         }
-        private <T>T get(String path,String accept,int maxBytes,MissionImageFetch.Decoder<T> decoder)throws IOException {
+        private <T>T get(MissionReadFailure.Stage stage,String path,String accept,int maxBytes,MissionImageFetch.Decoder<T> decoder)throws IOException {
             try{
-                return exchange(HttpGet::new,path,accept,maxBytes,null,READ_MILLIS,response->{
+                return exchange(stage,HttpGet::new,path,accept,maxBytes,null,READ_MILLIS,response->{
                     String type=response.getContentType();
                     if(type==null||!type.toLowerCase(Locale.ROOT).matches(accept+"(?:\\s*;\\s*charset=utf-8)?"))throw new IOException();
                     return decoder.read(response.getBody());
                 });
-            }catch(IOException failed){throw new IOException("Mission snapshot read failed; nothing accepted");}
+            }catch(Failed failed){throw failed.diagnostic;}
         }
         /** One write; maps the exchange's failure to how far it got. A 403 is a feed permission refusal. */
         <T>T write(Request create,String path,byte[] body,String type,int readMillis,MissionImageFetch.Decoder<T> decoder)throws WriteFailure {
             if(!path.matches("[A-Za-z0-9/._:?&=-]{1,512}"))throw new WriteFailure(WriteFailure.Kind.NOT_SENT);
             // The add/remove replies echo the mission and are not read; the upload reply has its own 16 KiB bound.
-            try{return exchange(create,path,"application/json",MissionImageInput.MAX_BYTES,body==null?null:new Body(body,type),readMillis,response->decoder.read(response.getBody()));}
+            try{return exchange(null,create,path,"application/json",MissionImageInput.MAX_BYTES,body==null?null:new Body(body,type),readMillis,response->decoder.read(response.getBody()));}
             catch(Failed f){
                 if(f.status==403)throw new WriteFailure(WriteFailure.Kind.REFUSED);
                 if(f.status>=400&&f.status<500)throw new WriteFailure(WriteFailure.Kind.REJECTED);
@@ -135,9 +135,9 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
          * Shared request lifetime for reads and writes: ATAK's strict TLS factory for the stored profile, fixed origin,
          * no redirect or Basic fallback, bounded headers and reply, abort on cancel and full cleanup.
          */
-        private <T>T exchange(Request create,String path,String accept,int maxBytes,Body body,int readMillis,Reply<T> reply)throws Failed {
+        private <T>T exchange(MissionReadFailure.Stage stage,Request create,String path,String accept,int maxBytes,Body body,int readMillis,Reply<T> reply)throws Failed {
             HttpRequestBase request=null;TakHttpClient client=null;TakHttpResponse response=null;
-            T result=null;boolean failed=false,executing=false;int status=-1;
+            T result=null;boolean failed=false,executing=false;int status=-1;MissionReadFailure diagnostic=null;
             try{
                 require();CertificateManager.ExtendedSSLSocketFactory sockets=CertificateManager.getSockFactory(false,NetConnectString.fromString(endpoint.stream),false);
                 if(sockets==null)throw new IOException();client=new TakHttpClient(endpoint.base+"/Marti",sockets,5000,readMillis);
@@ -150,9 +150,19 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
                 request.getParams().setIntParameter(CoreConnectionPNames.MAX_HEADER_COUNT,32);request.getParams().setIntParameter(CoreConnectionPNames.MAX_LINE_LENGTH,4096);
                 executing=true;response=client.execute(request,false);status=response.getStatusCode();require();
                 String encoding=response.getHeaderString("Content-Encoding");
-                if(status!=200||(encoding!=null&&!encoding.isEmpty()&&!encoding.equalsIgnoreCase("identity"))||response.getLength()>maxBytes)throw new IOException();
+                if(status!=200||(encoding!=null&&!encoding.isEmpty()&&!encoding.equalsIgnoreCase("identity"))||response.getLength()>maxBytes){
+                    if(stage!=null)throw new MissionReadFailure(stage,status>=100&&status<=599&&status!=200?MissionReadFailure.Kind.HTTP:MissionReadFailure.Kind.RESPONSE,status>=100&&status<=599&&status!=200?status:0);
+                    throw new IOException();
+                }
                 result=reply.read(response);require();
-            }catch(Exception unavailable){failed=true;}
+            }catch(Exception unavailable){
+                failed=true;
+                if(stage!=null){
+                    diagnostic=MissionReadFailure.at(stage,unavailable);
+                    if(response==null&&diagnostic.kind==MissionReadFailure.Kind.RESPONSE)
+                        diagnostic=new MissionReadFailure(stage,MissionReadFailure.Kind.CONNECTION,0);
+                }
+            }
             finally{
                 current.compareAndSet(request,null);
                 try{if(request!=null)request.abort();}catch(RuntimeException ignored){}
@@ -161,8 +171,8 @@ final class MissionSnapshotHttp implements se.tmm.sensorplanner.plugin.local.Sna
             }
             // Without a body, a started request may have reached the server; with one, only once writing began.
             boolean sent=status>=0||(body!=null?body.started:executing);
-            if(failed)throw new Failed(status,sent);
-            try{require();}catch(IOException late){throw new Failed(status,sent);}
+            if(failed)throw new Failed(status,sent,diagnostic!=null?diagnostic:stage==null?null:new MissionReadFailure(stage,MissionReadFailure.Kind.UNKNOWN,0));
+            try{require();}catch(IOException late){throw new Failed(status,sent,stage==null?null:MissionReadFailure.at(stage,late));}
             return result;
         }
         @Override public void close(){HttpRequestBase request=current.getAndSet(null);if(request!=null)request.abort();}
