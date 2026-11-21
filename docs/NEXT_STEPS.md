@@ -23,6 +23,9 @@ and catch up after reconnecting. See [the image contract](IMAGE_SHARING_CONTRACT
   off-screen ring for TMM devices, `TMM-bild-…` names, landscape list, icons restored
   after unload. Failed: a FOV wedge remained (an existing `<uid>-fov` item from before
   `hideFov`), and one device showed both labels. Both fixed on main after candidate 35.
+  **Two-phone result (owner, 21 Nov):** two devices published from one phone, including
+  photos, are visible on the second phone. Found: during the up-to-30 s publish wait TMM
+  ignored taps silently (looked like TMM closing); it now shows a notice.
 - **Candidate 34** (`versionCode 34`, `0.1.0-feed-sync-diagnostics.2`, #252) was prepared
   from main `df9dc5c` under owner approval: candidate 33 plus the #291 fix, version
   metadata only. Signed: signature, package/version and APK packaging checks passed;
