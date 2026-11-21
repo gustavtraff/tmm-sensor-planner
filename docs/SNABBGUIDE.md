@@ -62,7 +62,8 @@ Följ alternativet som TMM visar i förhandsvisningen:
 ### TMM visar NY ENHET I KARTAN
 
 Öppna rätt feed i ATAK:s **Data Sync**. Välj **Add Items**, markera enheten och
-tryck **Done**. Detta steg behövs utöver Publicera i TMM.
+tryck **Done**. Detta steg behövs utöver Publicera i TMM. Enheten går att välja i
+Data Sync först efter att du har tryckt **Publicera** i TMM.
 
 ### Annars: uppdatering av befintlig kartkopia
 

@@ -122,6 +122,11 @@ bestämmer vart uppgifterna skickas.
 Följ TMM:s förhandsvisning. Även en enhet som redan finns i feeden kan behöva en
 ny kartkopia i ATAK på den här telefonen.
 
+En ny enhet finns bara i TMM tills du trycker **Publicera** i förhandsvisningen. Först
+då skapar TMM enhetens markör i ATAK, och först då går den att välja i Data Sync.
+Medan TMM väntar på feeden (upp till 30 s) visar TMM ett meddelande om du försöker
+öppna verktyget.
+
 **TMM visar NY ENHET I KARTAN:** öppna den avsedda feeden i ATAK:s
 **Data Sync**, välj **Add Items**, markera enheten och tryck **Done**.
 Publicera i TMM gör inte hela detta första steg åt dig.

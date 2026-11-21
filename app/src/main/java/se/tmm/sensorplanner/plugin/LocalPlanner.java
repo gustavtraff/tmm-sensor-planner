@@ -297,7 +297,8 @@ final class LocalPlanner {
             return;
         }
         if (storageUi.isBusy()) { storageUi.load(showList); return; }
-        if (isBusy() || (dialog != null && dialog.isShowing())) return;
+        if (isBusy()) { if (showList) busyNotice(); return; }
+        if (dialog != null && dialog.isShowing()) return;
         storageUi.load(showList);
     }
 
@@ -317,7 +318,8 @@ final class LocalPlanner {
     }
 
     private void list() {
-        if (!localAccess() || closed || isBusy()) return;
+        if (!localAccess() || closed) return;
+        if (isBusy()) { busyNotice(); return; }
         LocalV2.Snapshot listed = storage.snapshot;
         String[] rows = rows();
         listedRows = rows;
@@ -545,7 +547,8 @@ final class LocalPlanner {
     private void form(Selection selected, boolean chooseOnOpen) {
         TmmDraft original = selected == null ? null : selected.draft;
         LocalV2.Snapshot formSnapshot = storage.snapshot;
-        if (closed || isBusy() || !localAccess()) return;
+        if (closed || !localAccess()) return;
+        if (isBusy()) { busyNotice(); return; }
         LinearLayout fields = column();
         fields.addView(label("Dina ändringar sparas lokalt. Dela dem med Publicera. Använd endast syntetiska testdata.\n"
                 + "Position anges i MGRS (5 + 5 siffror, 1 m ruta). Välj även plats på kartan."));
@@ -922,6 +925,13 @@ final class LocalPlanner {
     private void openServerTrial() {
         if (serverTrialAllowed()) trialCopyUi.show(trialTarget);
         else ui.showToast("Serverprovet avslutades: exakt en ansluten och vald server krävs");
+    }
+
+    /** Owner phone test 21 Nov: taps during the publish wait were ignored silently and looked like TMM closing. */
+    private void busyNotice() {
+        ui.showToast(publishUi.isBusy()
+                ? "Publicering pågår. TMM väntar på feeden i upp till 30 s – slutför Data Sync-steget och vänta på resultatet."
+                : "TMM är upptaget med en tidigare åtgärd. Försök igen om en stund.");
     }
 
     private boolean isBusy() { return imageTrial!=null&&imageTrial.isBusy() || storageUi.isBusy() || positionPicker != null || imagesUi.isBusy() || sharing.isBusy() || preparation.isBusy() || copyUi.isBusy() || trialCopyUi.isBusy() || trialConsent.isBusy() || inboxUi.isBusy() || sourceChoice.isBusy() || feedFollow.isBusy() || publishUi.isBusy(); }
